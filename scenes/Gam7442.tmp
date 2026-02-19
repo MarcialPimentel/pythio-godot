@@ -1,0 +1,124 @@
+[gd_scene load_steps=7 format=3 uid="uid://bvvo6vh75ja7w"]
+
+[ext_resource type="Script" path="res://scenes/game.gd" id="1_v6r81"]
+[ext_resource type="Script" path="res://scenes/PartyChoicePanel.gd" id="2_f30xa"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_i2045"]
+font_size = 64
+
+[sub_resource type="LabelSettings" id="LabelSettings_hmfwm"]
+font_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7oso7"]
+bg_color = Color(1, 0.533333, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xjq17"]
+bg_color = Color(0.230304, 0.639466, 0.878693, 1)
+
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_v6r81")
+
+[node name="StartScreen" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="VBoxContainer" parent="StartScreen"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="StartScreen/CenterContainer"]
+layout_mode = 2
+text = "Pythio"
+label_settings = SubResource("LabelSettings_i2045")
+horizontal_alignment = 1
+
+[node name="HighScoreLabel" type="Label" parent="StartScreen/CenterContainer"]
+layout_mode = 2
+text = "High Score: 0"
+label_settings = SubResource("LabelSettings_hmfwm")
+
+[node name="StartButton" type="Button" parent="StartScreen/CenterContainer"]
+custom_minimum_size = Vector2(300, 80)
+layout_mode = 2
+text = "Start Game"
+
+[node name="GameUI" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="HBoxContainer" parent="GameUI"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RoundLabel" type="Label" parent="GameUI/Header"]
+layout_mode = 2
+text = "Round 1"
+
+[node name="TimerLabel" type="Label" parent="GameUI/Header"]
+layout_mode = 2
+text = "15.0s"
+
+[node name="HealthContainer" type="VBoxContainer" parent="GameUI"]
+layout_mode = 1
+anchors_preset = -1
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CastBar" type="ProgressBar" parent="GameUI"]
+visible = false
+layout_mode = 0
+offset_right = 4.0
+offset_bottom = 27.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_7oso7")
+
+[node name="ManaBar" type="ProgressBar" parent="GameUI"]
+offset_right = 4.0
+offset_bottom = 27.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_xjq17")
+
+[node name="SpellContainer" type="HBoxContainer" parent="GameUI"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PartyPanel" type="Control" parent="GameUI"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_f30xa")
+
+[node name="GameOverPanel" type="Control" parent="GameUI"]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="GameOverContainer" type="VBoxContainer" parent="GameUI/GameOverPanel"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ScoreLabel" type="Label" parent="GameUI/GameOverPanel/GameOverContainer"]
+layout_mode = 2
+
+[node name="PlayAgainButton" type="Button" parent="GameUI/GameOverPanel/GameOverContainer"]
+layout_mode = 2
+
+[connection signal="pressed" from="StartScreen/CenterContainer/StartButton" to="." method="_on_start_pressed"]

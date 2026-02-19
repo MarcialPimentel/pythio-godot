@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=3 format=3 uid="uid://bo7e40norgh41"]
+
+[ext_resource type="Script" path="res://resources/spells/Spell.gd" id="1_0jcwu"]
+[ext_resource type="Texture2D" uid="uid://b6ckqr84ecseh" path="res://resources/spells/renew.png" id="1_bxjix"]
+
+[resource]
+script = ExtResource("1_0jcwu")
+id = "renew"
+display_name = "Renew"
+icon = ExtResource("1_bxjix")
+mana_cost = 25.0
+cast_time = 0.8
+effect_type = "hot"
+effect_value = 9.0
+effect_duration = 6.0

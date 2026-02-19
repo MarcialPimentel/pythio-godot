@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=3 format=3 uid="uid://sj5yhbvngfei"]
+
+[ext_resource type="Script" path="res://resources/spells/Spell.gd" id="1_h7vc0"]
+[ext_resource type="Texture2D" uid="uid://du1wg8ps7ixl3" path="res://resources/spells/flashheal.png" id="1_riaom"]
+
+[resource]
+script = ExtResource("1_h7vc0")
+id = "flash_heal"
+display_name = "Flash Heal"
+icon = ExtResource("1_riaom")
+mana_cost = 20.0
+cast_time = 0.0
+effect_type = "instant_heal"
+effect_value = 45.0
+effect_duration = 0.0

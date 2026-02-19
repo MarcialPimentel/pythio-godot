@@ -1,0 +1,49 @@
+[gd_scene load_steps=5 format=3 uid="uid://cgdgfutgy464u"]
+
+[ext_resource type="Script" path="res://scenes/target.gd" id="1_d07xr"]
+[ext_resource type="Texture2D" uid="uid://bko6ialxki3re" path="res://resources/shield.png" id="2_eikkp"]
+[ext_resource type="Script" path="res://components/HealthComponent.gd" id="3_svmpb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uc077"]
+
+[node name="PanelContainer" type="Button"]
+custom_minimum_size = Vector2(300, 60)
+offset_right = 300.0
+offset_bottom = 64.0
+script = ExtResource("1_d07xr")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 2
+offset_right = 300.0
+offset_bottom = 64.0
+texture = ExtResource("2_eikkp")
+stretch_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+offset_right = 300.0
+offset_bottom = 64.0
+
+[node name="health_bar" type="ProgressBar" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="shield_bar" type="ProgressBar" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_uc077")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 43.0
+text = "Health"
+horizontal_alignment = 1
+
+[node name="Target" type="Control" parent="."]
+layout_mode = 2
+anchors_preset = 0
+offset_right = 300.0
+offset_bottom = 64.0
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_svmpb")

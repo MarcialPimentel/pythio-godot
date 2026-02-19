@@ -1,0 +1,93 @@
+[gd_scene load_steps=6 format=3 uid="uid://brh0vle4muwi0"]
+
+[ext_resource type="Script" path="res://scenes/h_box_container.gd" id="1_16oqa"]
+[ext_resource type="Texture2D" uid="uid://bdsxdphfm50wo" path="res://resources/icons/harmor.png" id="2_5h300"]
+[ext_resource type="Texture2D" uid="uid://c1la1l1d7wfp0" path="res://resources/icons/larmor.png" id="3_2cn3q"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie608"]
+bg_color = Color(0.300024, 0.610346, 0.96027, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mfcx6"]
+bg_color = Color(0.606321, 0.531692, 0.912367, 1)
+
+[node name="PartyChoicePanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_16oqa")
+
+[node name="ChoicesContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 233
+
+[node name="LeftParty" type="Panel" parent="ChoicesContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ie608")
+
+[node name="LeftVBox" type="VBoxContainer" parent="ChoicesContainer/LeftParty"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LeftIcon" type="TextureRect" parent="ChoicesContainer/LeftParty/LeftVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("2_5h300")
+stretch_mode = 5
+
+[node name="LeftName" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Iron Vanguard"
+horizontal_alignment = 1
+
+[node name="LeftButton" type="Button" parent="ChoicesContainer/LeftParty/LeftVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+text = "Choose"
+
+[node name="RightParty" type="Panel" parent="ChoicesContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mfcx6")
+
+[node name="RightVBox" type="VBoxContainer" parent="ChoicesContainer/RightParty"]
+layout_mode = 0
+offset_right = 193.0
+offset_bottom = 206.0
+
+[node name="RightIcon" type="TextureRect" parent="ChoicesContainer/RightParty/RightVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("3_2cn3q")
+stretch_mode = 5
+
+[node name="RightName" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Arcane Glass"
+horizontal_alignment = 1
+
+[node name="RightButton" type="Button" parent="ChoicesContainer/RightParty/RightVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+text = "Choose"
