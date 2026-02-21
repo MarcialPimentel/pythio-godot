@@ -17,10 +17,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*res://autoload/GameManager.gd"
-SpellSystem="*res://autoload/SpellSystem.gd"
-TargetSystem="*res://autoload/TargetSystem.gd"
-PartyChoicePanel="*res://scenes/PartyChoicePanel.tscn"
+GameManager="*res://autoload/systems/GameManager.gd"
+SpellSystem="*res://autoload/systems/SpellSystem.gd"
+TargetSystem="*res://autoload/systems/TargetSystem.gd"
+PartyChoicePanel="*res://ui/PartyChoicePanel.tscn"
 
 [editor]
 

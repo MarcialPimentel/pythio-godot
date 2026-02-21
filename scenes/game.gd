@@ -1,19 +1,23 @@
+class_name Game
+
 extends Control
 
 @onready var start_screen: Control       = $StartScreen
 @onready var game_ui: Control            = $GameUI
 @onready var round_label: Label          = $GameUI/Header/RoundLabel
 @onready var timer_label: Label          = $GameUI/Header/TimerLabel
-@onready var health_container: VBoxContainer = $GameUI/HealthContainer
-@onready var cast_bar: ProgressBar       = $GameUI/CastBar
-@onready var mana_bar: ProgressBar       = $GameUI/ManaBar
+
+@onready var cast_bar: ProgressBar       = $GameUI/PlayerContainer/PlayerResources/CastBar
+@onready var mana_bar: ProgressBar       = $GameUI/PlayerContainer/PlayerResources/ManaBar
 @onready var spell_container: HBoxContainer  = $GameUI/SpellContainer
-@onready var party_panel: Control        = $GameUI/PartyChoicePanel
-@onready var game_over_panel: Control    = $GameUI/GameOverPanel
+
+@onready var party_choice_panel: Control = $GameUI/PartyChoicePanel
+@onready var party_container: HBoxContainer = $GameUI/PartyContainer/PartyTarget
 
 @onready var score_label: Label          = $StartScreen/CenterContainer/HighScoreLabel
 @onready var final_score_label: Label    = $GameUI/GameOverPanel/GameOverContainer/ScoreLabel   # ← fixed nesting
-@onready var party_choice_panel: Control = $GameUI/PartyChoicePanel   # rename var if needed
+
+@onready var game_over_panel: Control    = $GameUI/GameOverPanel
 
 
 var spell_buttons: Array[Button] = []
@@ -22,13 +26,15 @@ func _ready() -> void:
 	GameManager.game_over.connect(_on_game_over)
 	GameManager.show_party_choice.connect(_show_party_choice)
 	GameManager.round_started.connect(_on_new_round_started)
+	GameManager.round_ended.connect(_on_round_ended)
 	TargetSystem.target_added.connect(_add_target)
 	TargetSystem.loss_condition.connect(_on_loss)
+	TargetSystem.target_selected.connect(_on_target_pressed)
 	SpellSystem.cast_started.connect(_on_cast_start)
 	SpellSystem.cast_finished.connect(_on_cast_finish)
 	SpellSystem.selected_spell_changed.connect(_update_spell_ui)
 	score_label.text = "High Score: %d" % GameManager.high_score
-	party_panel.visible = false
+	party_choice_panel.visible = false
 	game_ui.visible = false
 	cast_bar.visible = false
 	start_screen.visible = true
@@ -55,27 +61,33 @@ func _process(delta: float) -> void:
 
 	_update_spell_ui()
 	_check_selected_target()
+	
 
 func _check_selected_target():
 	# Optional: highlight selected target
 	pass
 
 func _add_target(target: Node) -> void:
-	health_container.add_child(target)
-	target.pressed.connect(func(t): _on_target_pressed(t))
+	party_container.add_child(target)
+
+func _remove_target(target: Node) -> void:
+	party_container.remove_child(target)
 
 func _show_party_choice() -> void:
 	print("Showing party choice")
 	party_choice_panel.visible = true
 	party_choice_panel.setup(
-		preload("res://resources/parties/iron_vanguard.tres"),
-		preload("res://resources/parties/arcane_glass.tres")
+		preload("res://data/parties/iron_vanguard.tres"),
+		preload("res://data/parties/arcane_glass.tres")
 	)
 
 func _on_new_round_started(round: int) -> void:
-	party_panel.visible = false
+	party_choice_panel.visible = false
 	round_label.text = "Round %d" % round
-	health_container.visible = true
+	party_container.visible = true
+
+func _on_round_ended() -> void:
+	party_container.visible = false
 
 func _on_loss() -> void:
 	GameManager.end_round(false)
@@ -96,7 +108,8 @@ func _create_spell_buttons() -> void:
 		btn.custom_minimum_size = Vector2(64, 64)
 		btn.icon = spell.icon
 		btn.tooltip_text = "%s\nMana: %d" % [spell.display_name, spell.mana_cost]
-		btn.pressed.connect(func(): SpellSystem.selected_spell = spell)
+		#btn.pressed.connect(func(): SpellSystem.selected_spell = spell)
+		btn.pressed.connect(func(): _on_spell_pressed(spell))
 		spell_container.add_child(btn)
 		spell_buttons.append(btn)
 
@@ -111,6 +124,7 @@ func _update_spell_ui() -> void:
 		else:
 			btn.modulate = Color.WHITE
 
+
 var selected_spell: Spell = null
 
 func _on_spell_pressed(spell: Spell) -> void:
@@ -120,6 +134,7 @@ func _on_spell_pressed(spell: Spell) -> void:
 func _on_target_pressed(target: Node) -> void:
 	if selected_spell:
 		SpellSystem.try_cast(selected_spell, target)
+		TargetSystem.apply_spell(selected_spell, target)
 		selected_spell = null  # optional: deselect after cast
 	else:
 		print("No spell selected")

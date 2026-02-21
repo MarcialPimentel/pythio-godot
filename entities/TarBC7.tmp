@@ -1,0 +1,78 @@
+[gd_scene load_steps=5 format=3 uid="uid://cgdgfutgy464u"]
+
+[ext_resource type="Script" path="res://entities/Target.gd" id="1_d07xr"]
+[ext_resource type="Texture2D" uid="uid://bko6ialxki3re" path="res://resources/shield.png" id="2_eikkp"]
+[ext_resource type="Script" path="res://components/HealthComponent.gd" id="3_svmpb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uc077"]
+
+[node name="Target" type="Control"]
+custom_minimum_size = Vector2(300, 100)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_d07xr")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+custom_minimum_size = Vector2(300, 60)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_right = 52.0
+offset_bottom = 62.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Vbox" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TargetName" type="Label" parent="Panel/MarginContainer/Vbox"]
+layout_mode = 2
+text = "(targetname)"
+horizontal_alignment = 1
+
+[node name="shield_bar" type="ProgressBar" parent="Panel/MarginContainer/Vbox"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_styles/fill = SubResource("StyleBoxFlat_uc077")
+step = 1.0
+
+[node name="health_bar" type="ProgressBar" parent="Panel/MarginContainer/Vbox"]
+layout_mode = 2
+size_flags_vertical = 1
+step = 1.0
+
+[node name="TargetButton" type="Button" parent="Panel/MarginContainer"]
+visible = false
+light_mask = 0
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="Panel/MarginContainer"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+texture = ExtResource("2_eikkp")
+expand_mode = 1
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_svmpb")

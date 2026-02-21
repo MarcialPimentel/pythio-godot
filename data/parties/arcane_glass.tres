@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PartyPreset" load_steps=2 format=3 uid="uid://dsql36mvalsgk"]
+
+[ext_resource type="Script" path="res://data/parties/PartyPreset.gd" id="1_dft5g"]
+
+[resource]
+script = ExtResource("1_dft5g")
+display_name = "Arcane Glass"
+targets = Array[Dictionary]([{
+"count": 1,
+"type": "heavy"
+}, {
+"count": 3,
+"type": "light"
+}])
