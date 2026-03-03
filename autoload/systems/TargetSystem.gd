@@ -53,15 +53,28 @@ func _process(delta: float) -> void:
 	update_all(delta)
 
 func update_all(delta: float) -> void:
+	# Step 1: Remove any already-freed targets (prevents invalid access)
+	targets = targets.filter(func(t): return is_instance_valid(t))
+	
+	# Optional: Also remove if HP <= 0 (extra safety, though HealthComponent should handle)
+	# targets = targets.filter(func(t): return is_instance_valid(t) and t.health_comp.current_health > 0)
+	
+	burst_timer += delta
+	if burst_timer >= 5.0:
+		burst_timer = 0.0
+		if targets.size() > 0:
+			var random_target = targets[randi() % targets.size()]
+			random_target.pending_burst_time = 1.2
+	
+	var base_dps = 3.0 + float(GameManager.current_round) * 0.7
+	for target in targets:
+		# Safe access — we already filtered
+		var dps_mult = {"heavy": 0.8, "medium": 1.2, "light": 1.6}.get(target.armor_type, 1.0)
+		target.health_comp.take_damage(base_dps * dps_mult * delta)
+		target.health_comp.tick_effects(delta)
 	burst_timer += delta
 	if burst_timer >= 5.0:
 		burst_timer = 0.0
 		if targets.size() > 0:
 			var random_target = targets[randi() % targets.size()]
 			random_target.pending_burst_time = 1.2  # Telegraph + burst
-
-	var base_dps = 3.0 + float(GameManager.current_round) * 0.7
-	for target in targets:
-		var dps_mult = {"heavy": 0.8, "medium": 1.2, "light": 1.6}.get(target.armor_type, 1.0)
-		target.health_comp.take_damage(base_dps * dps_mult * delta)
-		target.health_comp.tick_effects(delta)
