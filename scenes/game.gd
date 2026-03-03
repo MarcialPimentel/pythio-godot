@@ -22,6 +22,9 @@ extends Control
 
 var spell_buttons: Array[Button] = []
 
+var current_contract: ContractData
+var selected_target: Node = null   # optional, helps with future hover casting
+
 func _ready() -> void:
 	GameManager.game_over.connect(_on_game_over)
 	GameManager.show_party_choice.connect(_show_party_choice)
@@ -39,6 +42,7 @@ func _ready() -> void:
 	cast_bar.visible = false
 	start_screen.visible = true
 	party_choice_panel.visible = false
+	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
 
 
 func _process(delta: float) -> void:
@@ -74,17 +78,50 @@ func _remove_target(target: Node) -> void:
 	party_container.remove_child(target)
 
 func _show_party_choice() -> void:
-	print("Showing party choice")
+	print("Showing party choice - procedural contracts")
 	party_choice_panel.visible = true
-	party_choice_panel.setup(
-		preload("res://data/parties/iron_vanguard.tres"),
-		preload("res://data/parties/arcane_glass.tres")
-	)
+	
+	# NEW: generate 2 choices (or 1 for boss round)
+	var current_round = GameManager.current_round   # assuming GameManager tracks this
+	var choices: Array = ContractGenerator.generate_two_choices(current_round)
+	
+	# Pass to panel (we'll update PartyChoicePanel.gd next to handle ContractData)
+	party_choice_panel.setup_contracts(choices)
+
+func _on_contract_chosen(chosen: ContractData) -> void:
+	current_contract = chosen
+	party_choice_panel.visible = false
+	
+	# Clear old targets (safety)
+	for child in party_container.get_children():
+		child.queue_free()
+	
+	# Spawn units from the contract data
+	for template: UnitTemplate in chosen.unit_templates:
+		var unit_scene = preload("res://entities/Target.tscn")  # adjust if your unit scene path is different
+		var unit = unit_scene.instantiate()
+		
+		# Apply health from template
+		var health_comp = unit.get_node("HealthComponent") as HealthComponent
+		if health_comp:
+			health_comp.max_health = template.base_max_health
+			health_comp.current_health = template.base_max_health  # or start lower for "injured"
+		
+		# Store extra data for future use (armor, burst, etc.)
+		unit.set_meta("armor_type", template.armor_type)
+		unit.set_meta("burst_threat", template.burst_threat)
+		if template.is_boss_unit:
+			unit.set_meta("is_boss", true)
+		
+		party_container.add_child(unit)
+	
+	# Tell systems the round can really start
+	GameManager.round_started.emit(GameManager.current_round)
+	print("Round started with contract:", chosen.contract_name)
 
 func _on_new_round_started(round: int) -> void:
 	party_choice_panel.visible = false
 	round_label.text = "Round %d" % round
-	party_container.visible = true
 
 func _on_round_ended() -> void:
 	party_container.visible = false

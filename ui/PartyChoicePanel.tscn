@@ -21,30 +21,43 @@ grow_vertical = 2
 script = ExtResource("1_dkfp8")
 
 [node name="ChoicesContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(600, 300)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_top = -120.0
-offset_bottom = -120.0
+offset_left = -300.0
+offset_top = -150.0
+offset_right = 300.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = -211
 
 [node name="LeftParty" type="Panel" parent="ChoicesContainer"]
+custom_minimum_size = Vector2(200, 300)
 layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_ie608")
 
 [node name="LeftVBox" type="VBoxContainer" parent="ChoicesContainer/LeftParty"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -96.5
+offset_top = -112.5
+offset_right = 96.5
+offset_bottom = 112.5
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="LeftIcon" type="TextureRect" parent="ChoicesContainer/LeftParty/LeftVBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 texture = ExtResource("2_5h300")
 stretch_mode = 5
@@ -62,18 +75,38 @@ custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 text = "Choose"
 
-[node name="RightParty" type="Panel" parent="ChoicesContainer"]
+[node name="LeftGold" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
 layout_mode = 2
+text = "Left Gold"
+
+[node name="LeftFlavor" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
+layout_mode = 2
+text = "Left Flavor"
+
+[node name="RightParty" type="Panel" parent="ChoicesContainer"]
+custom_minimum_size = Vector2(200, 300)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_mfcx6")
 
 [node name="RightVBox" type="VBoxContainer" parent="ChoicesContainer/RightParty"]
-layout_mode = 0
-offset_right = 193.0
-offset_bottom = 206.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -96.5
+offset_top = -112.5
+offset_right = 96.5
+offset_bottom = 112.5
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="RightIcon" type="TextureRect" parent="ChoicesContainer/RightParty/RightVBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(128, 128)
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture = ExtResource("3_2cn3q")
 stretch_mode = 5
@@ -91,6 +124,14 @@ custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 text = "Choose"
 
+[node name="RightGold" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
+layout_mode = 2
+text = "Right Gold"
+
+[node name="RightFlavor" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
+layout_mode = 2
+text = "Right Flavor"
+
 [node name="PartyChoiceText" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 8
@@ -98,10 +139,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -152.5
-offset_top = -168.0
-offset_right = 152.5
-offset_bottom = -145.0
+offset_left = -180.5
+offset_top = -219.0
+offset_right = 180.5
+offset_bottom = -179.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 29

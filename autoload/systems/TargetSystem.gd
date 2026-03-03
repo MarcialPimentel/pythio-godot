@@ -8,27 +8,27 @@ signal target_selected(target: Node)
 var targets: Array[Node] = []
 var burst_timer: float = 0.0
 
-func spawn_party(preset: PartyPreset) -> void:
-	for t in targets:
-		t.queue_free()
-	targets.clear()
-	var index = 0
-	for config in preset.targets:
-		var armor_type: String = config["type"]
-		var count: int = config["count"]
-		var max_hp: float = {"heavy": 100.0, "medium": 80.0, "light": 60.0}.get(armor_type, 100.0)
-		for _i in count:
-			var target = preload("res://entities/Target.tscn").instantiate()
-			target.armor_type = armor_type
-			target.max_hp = max_hp
-			target.index = index
-			targets.append(target)
-			target_added.emit(target)
-			target.health_comp.died.connect(func(): loss_condition.emit())
-			target.target_pressed.connect(_on_target_clicked)
-			targets.append(target)
-			target_added.emit(target)
-			index += 1
+#func spawn_party(preset: PartyPreset) -> void:
+	#for t in targets:
+		#t.queue_free()
+	#targets.clear()
+	#var index = 0
+	#for config in preset.targets:
+		#var armor_type: String = config["type"]
+		#var count: int = config["count"]
+		#var max_hp: float = {"heavy": 100.0, "medium": 80.0, "light": 60.0}.get(armor_type, 100.0)
+		#for _i in count:
+			#var target = preload("res://entities/Target.tscn").instantiate()
+			#target.armor_type = armor_type
+			#target.max_hp = max_hp
+			#target.index = index
+			#targets.append(target)
+			#target_added.emit(target)
+			#target.health_comp.died.connect(func(): loss_condition.emit())
+			#target.target_pressed.connect(_on_target_clicked)
+			#targets.append(target)
+			#target_added.emit(target)
+			#index += 1
 
 func apply_spell(spell: Spell, target: Node) -> void:
 	var hc = target.health_comp
