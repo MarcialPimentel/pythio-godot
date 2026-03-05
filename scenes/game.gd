@@ -180,9 +180,8 @@ func _on_target_selected(target: Node) -> void:
 		print("No spell selected")
 		return
 	
-	# Optional early checks (mana, casting state) – but prefer SpellSystem owns them
+	print("Requesting cast: ", selected_spell.display_name, " on target ", target.index if "index" in target else "?")
 	EventBus.spell_cast_requested.emit(selected_spell, target)
-	selected_spell = null  # deselect after request
 
 func _on_start_pressed() -> void:
 	start_screen.visible = false

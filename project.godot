@@ -30,6 +30,17 @@ EventBus="*res://autoload/events/EventBus.gd"
 version_control/plugin_name="GitPlugin"
 version_control/autoload_on_startup=true
 
+[file_customization]
+
+folder_colors={
+"res://assets/": "pink",
+"res://autoload/": "yellow",
+"res://components/": "gray",
+"res://data/": "blue",
+"res://resources/": "green",
+"res://scenes/": "orange"
+}
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

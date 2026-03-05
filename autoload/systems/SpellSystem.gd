@@ -21,6 +21,13 @@ func _ready() -> void:
 		load("res://resources/spells/renew.tres") as Spell,
 		load("res://resources/spells/shield.tres") as Spell
 	]
+	EventBus.spell_cast_requested.connect(_on_spell_cast_requested)
+
+func _on_spell_cast_requested(spell: Spell, target: Node) -> void:
+	if try_cast(spell, target):
+		print("Cast started: ", spell.display_name)
+	else:
+		print("Cast failed: ", spell.display_name)
 
 func try_cast(spell: Spell, target: Node) -> bool:
 	if is_casting:

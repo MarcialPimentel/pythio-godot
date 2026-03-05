@@ -39,7 +39,20 @@ func _ready() -> void:
 
 	if health_comp:
 			health_comp.health_changed.connect(_update_hp_display)
-			# Do NOT set max_value here – wait for tree entry
+			health_comp.shield_changed.connect(_update_shield_display)
+			
+			# Force initial update (in case signals missed)
+			_update_hp_display(health_comp.current_health)
+			_update_shield_display(health_comp.shield_amount)
+
+func _update_hp_display(hp: float) -> void:
+	if hp_bar:
+		hp_bar.value = hp
+
+func _update_shield_display(amount: float) -> void:
+	if shield_bar:
+		shield_bar.value = amount
+		shield_bar.visible = amount > 0  # hide when empty
 
 func _initialize_health_bar() -> void:
 	if not health_comp or not hp_bar:
@@ -62,10 +75,6 @@ func _notification(what: int) -> void:
 func _on_target_button_pressed() -> void:
 	# Emit your custom signal and pass 'self' as the target
 	EventBus.target_selected.emit(self)
-
-func _update_hp_display(hp: float) -> void:
-	if hp_bar:
-		hp_bar.value = hp
 
 func _process(delta: float) -> void:
 	if pending_burst_time > 0:

@@ -37,15 +37,19 @@ func take_damage(amount: float) -> void:
 
 func heal(amount: float) -> void:
 	current_health += amount
+	print("Healed target for ", amount, " → current_health: ", current_health)
 	health_changed.emit(current_health)
-
-func apply_hot(amount: float, duration: float) -> void:
-	hot_amount = amount
-	hot_time = duration
 
 func apply_shield(amount: float, duration: float) -> void:
 	shield_amount = maxf(shield_amount, amount)
 	shield_time = maxf(shield_time, duration)
+	print("Applied shield: ", amount, " for ", duration, "s → shield_amount: ", shield_amount)
+	shield_changed.emit(shield_amount)
+
+func apply_hot(amount: float, duration: float) -> void:
+	hot_amount = amount
+	hot_time = duration
+	print("Applied HOT: ", amount, "/s for ", duration, "s")
 
 func tick_effects(delta: float) -> void:
 	if hot_time > 0:
