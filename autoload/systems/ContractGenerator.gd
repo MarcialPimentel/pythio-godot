@@ -108,4 +108,6 @@ func _weighted_random_armor() -> String:
 		current += armor_weights[type]
 		if roll <= current:
 			return type
+		print("Rolled armor:", type)  # before return
+		return type
 	return "LIGHT"  # fallback

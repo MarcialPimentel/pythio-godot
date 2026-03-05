@@ -14,44 +14,38 @@ var mana: float = 100.0
 var max_mana: float = 100.0
 var regen_rate: float = 4.0
 
-const TOTAL_ROUNDS = 5
-const PARTY_PRESETS: Array[PartyPreset] = [
-	preload("res://data/parties/arcane_glass.tres") as PartyPreset,
-	preload("res://data/parties/iron_vanguard.tres") as PartyPreset,
-]
-
 func _ready() -> void:
 	load_high_score()
 
 func new_game() -> void:
 	current_round = 1
 	score = 0
-	mana = 100.0
-	max_mana = 100.0
+	mana = DifficultySystem.max_mana_base
+	max_mana = DifficultySystem.max_mana_base
 	in_round = false
-	round_time = 15.0
+	round_time = DifficultySystem.round_time_base
 	show_party_choice.emit()
-
-func start_round(choice: int) -> void:
-	var preset = PARTY_PRESETS[choice % 2]  # Alternate or fixed
-	TargetSystem.spawn_party(preset)
-	in_round = true
-	round_time = 15.0 + (current_round - 1) * 3.0
-	max_mana = 100.0 + (current_round - 1) * 8.0
-	mana = minf(max_mana, mana)
-	round_started.emit(current_round)
 
 func end_round(success: bool) -> void:
 	in_round = false
+	round_ended.emit()
+	
 	if success:
-		score += current_round * 100
-	if current_round < TOTAL_ROUNDS:
-		current_round += 1
-		round_ended.emit()
-		show_party_choice.emit()
+		score += current_round * 100  # later tie to gold
 	else:
 		game_over.emit(current_round, score)
 		save_high_score()
+		return
+	
+	current_round += 1
+	if current_round > DifficultySystem.total_rounds:
+		game_over.emit(DifficultySystem.total_rounds, score)
+		save_high_score()
+	else:
+		round_time = DifficultySystem.get_round_time(current_round)
+		max_mana = DifficultySystem.get_max_mana(current_round)
+		mana = minf(max_mana, mana)
+		show_party_choice.emit()
 
 func spend_mana(cost: float) -> bool:
 	if mana >= cost:

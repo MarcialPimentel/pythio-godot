@@ -22,6 +22,7 @@ SpellSystem="*res://autoload/systems/SpellSystem.gd"
 TargetSystem="*res://autoload/systems/TargetSystem.gd"
 PartyChoicePanel="*res://ui/PartyChoicePanel.tscn"
 ContractGenerator="*res://autoload/systems/ContractGenerator.gd"
+DifficultySystem="*res://autoload/systems/DifficultySystem.gd"
 
 [editor]
 

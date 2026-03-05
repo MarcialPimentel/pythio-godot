@@ -43,29 +43,26 @@ func _ready() -> void:
 	start_screen.visible = true
 	party_choice_panel.visible = false
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
-
+	TargetSystem.all_targets_dead.connect(_on_loss)
 
 func _process(delta: float) -> void:
 	if not GameManager.in_round:
 		return
+	
 	GameManager.round_time -= delta
+	if GameManager.round_time <= 0:
+		GameManager.round_time = 0
+		GameManager.end_round(true)
+		return
+	
 	timer_label.text = "%.1fs" % GameManager.round_time
 	GameManager.regen_mana(delta)
 	mana_bar.value = (GameManager.mana / GameManager.max_mana) * 100
-	if GameManager.in_round:
-		GameManager.round_time -= delta
-		timer_label.text = "%.1fs" % GameManager.round_time
-		if GameManager.round_time <= 0:
-			GameManager.end_round(true)
 	if SpellSystem.is_casting:
 		cast_bar.value = (SpellSystem.cast_progress / SpellSystem.current_spell.cast_time) * 100
-	if GameManager.round_time <= 0:
-		GameManager.end_round(true)
-
-
+	
 	_update_spell_ui()
 	_check_selected_target()
-	
 
 func _check_selected_target():
 	# Optional: highlight selected target
@@ -89,6 +86,14 @@ func _show_party_choice() -> void:
 	party_choice_panel.setup_contracts(choices)
 
 func _on_contract_chosen(chosen: ContractData) -> void:
+	current_contract = chosen
+	party_choice_panel.visible = false
+	
+	TargetSystem.spawn_from_contract(chosen)
+	
+	GameManager.in_round = true
+	GameManager.round_started.emit(GameManager.current_round)
+	print("Round started with contract:", chosen.contract_name, " - units:", chosen.unit_templates.size())
 	current_contract = chosen
 	party_choice_panel.visible = false
 	
@@ -209,6 +214,7 @@ func _on_new_round_started(round: int) -> void:
 
 func _on_round_ended() -> void:
 	party_container.visible = false
+	TargetSystem.clear_targets()  # foundational cleanup
 
 func _on_loss() -> void:
 	GameManager.end_round(false)

@@ -18,6 +18,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 script = ExtResource("1_dkfp8")
 
 [node name="ChoicesContainer" type="HBoxContainer" parent="."]
@@ -73,14 +75,20 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
+size_flags_horizontal = 4
 text = "Choose"
 
 [node name="LeftGold" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
 layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 10
 text = "Left Gold"
 
 [node name="LeftFlavor" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 10
 text = "Left Flavor"
 
 [node name="RightParty" type="Panel" parent="ChoicesContainer"]
@@ -122,14 +130,20 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
+size_flags_horizontal = 4
 text = "Choose"
 
 [node name="RightGold" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
 layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 10
 text = "Right Gold"
 
 [node name="RightFlavor" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 10
 text = "Right Flavor"
 
 [node name="PartyChoiceText" type="Label" parent="."]

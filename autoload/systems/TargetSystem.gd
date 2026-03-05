@@ -1,51 +1,53 @@
 extends Node
 
 signal target_added(target: Node)
+signal all_targets_dead
 signal loss_condition
-# Signal to tell Game.gd that a target was clicked
 signal target_selected(target: Node)
 
 var targets: Array[Node] = []
 var burst_timer: float = 0.0
 
-#func spawn_party(preset: PartyPreset) -> void:
-	#for t in targets:
-		#t.queue_free()
-	#targets.clear()
-	#var index = 0
-	#for config in preset.targets:
-		#var armor_type: String = config["type"]
-		#var count: int = config["count"]
-		#var max_hp: float = {"heavy": 100.0, "medium": 80.0, "light": 60.0}.get(armor_type, 100.0)
-		#for _i in count:
-			#var target = preload("res://entities/Target.tscn").instantiate()
-			#target.armor_type = armor_type
-			#target.max_hp = max_hp
-			#target.index = index
-			#targets.append(target)
-			#target_added.emit(target)
-			#target.health_comp.died.connect(func(): loss_condition.emit())
-			#target.target_pressed.connect(_on_target_clicked)
-			#targets.append(target)
-			#target_added.emit(target)
-			#index += 1
+func spawn_from_contract(contract: ContractData) -> void:
+	clear_targets()
+	
+	var index = 0
+	for template in contract.unit_templates:
+		var target = preload("res://entities/Target.tscn").instantiate() as Control
+		
+		target.armor_type = template.armor_type
+		var hc = target.get_node("HealthComponent") as HealthComponent
+		if hc:
+			hc.max_health = template.base_max_health
+			hc.current_health = template.base_max_health  # or injured
+			hc.died.connect(_on_target_died.bind(target))  # foundational cleanup
+		
+		target.set_meta("burst_threat", template.burst_threat)
+		if template.is_boss_unit:
+			target.set_meta("is_boss", true)
+		
+		target.index = index
+		
+		register_target(target)
+		index += 1
+	print("Spawned", targets.size(), "targets from contract")
 
-func apply_spell(spell: Spell, target: Node) -> void:
-	var hc = target.health_comp
-	match spell.effect_type:
-		"instant_heal":
-			hc.heal(spell.effect_value)
-		"hot":
-			var boost_mult = 1.25 if hc.shield_amount > 0 else 1.0  # Synergy!
-			hc.apply_hot(spell.effect_value * boost_mult, spell.effect_duration)
-		"shield":
-			hc.apply_shield(spell.effect_value, spell.effect_duration)
+func register_target(target: Node) -> void:
+	targets.append(target)
+	target_added.emit(target)
 
-func _on_target_clicked(target: Node) -> void:
-	# This is a central place to add logic like playing a sound 
-	# or updating a "currently selected" UI element
-	print("System received click for target: ", target.index)
-	target_selected.emit(target)
+func _on_target_died(dead_target: Node) -> void:
+	if dead_target in targets:
+		targets.erase(dead_target)
+	if targets.is_empty():
+		all_targets_dead.emit()
+		loss_condition.emit()
+
+func clear_targets() -> void:
+	for t in targets:
+		if is_instance_valid(t):
+			t.queue_free()
+	targets.clear()
 
 func _process(delta: float) -> void:
 	if not GameManager.in_round:
@@ -53,28 +55,17 @@ func _process(delta: float) -> void:
 	update_all(delta)
 
 func update_all(delta: float) -> void:
-	# Step 1: Remove any already-freed targets (prevents invalid access)
-	targets = targets.filter(func(t): return is_instance_valid(t))
-	
-	# Optional: Also remove if HP <= 0 (extra safety, though HealthComponent should handle)
-	# targets = targets.filter(func(t): return is_instance_valid(t) and t.health_comp.current_health > 0)
+	targets = targets.filter(is_instance_valid)  # safe guard
 	
 	burst_timer += delta
-	if burst_timer >= 5.0:
+	if burst_timer >= DifficultySystem.burst_interval:
 		burst_timer = 0.0
 		if targets.size() > 0:
 			var random_target = targets[randi() % targets.size()]
-			random_target.pending_burst_time = 1.2
+			random_target.pending_burst_time = DifficultySystem.burst_telegraph_time
 	
-	var base_dps = 3.0 + float(GameManager.current_round) * 0.7
+	var base_dps = DifficultySystem.get_base_dps(GameManager.current_round)
 	for target in targets:
-		# Safe access — we already filtered
-		var dps_mult = {"heavy": 0.8, "medium": 1.2, "light": 1.6}.get(target.armor_type, 1.0)
+		var dps_mult = DifficultySystem.armor_dps_multipliers.get(target.armor_type, 1.0)
 		target.health_comp.take_damage(base_dps * dps_mult * delta)
 		target.health_comp.tick_effects(delta)
-	burst_timer += delta
-	if burst_timer >= 5.0:
-		burst_timer = 0.0
-		if targets.size() > 0:
-			var random_target = targets[randi() % targets.size()]
-			random_target.pending_burst_time = 1.2  # Telegraph + burst

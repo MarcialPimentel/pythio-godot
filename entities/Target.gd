@@ -31,6 +31,13 @@ func _ready() -> void:
 	
 		# Connect the button's built-in signal to our local function
 	target_button.pressed.connect(_on_target_button_pressed)
+	if health_comp and hp_bar:
+			hp_bar.max_value = health_comp.max_health
+			hp_bar.value = health_comp.current_health
+			_update_hp_display(health_comp.current_health)
+			
+	if target_button:
+		target_button.pressed.connect(_on_target_button_pressed)
 
 func _on_target_button_pressed() -> void:
 	# Emit your custom signal and pass 'self' as the target
