@@ -37,6 +37,28 @@ func _ready() -> void:
 	if target_button:
 		target_button.pressed.connect(_on_target_button_pressed)
 
+	if health_comp:
+			health_comp.health_changed.connect(_update_hp_display)
+			# Do NOT set max_value here – wait for tree entry
+
+func _initialize_health_bar() -> void:
+	if not health_comp or not hp_bar:
+		push_warning("HealthComponent or hp_bar missing on target " + str(index))
+		return
+	
+	hp_bar.max_value = health_comp.max_health
+	hp_bar.value = health_comp.current_health
+	_update_hp_display(health_comp.current_health)
+	
+	# Debug print to confirm
+	print("HP bar initialized for target %d: max=%.1f current=%.1f" % [
+		index, hp_bar.max_value, hp_bar.value
+	])
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE:
+		_initialize_health_bar()
+
 func _on_target_button_pressed() -> void:
 	# Emit your custom signal and pass 'self' as the target
 	EventBus.target_selected.emit(self)

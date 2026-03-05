@@ -37,6 +37,7 @@ func spawn_from_contract(contract: ContractData) -> void:
 		
 		register_target(target)
 		index += 1
+	EventBus.party_spawned.emit()
 	print("Spawned", targets.size(), "targets from contract")
 
 func register_target(target: Node) -> void:

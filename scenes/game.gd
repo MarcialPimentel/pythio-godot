@@ -44,6 +44,13 @@ func _ready() -> void:
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
 	TargetSystem.all_targets_dead.connect(_on_loss)
 	EventBus.target_selected.connect(_on_target_selected)
+	
+	# Safe connect pattern
+	if not party_choice_panel.contract_chosen.is_connected(_on_contract_chosen):
+		party_choice_panel.contract_chosen.connect(_on_contract_chosen)
+	
+	if not EventBus.target_selected.is_connected(_on_target_selected):
+		EventBus.target_selected.connect(_on_target_selected)
 
 func _process(delta: float) -> void:
 	if not GameManager.in_round:
@@ -86,121 +93,37 @@ func _show_party_choice() -> void:
 	party_choice_panel.setup_contracts(choices)
 
 func _on_contract_chosen(chosen: ContractData) -> void:
+	# Guard against duplicate calls (common during signal spam or double-clicks)
+	if not party_choice_panel.visible:
+		print_debug("Ignoring duplicate contract chosen call")
+		return
+	
 	current_contract = chosen
 	party_choice_panel.visible = false
 	
+	# 1. Clean up previous round visuals and state
+	_clear_party_container()
+	TargetSystem.clear_targets()  # also clears internal array
+	
+	# 2. Spawn new party (delegated to TargetSystem for modularity)
+	TargetSystem.spawn_from_contract(chosen)
+	
+	# 3. Start round via centralized event
 	GameManager.in_round = true
-	GameManager.round_started.emit(GameManager.current_round)
-	print("Round started with contract:", chosen.contract_name, " - units:", chosen.unit_templates.size())
-	current_contract = chosen
-	party_choice_panel.visible = false
+	EventBus.round_started.emit(GameManager.current_round)
 	
-	# Clear old targets (safety)
+	print("Round started with contract: %s - units: %d" % [
+		chosen.contract_name, 
+		chosen.unit_templates.size()
+	])
+
+func _clear_party_container() -> void:
 	for child in party_container.get_children():
-		child.queue_free()
+		if is_instance_valid(child):
+			child.queue_free()
 	
-	var index := 0  # optional: add if you want index for debug/UI
-	
-	for template: UnitTemplate in chosen.unit_templates:
-		var unit = preload("res://entities/Target.tscn").instantiate()
-		
-		var health_comp = unit.get_node("HealthComponent") as HealthComponent
-		if health_comp:
-			health_comp.max_health = template.base_max_health
-			health_comp.current_health = template.base_max_health
-		
-		unit.set_meta("armor_type", template.armor_type)
-		unit.set_meta("burst_threat", template.burst_threat)
-		if template.is_boss_unit:
-			unit.set_meta("is_boss", true)
-		
-		# Recommended additions for full integration (fixes damage/loss/clicks)
-		unit.set("index", index)  # if Target.gd has var index: int
-		
-		party_container.add_child(unit)
-		
-		# Critical missing pieces from old spawn_party
-		TargetSystem.targets.append(unit)
-		TargetSystem.target_added.emit(unit)
-		
-		index += 1
-	
-	GameManager.in_round = true                # ← ADD THIS LINE HERE
-	GameManager.round_started.emit(GameManager.current_round)
-	print("Round started with contract:", chosen.contract_name)
-	current_contract = chosen
-	party_choice_panel.visible = false
-	
-	# Clear previous
-	for child in party_container.get_children():
-		child.queue_free()
-	for t in TargetSystem.targets:
-		t.queue_free()
-	TargetSystem.targets.clear()
-	
-	for template: UnitTemplate in chosen.unit_templates:
-		var unit = preload("res://entities/Target.tscn").instantiate() as Control
-		
-		var health_comp = unit.get_node("HealthComponent") as HealthComponent
-		if health_comp:
-			health_comp.max_health = template.base_max_health
-			health_comp.current_health = template.base_max_health  # or randf_range(0.4, 0.9) * max for injured
-			print("Spawned unit", index, "HP:", health_comp.max_health)
-		else:
-			push_error("HealthComponent missing in Target.tscn!")
-		
-		unit.set_meta("armor_type", template.armor_type)
-		unit.set_meta("burst_threat", template.burst_threat)
-		if template.is_boss_unit:
-			unit.set_meta("is_boss", true)
-		
-		# TargetSystem integration (critical for damage!)
-		unit.set("index", index)  # if Target.gd has @export var index: int = 0
-		# Connect signals (adjust names if different in Target.gd)
-		if unit.has_signal("died"):
-			unit.died.connect(func(): TargetSystem.loss_condition.emit())
-		if unit.has_signal("target_pressed"):
-			unit.target_pressed.connect(TargetSystem._on_target_clicked)
-		
-		party_container.add_child(unit)
-		TargetSystem.targets.append(unit)
-		TargetSystem.target_added.emit(unit)  # may trigger UI/highlight etc.
-		
-		index += 1
-	
-	# Start round
-	GameManager.round_started.emit(GameManager.current_round)
-	print("Round started with contract:", chosen.contract_name, "- units:", chosen.unit_templates.size())
-	current_contract = chosen
-	party_choice_panel.visible = false
-	
-	# Clear old targets (safety)
-	for child in party_container.get_children():
-		child.queue_free()
-	
-	# Spawn units from the contract data
-	for template: UnitTemplate in chosen.unit_templates:
-		var unit_scene = preload("res://entities/Target.tscn")  # adjust if your unit scene path is different
-		var unit = unit_scene.instantiate()
-		
-		# Apply health from template
-		var health_comp = unit.get_node("HealthComponent") as HealthComponent
-		if health_comp:
-			health_comp.max_health = template.base_max_health
-			health_comp.current_health = template.base_max_health  # or start lower for "injured"
-		
-		# Store extra data for future use (armor, burst, etc.)
-		unit.set_meta("armor_type", template.armor_type)
-		unit.set_meta("burst_threat", template.burst_threat)
-		if template.is_boss_unit:
-			unit.set_meta("is_boss", true)
-		
-		party_container.add_child(unit)
-	
-	# Tell systems the round can really start
-	GameManager.round_started.emit(GameManager.current_round)
-	GameManager.in_round = true
-	print("Round started with contract:", chosen.contract_name)
+	# Also clear TargetSystem's internal list to prevent stale references
+	TargetSystem.clear_targets()
 
 func _on_new_round_started(round: int) -> void:
 	party_choice_panel.visible = false

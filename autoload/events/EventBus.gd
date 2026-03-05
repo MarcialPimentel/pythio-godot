@@ -10,6 +10,8 @@ signal all_targets_dead()
 signal game_over(score: int)
 signal spell_cast_requested(spell: Spell, target: Node)
 signal spell_cast_completed(spell: Spell, target: Node, success: bool)
+signal round_begun(round: int)  # emitted when round actually starts after spawn
+
 
 # Helper methods to emit (optional, for consistency)
 func emit_round_started(round: int) -> void:
