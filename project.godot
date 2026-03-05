@@ -23,6 +23,7 @@ TargetSystem="*res://autoload/systems/TargetSystem.gd"
 PartyChoicePanel="*res://ui/PartyChoicePanel.tscn"
 ContractGenerator="*res://autoload/systems/ContractGenerator.gd"
 DifficultySystem="*res://autoload/systems/DifficultySystem.gd"
+EventBus="*res://autoload/events/EventBus.gd"
 
 [editor]
 

@@ -8,6 +8,13 @@ signal target_selected(target: Node)
 var targets: Array[Node] = []
 var burst_timer: float = 0.0
 
+func _ready() -> void:
+	EventBus.target_selected.connect(_on_target_selected)
+
+func _on_target_selected(target: Node) -> void:
+	print("TargetSystem received selection via EventBus: ", target.index if "index" in target else "no index")
+	target_selected.emit(target)
+
 func spawn_from_contract(contract: ContractData) -> void:
 	clear_targets()
 	
@@ -35,6 +42,10 @@ func spawn_from_contract(contract: ContractData) -> void:
 func register_target(target: Node) -> void:
 	targets.append(target)
 	target_added.emit(target)
+
+func _on_target_clicked(target: Node) -> void:
+	print("System received click for target: ", target.index)
+	target_selected.emit(target)
 
 func _on_target_died(dead_target: Node) -> void:
 	if dead_target in targets:

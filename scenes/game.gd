@@ -32,7 +32,6 @@ func _ready() -> void:
 	GameManager.round_ended.connect(_on_round_ended)
 	TargetSystem.target_added.connect(_add_target)
 	TargetSystem.loss_condition.connect(_on_loss)
-	TargetSystem.target_selected.connect(_on_target_pressed)
 	SpellSystem.cast_started.connect(_on_cast_start)
 	SpellSystem.cast_finished.connect(_on_cast_finish)
 	SpellSystem.selected_spell_changed.connect(_update_spell_ui)
@@ -44,6 +43,7 @@ func _ready() -> void:
 	party_choice_panel.visible = false
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
 	TargetSystem.all_targets_dead.connect(_on_loss)
+	EventBus.target_selected.connect(_on_target_selected)
 
 func _process(delta: float) -> void:
 	if not GameManager.in_round:
@@ -89,8 +89,6 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	current_contract = chosen
 	party_choice_panel.visible = false
 	
-	TargetSystem.spawn_from_contract(chosen)
-	
 	GameManager.in_round = true
 	GameManager.round_started.emit(GameManager.current_round)
 	print("Round started with contract:", chosen.contract_name, " - units:", chosen.unit_templates.size())
@@ -118,10 +116,6 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 		
 		# Recommended additions for full integration (fixes damage/loss/clicks)
 		unit.set("index", index)  # if Target.gd has var index: int
-		if unit.has_signal("died"):
-			unit.died.connect(func(): TargetSystem.loss_condition.emit())
-		if unit.has_signal("target_pressed"):
-			unit.target_pressed.connect(TargetSystem._on_target_clicked)
 		
 		party_container.add_child(unit)
 		
@@ -258,14 +252,14 @@ func _on_spell_pressed(spell: Spell) -> void:
 	selected_spell = spell
 	print("Selected spell:", spell.display_name)
 
-func _on_target_pressed(target: Node) -> void:
-	if selected_spell:
-		SpellSystem.try_cast(selected_spell, target)
-		TargetSystem.apply_spell(selected_spell, target)
-		selected_spell = null  # optional: deselect after cast
-	else:
+func _on_target_selected(target: Node) -> void:
+	if not selected_spell:
 		print("No spell selected")
-
+		return
+	
+	# Optional early checks (mana, casting state) – but prefer SpellSystem owns them
+	EventBus.spell_cast_requested.emit(selected_spell, target)
+	selected_spell = null  # deselect after request
 
 func _on_start_pressed() -> void:
 	start_screen.visible = false

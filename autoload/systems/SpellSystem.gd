@@ -41,7 +41,28 @@ func _process(delta: float) -> void:
 	if cast_progress >= current_spell.cast_time:
 		finish_cast()
 
+# In SpellSystem.gd – replace the line in finish_cast():
 func finish_cast() -> void:
 	is_casting = false
-	TargetSystem.apply_spell(current_spell, current_target)
+	
+	var hc = current_target.get_node("HealthComponent") as HealthComponent
+	if not hc:
+		print("No HealthComponent on target – cast failed")
+		cast_finished.emit(current_spell)
+		return
+	
+	var success = true
+	match current_spell.effect_type:
+		"instant_heal":
+			hc.heal(current_spell.effect_value)
+		"hot":
+			var boost = 1.25 if hc.shield_amount > 0 else 1.0
+			hc.apply_hot(current_spell.effect_value * boost, current_spell.effect_duration)
+		"shield":
+			hc.apply_shield(current_spell.effect_value, current_spell.effect_duration)
+		_:
+			success = false
+			print("Unknown effect type:", current_spell.effect_type)
+	
+	EventBus.spell_cast_completed.emit(current_spell, current_target, success)
 	cast_finished.emit(current_spell)
