@@ -24,26 +24,20 @@ func _ready() -> void:
 	elif armor_type == "light":
 		modulate = Color(1.2, 0.7, 0.7)
 	print("Target ready - type:", armor_type, " hp:", max_hp)
-	
-	if health_comp:
-		health_comp.health_changed.connect(_update_hp_display)
-	_update_hp_display(health_comp.current_health)
-	
-	if health_comp and hp_bar:
-			hp_bar.max_value = health_comp.max_health
-			hp_bar.value = health_comp.current_health
-			_update_hp_display(health_comp.current_health)
-			
+
 	if target_button:
 		target_button.pressed.connect(_on_target_button_pressed)
 
 	if health_comp:
+		# Connect signals only once
+		if not health_comp.health_changed.is_connected(_update_hp_display):
 			health_comp.health_changed.connect(_update_hp_display)
+		if not health_comp.shield_changed.is_connected(_update_shield_display):
 			health_comp.shield_changed.connect(_update_shield_display)
-			
-			# Force initial update (in case signals missed)
-			_update_hp_display(health_comp.current_health)
-			_update_shield_display(health_comp.shield_amount)
+
+		# Force initial display using current values
+		_update_hp_display(health_comp.current_health)
+		_update_shield_display(health_comp.shield_amount)
 
 func _update_hp_display(hp: float) -> void:
 	if hp_bar:
@@ -55,22 +49,17 @@ func _update_shield_display(amount: float) -> void:
 		shield_bar.visible = amount > 0  # hide when empty
 
 func _initialize_health_bar() -> void:
+	# These might still be null at ENTER_TREE — that's normal
 	if not health_comp or not hp_bar:
-		push_warning("HealthComponent or hp_bar missing on target " + str(index))
+		# Don't warn here — _ready() will handle it
 		return
-	
+
 	hp_bar.max_value = health_comp.max_health
 	hp_bar.value = health_comp.current_health
 	_update_hp_display(health_comp.current_health)
-	
-	# Debug print to confirm
-	print("HP bar initialized for target %d: max=%.1f current=%.1f" % [
-		index, hp_bar.max_value, hp_bar.value
-	])
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_ENTER_TREE:
-		_initialize_health_bar()
+	# Optional: only print in debug builds or when you need it
+	# print("HP bar initialized for target %d: max=%.1f current=%.1f" % [index, hp_bar.max_value, hp_bar.value])
 
 func _on_target_button_pressed() -> void:
 	# Emit your custom signal and pass 'self' as the target

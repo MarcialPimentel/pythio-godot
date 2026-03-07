@@ -94,11 +94,28 @@ func _show_party_choice() -> void:
 	# Pass to panel (we'll update PartyChoicePanel.gd next to handle ContractData)
 	party_choice_panel.setup_contracts(choices)
 
-func _on_targets_spawned(new_targets: Array) -> void:
+func _on_targets_spawned(new_targets: Array[Node]) -> void:
+	print("Received targets_spawned signal with ", new_targets.size(), " targets")
+	
 	for target in new_targets:
-		if is_instance_valid(target):
-			party_container.add_child(target)
-	print("Game added %d targets to party_container" % new_targets.size())
+		if not is_instance_valid(target):
+			print("Skipping invalid target in spawned list")
+			continue
+		
+		if target.get_parent() != null:
+			if target.get_parent() == party_container:
+				print("Target ", target.name, " already child of PartyTarget — skipping add")
+				continue
+			else:
+				print("WARNING: Target ", target.name, " has wrong parent ", target.get_parent().name, " — reparenting")
+				target.get_parent().remove_child(target)  # emergency reparent
+		
+		party_container.add_child(target)
+		print("Added target ", target.name if "name" in target else target, " to PartyTarget")
+	
+	party_container.queue_sort()
+	party_container.update_minimum_size()
+	print("Party container now has ", party_container.get_child_count(), " children")
 
 func _on_contract_chosen(chosen: ContractData) -> void:
 	# Guard
