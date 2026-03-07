@@ -28,7 +28,7 @@ func new_game() -> void:
 
 func end_round(success: bool) -> void:
 	in_round = false
-	round_ended.emit()
+	EventBus.emit_signal("round_ended", current_round)
 	
 	if success:
 		score += current_round * 100  # later tie to gold

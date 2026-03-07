@@ -44,6 +44,8 @@ func _ready() -> void:
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
 	TargetSystem.all_targets_dead.connect(_on_loss)
 	EventBus.target_selected.connect(_on_target_selected)
+	EventBus.targets_spawned.connect(_on_targets_spawned)
+	EventBus.round_ended.connect(_on_round_ended)
 	
 	# Safe connect pattern
 	if not party_choice_panel.contract_chosen.is_connected(_on_contract_chosen):
@@ -92,46 +94,62 @@ func _show_party_choice() -> void:
 	# Pass to panel (we'll update PartyChoicePanel.gd next to handle ContractData)
 	party_choice_panel.setup_contracts(choices)
 
+func _on_targets_spawned(new_targets: Array) -> void:
+	for target in new_targets:
+		if is_instance_valid(target):
+			party_container.add_child(target)
+	print("Game added %d targets to party_container" % new_targets.size())
+
 func _on_contract_chosen(chosen: ContractData) -> void:
-	# Guard against duplicate calls (common during signal spam or double-clicks)
+	# Guard
 	if not party_choice_panel.visible:
-		print_debug("Ignoring duplicate contract chosen call")
 		return
 	
 	current_contract = chosen
 	party_choice_panel.visible = false
 	
-	# 1. Clean up previous round visuals and state
 	_clear_party_container()
-	TargetSystem.clear_targets()  # also clears internal array
+	TargetSystem.clear_targets()  # also queue_frees old nodes
 	
-	# 2. Spawn new party (delegated to TargetSystem for modularity)
 	TargetSystem.spawn_from_contract(chosen)
+	party_container.visible = true
 	
-	# 3. Start round via centralized event
 	GameManager.in_round = true
 	EventBus.round_started.emit(GameManager.current_round)
-	
-	print("Round started with contract: %s - units: %d" % [
-		chosen.contract_name, 
-		chosen.unit_templates.size()
-	])
 
 func _clear_party_container() -> void:
-	for child in party_container.get_children():
+	print("CLEARING party_container — children before: ", party_container.get_child_count())
+	
+	# Phase 1: Clean old targets via system (this queues free on anything it knows)
+	TargetSystem.clear_targets()
+	
+	# Phase 2: Immediately free anything still in the container (old stragglers)
+	# Do this BEFORE awaiting — so new adds happen after
+	var children_to_free = party_container.get_children().duplicate()  # snapshot
+	for child in children_to_free:
 		if is_instance_valid(child):
+			print("Immediate free on pre-spawn child: ", child.name if "name" in child else child)
 			child.queue_free()
 	
-	# Also clear TargetSystem's internal list to prevent stale references
-	TargetSystem.clear_targets()
-
+	# Now wait for frees to process
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	# Phase 3: Final check — should be 0 now, but no more freeing here
+	print("party_container after cleanup & await — children now: ", party_container.get_child_count())
+	
+	# Force layout refresh
+	party_container.queue_redraw()
+	party_container.update_minimum_size()
+	
 func _on_new_round_started(round: int) -> void:
 	party_choice_panel.visible = false
 	round_label.text = "Round %d" % round
 
-func _on_round_ended() -> void:
+func _on_round_ended(round_num: int) -> void:
+	print("Round ended — hiding party")
 	party_container.visible = false
-	TargetSystem.clear_targets()  # foundational cleanup
+	# Next spawn will add new children after clear anyway
 
 func _on_loss() -> void:
 	GameManager.end_round(false)

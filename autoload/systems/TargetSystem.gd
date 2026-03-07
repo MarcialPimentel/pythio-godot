@@ -18,27 +18,36 @@ func _on_target_selected(target: Node) -> void:
 func spawn_from_contract(contract: ContractData) -> void:
 	clear_targets()
 	
-	var index = 0
+	var index := 0
 	for template in contract.unit_templates:
 		var target = preload("res://entities/Target.tscn").instantiate() as Control
 		
-		target.armor_type = template.armor_type
+		# Apply template data
 		var hc = target.get_node("HealthComponent") as HealthComponent
 		if hc:
 			hc.max_health = template.base_max_health
-			hc.current_health = template.base_max_health  # or injured
-			hc.died.connect(_on_target_died.bind(target))  # foundational cleanup
+			hc.current_health = template.base_max_health  # or randf_range(0.4, 0.9) * hc.max_health
 		
+		target.set_meta("armor_type", template.armor_type)
 		target.set_meta("burst_threat", template.burst_threat)
 		if template.is_boss_unit:
 			target.set_meta("is_boss", true)
 		
 		target.index = index
 		
+		# Connect signals
+		if target.has_signal("died"):
+			target.died.connect(func(): loss_condition.emit())
+		if target.has_signal("target_pressed"):
+			target.target_pressed.connect(_on_target_clicked)
+		
 		register_target(target)
+		
 		index += 1
+		
+	EventBus.targets_spawned.emit(targets)
 	EventBus.party_spawned.emit()
-	print("Spawned", targets.size(), "targets from contract")
+	print("TargetSystem spawned %d units from contract" % contract.unit_templates.size())
 
 func register_target(target: Node) -> void:
 	targets.append(target)
@@ -56,10 +65,13 @@ func _on_target_died(dead_target: Node) -> void:
 		loss_condition.emit()
 
 func clear_targets() -> void:
-	for t in targets:
+	print("TargetSystem.clear_targets() called — current count: ", targets.size())
+	for t in targets.duplicate():
 		if is_instance_valid(t):
+			print("Queue freeing target: ", t.name if "name" in t else t)
 			t.queue_free()
 	targets.clear()
+	print("Targets cleared — count now: ", targets.size())
 
 func _process(delta: float) -> void:
 	if not GameManager.in_round:
