@@ -94,14 +94,13 @@ func _show_party_choice() -> void:
 	
 	party_choice_panel.visible = true
 	
-	var contract_to_use: ContractData
-	
 	if GameManager.current_round == 5:
-		contract_to_use = ContractGenerator.generate_boss_contract(GameManager.current_round)
-		print("Boss contract generated:", contract_to_use.contract_name)
+		# Final round: single harder contract, no real choice
+		var boss_contract = ContractGenerator.generate_boss_contract(GameManager.current_round)
+		print("Final contract generated:", boss_contract.contract_name)
 		
-		# Single contract mode
-		var single: Array[ContractData] = [contract_to_use]
+		# Feed only one contract to the panel
+		var single: Array[ContractData] = [boss_contract]
 		party_choice_panel.setup_contracts(single)
 		
 		# Visually disable right side
@@ -111,32 +110,33 @@ func _show_party_choice() -> void:
 		if party_choice_panel.right_flavor:
 			party_choice_panel.right_flavor.text = "Only the final job remains…"
 	else:
+		# Normal rounds: two choices
 		var choices = ContractGenerator.generate_two_choices(GameManager.current_round)
 		print("Normal choices generated:", choices.size())
 		party_choice_panel.setup_contracts(choices)
 
 func _on_targets_spawned(new_targets: Array[Node]) -> void:
-	print("Received targets_spawned signal with ", new_targets.size(), " targets")
+	print("Spawning ", new_targets.size(), " new targets")
 	
 	for target in new_targets:
 		if not is_instance_valid(target):
-			print("Skipping invalid target in spawned list")
 			continue
 		
-		if target.get_parent() != null:
-			if target.get_parent() == party_container:
-				print("Target ", target.name, " already child of PartyTarget — skipping add")
-				continue
+		var parent = target.get_parent()
+		if parent != null:
+			if parent == party_container:
+				print("Target already parented — removing first")
+				parent.remove_child(target)
 			else:
-				print("WARNING: Target ", target.name, " has wrong parent ", target.get_parent().name, " — reparenting")
-				target.get_parent().remove_child(target)  # emergency reparent
+				print("Wrong parent ", parent.name, " — reparenting")
+				parent.remove_child(target)
 		
 		party_container.add_child(target)
-		print("Added target ", target.name if "name" in target else target, " to PartyTarget")
+		print("Added ", target.name if "name" in target else "Target", " (index ", target.index if "index" in target else "?", ")")
 	
 	party_container.queue_sort()
 	party_container.update_minimum_size()
-	print("Party container now has ", party_container.get_child_count(), " children")
+	print("Container now has ", party_container.get_child_count(), " children")
 
 func _on_contract_chosen(chosen: ContractData) -> void:
 	print("=== Contract chosen ===")

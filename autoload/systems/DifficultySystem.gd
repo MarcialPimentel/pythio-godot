@@ -6,7 +6,7 @@ extends Node
 
 @export_group("Round Scaling")
 @export var round_time_base: float = .5
-@export var round_time_growth: float = 2.0  # per round
+@export var round_time_growth: float = .5  # per round
 
 @export_group("Mana")
 @export var max_mana_base: float = 100.0

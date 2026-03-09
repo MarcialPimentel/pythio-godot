@@ -31,7 +31,7 @@ func spawn_from_contract(contract: ContractData) -> void:
 		target.set_meta("armor_type", template.armor_type)
 		target.set_meta("burst_threat", template.burst_threat)
 		if template.is_boss_unit:
-			target.set_meta("is_boss", true)
+			target.set_meta("is_boss_unit", true)
 		
 		target.index = index
 		
