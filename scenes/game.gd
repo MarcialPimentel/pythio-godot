@@ -41,6 +41,7 @@ func _ready() -> void:
 	cast_bar.visible = false
 	start_screen.visible = true
 	party_choice_panel.visible = false
+	mana_bar.visible = false
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
 	TargetSystem.all_targets_dead.connect(_on_loss)
 	EventBus.target_selected.connect(_on_target_selected)
@@ -88,16 +89,31 @@ func _remove_target(target: Node) -> void:
 	party_container.remove_child(target)
 
 func _show_party_choice() -> void:
+	print("=== _show_party_choice ===")
+	print("Round:", GameManager.current_round)
 	
-	print("Showing party choice - procedural contracts")
 	party_choice_panel.visible = true
 	
-	# NEW: generate 2 choices (or 1 for boss round)
-	var current_round = GameManager.current_round   # assuming GameManager tracks this
-	var choices: Array = ContractGenerator.generate_two_choices(current_round)
+	var contract_to_use: ContractData
 	
-	# Pass to panel (we'll update PartyChoicePanel.gd next to handle ContractData)
-	party_choice_panel.setup_contracts(choices)
+	if GameManager.current_round == 5:
+		contract_to_use = ContractGenerator.generate_boss_contract(GameManager.current_round)
+		print("Boss contract generated:", contract_to_use.contract_name)
+		
+		# Single contract mode
+		var single: Array[ContractData] = [contract_to_use]
+		party_choice_panel.setup_contracts(single)
+		
+		# Visually disable right side
+		party_choice_panel.right_button.disabled = true
+		party_choice_panel.right_name.text = "Locked"
+		party_choice_panel.right_gold.text = "—"
+		if party_choice_panel.right_flavor:
+			party_choice_panel.right_flavor.text = "Only the final job remains…"
+	else:
+		var choices = ContractGenerator.generate_two_choices(GameManager.current_round)
+		print("Normal choices generated:", choices.size())
+		party_choice_panel.setup_contracts(choices)
 
 func _on_targets_spawned(new_targets: Array[Node]) -> void:
 	print("Received targets_spawned signal with ", new_targets.size(), " targets")
@@ -123,21 +139,33 @@ func _on_targets_spawned(new_targets: Array[Node]) -> void:
 	print("Party container now has ", party_container.get_child_count(), " children")
 
 func _on_contract_chosen(chosen: ContractData) -> void:
-	# Guard
-	if not party_choice_panel.visible:
-		return
+	print("=== Contract chosen ===")
+	print("Name:", chosen.contract_name, " | Boss:", chosen.is_boss, " | Units:", chosen.unit_templates.size())
 	
 	current_contract = chosen
-	party_choice_panel.visible = false
 	
+	# Hide panel regardless (safe even if already hidden)
+	party_choice_panel.visible = false
+	print("Choice panel hidden")
+	
+	# REMOVE or COMMENT this guard — it's causing early return in boss case
+	# if not party_choice_panel.visible:
+	#     return
+	
+	# Proceed with cleanup and spawn EVERY time
 	_clear_party_container()
-	TargetSystem.clear_targets()  # also queue_frees old nodes
+	print("Cleanup called")
 	
 	TargetSystem.spawn_from_contract(chosen)
-	party_container.visible = true
+	print("Spawn called")
 	
 	GameManager.in_round = true
 	EventBus.round_started.emit(GameManager.current_round)
+	print("Round started emitted - in_round now true")
+	
+	# Ensure container is visible
+	party_container.visible = true
+	print("Forced party_container.visible = true")
 
 func _clear_party_container() -> void:
 	print("CLEARING party_container — children before: ", party_container.get_child_count())
@@ -166,6 +194,10 @@ func _clear_party_container() -> void:
 	
 func _on_new_round_started(round: int) -> void:
 	party_choice_panel.visible = false
+	round_label.text = "Round %d" % round
+	if round == 5:
+		round_label.modulate = Color(1, 0.2, 0.2)  # Red for final round
+		# Optional: play sound, show "FINAL CONTRACT" overlay
 
 func _on_round_ended(round_num: int) -> void:
 	print("Round ended — hiding party")

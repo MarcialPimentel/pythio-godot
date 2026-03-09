@@ -6,7 +6,7 @@ signal game_over(round_reached: int, score: int)
 signal show_party_choice
 
 var current_round: int = 1
-var round_time: float = 15.0
+var round_time: float
 var in_round: bool = false
 var score: int = 0
 var high_score: int = 0

@@ -35,6 +35,11 @@ func _ready() -> void:
 		if not health_comp.shield_changed.is_connected(_update_shield_display):
 			health_comp.shield_changed.connect(_update_shield_display)
 
+	if "is_boss_unit" in get_meta_list() and get_meta("is_boss_unit", false):  # or check from template
+		scale = Vector2(1.5, 1.5)  # Bigger boss
+		modulate = Color(1.0, 0.3, 0.3)  # Reddish tint
+		print("Boss unit detected - enhanced visuals")
+
 		# Force initial display using current values
 		_update_hp_display(health_comp.current_health)
 		_update_shield_display(health_comp.shield_amount)

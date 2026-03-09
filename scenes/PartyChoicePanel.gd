@@ -28,30 +28,35 @@ func _ready() -> void:
 
 
 func setup_contracts(choices: Array[ContractData]) -> void:
-	if choices.size() < 2:
-		left_name.text = "ERROR"
+	if choices.is_empty():
+		left_name.text = "ERROR - No Contract"
 		right_name.text = "ERROR"
+		left_button.disabled = true
+		right_button.disabled = true
 		return
 	
+	# Always fill left
 	left_choice = choices[0]
-	right_choice = choices[1]
-	
-	# Left side
 	left_name.text = left_choice.contract_name
-	if left_gold: left_gold.text = str(left_choice.reward_gold) + " gold"
-	if left_flavor: left_flavor.text = left_choice.flavor_text
-	
-	# Optional: set icon if you have one per contract/armor type later
-	# left_icon.texture = load("res://assets/icons/" + left_choice.get_armor_icon() + ".png")
-	
-	# Right side
-	right_name.text = right_choice.contract_name
-	if right_gold: right_gold.text = str(right_choice.reward_gold) + " gold"
-	if right_flavor: right_flavor.text = right_choice.flavor_text
-	
-	# Enable buttons
+	left_gold.text = str(left_choice.reward_gold) + " gold"
+	left_flavor.text = left_choice.flavor_text
 	left_button.disabled = false
-	right_button.disabled = false
+	
+	# Right side only if we have 2+
+	if choices.size() >= 2:
+		right_choice = choices[1]
+		right_name.text = right_choice.contract_name
+		right_gold.text = str(right_choice.reward_gold) + " gold"
+		right_flavor.text = right_choice.flavor_text
+		right_button.disabled = false
+	else:
+		right_name.text = "No Alternative"
+		right_gold.text = "—"
+		right_flavor.text = "This is the last contract…"
+		right_button.disabled = true
+		# Optional: gray out right side
+		right_name.modulate = Color(0.7, 0.7, 0.7)
+		right_gold.modulate = Color(0.7, 0.7, 0.7)
 
 
 func _on_left_chosen() -> void:
