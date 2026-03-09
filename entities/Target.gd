@@ -46,7 +46,7 @@ func _update_hp_display(hp: float) -> void:
 func _update_shield_display(amount: float) -> void:
 	if shield_bar:
 		shield_bar.value = amount
-		shield_bar.visible = amount > 0  # hide when empty
+		#shield_bar.visible = amount > 0  # hide when empty
 
 func _initialize_health_bar() -> void:
 	# These might still be null at ENTER_TREE — that's normal

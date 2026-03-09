@@ -58,13 +58,17 @@ func _process(delta: float) -> void:
 	if not GameManager.in_round:
 		return
 	
+	timer_label.visible = true
+	timer_label.text = "%.1fs" % GameManager.round_time
+	round_label.visible = true
+	round_label.text = "Round %d" % GameManager.current_round
+	
 	GameManager.round_time -= delta
 	if GameManager.round_time <= 0:
 		GameManager.round_time = 0
 		GameManager.end_round(true)
-		return
+		return	
 	
-	timer_label.text = "%.1fs" % GameManager.round_time
 	GameManager.regen_mana(delta)
 	mana_bar.value = (GameManager.mana / GameManager.max_mana) * 100
 	if SpellSystem.is_casting:
@@ -84,6 +88,7 @@ func _remove_target(target: Node) -> void:
 	party_container.remove_child(target)
 
 func _show_party_choice() -> void:
+	
 	print("Showing party choice - procedural contracts")
 	party_choice_panel.visible = true
 	
@@ -161,7 +166,6 @@ func _clear_party_container() -> void:
 	
 func _on_new_round_started(round: int) -> void:
 	party_choice_panel.visible = false
-	round_label.text = "Round %d" % round
 
 func _on_round_ended(round_num: int) -> void:
 	print("Round ended — hiding party")

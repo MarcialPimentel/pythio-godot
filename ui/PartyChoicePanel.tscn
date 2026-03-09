@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://brh0vle4muwi0"]
+[gd_scene load_steps=8 format=3 uid="uid://brh0vle4muwi0"]
 
 [ext_resource type="Script" path="res://scenes/PartyChoicePanel.gd" id="1_dkfp8"]
 [ext_resource type="Texture2D" uid="uid://bdsxdphfm50wo" path="res://resources/icons/harmor.png" id="2_5h300"]
@@ -7,11 +7,14 @@
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie608"]
 bg_color = Color(0.300024, 0.610346, 0.96027, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jr3h1"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mfcx6"]
 bg_color = Color(0.606321, 0.531692, 0.912367, 1)
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dkeci"]
+
 [node name="PartyChoicePanel" type="Control"]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,17 +26,17 @@ size_flags_vertical = 4
 script = ExtResource("1_dkfp8")
 
 [node name="ChoicesContainer" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(600, 300)
+custom_minimum_size = Vector2(500, 300)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -150.0
-offset_right = 300.0
-offset_bottom = 150.0
+offset_left = -294.0
+offset_top = -116.0
+offset_right = 306.0
+offset_bottom = 184.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -51,12 +54,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -96.5
-offset_top = -112.5
-offset_right = 96.5
-offset_bottom = 112.5
+offset_left = -100.0
+offset_top = -150.0
+offset_right = 100.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 10
 
 [node name="LeftIcon" type="TextureRect" parent="ChoicesContainer/LeftParty/LeftVBox"]
 unique_name_in_owner = true
@@ -66,10 +70,17 @@ stretch_mode = 5
 
 [node name="LeftName" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Iron Vanguard"
+size_flags_vertical = 1
+theme_override_font_sizes/font_size = 20
+text = "LeftName"
 horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="LeftSeparator" type="HSeparator" parent="ChoicesContainer/LeftParty/LeftVBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxFlat_jr3h1")
 
 [node name="LeftButton" type="Button" parent="ChoicesContainer/LeftParty/LeftVBox"]
 unique_name_in_owner = true
@@ -79,17 +90,21 @@ size_flags_horizontal = 4
 text = "Choose"
 
 [node name="LeftGold" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 10
 text = "Left Gold"
+horizontal_alignment = 1
 
 [node name="LeftFlavor" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 0
+size_flags_vertical = 1
 theme_override_font_sizes/font_size = 10
 text = "Left Flavor"
+autowrap_mode = 3
 
 [node name="RightParty" type="Panel" parent="ChoicesContainer"]
 custom_minimum_size = Vector2(200, 300)
@@ -105,12 +120,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -96.5
-offset_top = -112.5
-offset_right = 96.5
-offset_bottom = 112.5
+offset_left = -100.0
+offset_top = -150.0
+offset_right = 100.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 10
 
 [node name="RightIcon" type="TextureRect" parent="ChoicesContainer/RightParty/RightVBox"]
 unique_name_in_owner = true
@@ -121,10 +137,17 @@ stretch_mode = 5
 
 [node name="RightName" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Arcane Glass"
+size_flags_vertical = 1
+theme_override_font_sizes/font_size = 20
+text = "RightName"
 horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="RightSeparator" type="HSeparator" parent="ChoicesContainer/RightParty/RightVBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_dkeci")
 
 [node name="RightButton" type="Button" parent="ChoicesContainer/RightParty/RightVBox"]
 unique_name_in_owner = true
@@ -134,10 +157,12 @@ size_flags_horizontal = 4
 text = "Choose"
 
 [node name="RightGold" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 10
 text = "Right Gold"
+horizontal_alignment = 1
 
 [node name="RightFlavor" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
 custom_minimum_size = Vector2(200, 60)
@@ -145,6 +170,7 @@ layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 10
 text = "Right Flavor"
+autowrap_mode = 3
 
 [node name="PartyChoiceText" type="Label" parent="."]
 layout_mode = 1

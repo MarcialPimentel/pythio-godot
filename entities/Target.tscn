@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://cgdgfutgy464u"]
+[gd_scene load_steps=8 format=3 uid="uid://cgdgfutgy464u"]
 
 [ext_resource type="Script" path="res://entities/Target.gd" id="1_d07xr"]
 [ext_resource type="Theme" uid="uid://bgqaqbpt32tsd" path="res://entities/button_theme.tres" id="2_cqyge"]
@@ -6,6 +6,11 @@
 [ext_resource type="Script" path="res://components/HealthComponent.gd" id="3_svmpb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uc077"]
+
+[sub_resource type="Theme" id="Theme_3n4qw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5tslh"]
+bg_color = Color(0.302817, 0.70003, 0.321885, 1)
 
 [node name="Target" type="Control"]
 custom_minimum_size = Vector2(300, 100)
@@ -30,15 +35,17 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="Panel"]
-custom_minimum_size = Vector2(300, 60)
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_right = 52.0
-offset_bottom = 62.0
+offset_left = -100.0
+offset_top = -30.0
+offset_right = 100.0
+offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -46,6 +53,7 @@ grow_vertical = 2
 layout_mode = 2
 
 [node name="TargetName" type="Label" parent="Panel/MarginContainer/Vbox"]
+visible = false
 layout_mode = 2
 text = "(targetname)"
 horizontal_alignment = 1
@@ -59,6 +67,8 @@ step = 1.0
 [node name="health_bar" type="ProgressBar" parent="Panel/MarginContainer/Vbox"]
 layout_mode = 2
 size_flags_vertical = 1
+theme = SubResource("Theme_3n4qw")
+theme_override_styles/fill = SubResource("StyleBoxFlat_5tslh")
 step = 1.0
 
 [node name="TargetButton" type="Button" parent="Panel/MarginContainer"]
