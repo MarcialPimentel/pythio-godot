@@ -11,6 +11,7 @@ extends Control
 @onready var mana_bar: ProgressBar       = $GameUI/PlayerContainer/PlayerResources/ManaBar
 @onready var spell_container: HBoxContainer  = $GameUI/SpellContainer
 
+@onready var contract_selector = ContractSelector
 @onready var party_choice_panel: Control = $GameUI/PartyChoicePanel
 @onready var party_container: HBoxContainer = $GameUI/PartyContainer/PartyTarget
 
@@ -102,26 +103,10 @@ func _show_party_choice() -> void:
 	
 	party_choice_panel.visible = true
 	
-	if GameManager.current_round == 5:
-		# Final round: single harder contract, no real choice
-		var boss_contract = ContractGenerator.generate_boss_contract(GameManager.current_round)
-		print("Final contract generated:", boss_contract.contract_name)
-		
-		# Feed only one contract to the panel
-		var single: Array[ContractData] = [boss_contract]
-		party_choice_panel.setup_contracts(single)
-		
-		# Visually disable right side
-		party_choice_panel.right_button.disabled = true
-		party_choice_panel.right_name.text = "Locked"
-		party_choice_panel.right_gold.text = "—"
-		if party_choice_panel.right_flavor:
-			party_choice_panel.right_flavor.text = "Only the final job remains…"
-	else:
-		# Normal rounds: two choices
-		var choices = ContractGenerator.generate_two_choices(GameManager.current_round)
-		print("Normal choices generated:", choices.size())
-		party_choice_panel.setup_contracts(choices)
+	var contracts = contract_selector.get_contracts_for_round(GameManager.current_round)
+	print("Got ", contracts.size(), " contract(s) for round ", GameManager.current_round)
+	
+	party_choice_panel.setup_contracts(contracts)
 
 func _on_targets_spawned(new_targets: Array[Node]) -> void:
 	print("Spawning ", new_targets.size(), " new targets")
