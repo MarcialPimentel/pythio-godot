@@ -12,7 +12,7 @@ extends Resource
 @export var effect_value: float = 45.0
 @export var effect_duration: float = 0.0
 
-# Noir visual accents
+# Visual accents for noir style
 @export_enum("EMERALD_GREEN", "ELECTRIC_BLUE", "GOLDEN_YELLOW", "BLOOD_RED") var vfx_color: String = "EMERALD_GREEN"
 @export var particle_intensity: float = 1.0
 
