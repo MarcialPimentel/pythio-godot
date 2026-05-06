@@ -1,75 +1,98 @@
+# autoload/systems/SpellSystem.gd
 extends Node
 
-signal cast_started
-signal cast_finished(spell: Spell)
-signal selected_spell_changed
+signal spell_cast_started(spell_id: String, target_index: int)
+signal spell_cast_finished(spell_id: String, success: bool)
 
-var spells: Array[Spell] = []
-var selected_spell: Spell:
-	set(value):
-		selected_spell = value
-		selected_spell_changed.emit()
+@onready var effect_system = get_node("/root/EffectSystem")
 
-var is_casting: bool = false
-var cast_progress: float = 0.0
-var current_spell: Spell
-var current_target: Node
+var spells: Array[SpellData] = []
+var cooldowns: Dictionary = {}  # spell_id -> remaining time
+var combo_tracker: Dictionary = {}  # target_index -> last_cast_time + spell_tag
 
-func _ready() -> void:
-	spells = [
-		load("res://resources/spells/flash_heal.tres") as Spell,
-		load("res://resources/spells/renew.tres") as Spell,
-		load("res://resources/spells/shield.tres") as Spell
-	]
-	EventBus.spell_cast_requested.connect(_on_spell_cast_requested)
+const COMBO_WINDOW: float = 1.5
 
-func _on_spell_cast_requested(spell: Spell, target: Node) -> void:
-	if try_cast(spell, target):
-		print("Cast started: ", spell.display_name)
-	else:
-		print("Cast failed: ", spell.display_name)
+func _ready():
+	load_all_spells()
 
-func try_cast(spell: Spell, target: Node) -> bool:
-	if is_casting:
+func load_all_spells():
+	spells.clear()
+	var dir = DirAccess.open("res://resources/spells/")
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if file_name.ends_with(".tres"):
+				var spell = load("res://resources/spells/" + file_name)
+				if spell is SpellData:
+					spells.append(spell)
+			file_name = dir.get_next()
+		print("Loaded ", spells.size(), " spells")
+
+func cast_spell(spell_id: String, target_index: int) -> bool:
+	var spell = get_spell_by_id(spell_id)
+	if not spell:
 		return false
-	if not GameManager.spend_mana(spell.mana_cost):
+	
+	# Mana check (assume GameManager or ManaSystem)
+	if not has_sufficient_mana(spell.mana_cost):
+		EventBus.emit_signal("mana_insufficient")
 		return false
-	is_casting = true
-	cast_progress = 0.0
-	current_spell = spell
-	current_target = target
-	cast_started.emit()
-	return true
+	
+	# Cooldown check
+	if cooldowns.has(spell_id) and cooldowns[spell_id] > 0:
+		return false
+	
+	emit_signal("spell_cast_started", spell_id, target_index)
+	
+	# Apply via EffectSystem
+	var target = TargetSystem.get_target_by_index(target_index)
+	if target:
+		effect_system.apply_effect(spell, target)
+		
+		# Combo detection
+		check_for_combo(target_index, spell)
+		
+		# Start cooldown
+		cooldowns[spell_id] = 5.0  # example cooldown
+		
+		# Mana deduction
+		deduct_mana(spell.mana_cost)
+		
+		emit_signal("spell_cast_finished", spell_id, true)
+		return true
+	
+	emit_signal("spell_cast_finished", spell_id, false)
+	return false
 
-func _process(delta: float) -> void:
-	if not is_casting:
-		return
-	cast_progress += delta
-	if cast_progress >= current_spell.cast_time:
-		finish_cast()
+func get_spell_by_id(id: String) -> SpellData:
+	for s in spells:
+		if s.id == id:
+			return s
+	return null
 
-# In SpellSystem.gd – replace the line in finish_cast():
-func finish_cast() -> void:
-	is_casting = false
-	
-	var hc = current_target.get_node("HealthComponent") as HealthComponent
-	if not hc:
-		print("No HealthComponent on target – cast failed")
-		cast_finished.emit(current_spell)
+func check_for_combo(target_index: int, spell: SpellData):
+	var now = Time.get_ticks_msec() / 1000.0
+	if not combo_tracker.has(target_index):
+		combo_tracker[target_index] = {"time": now, "tags": spell.combo_tags}
 		return
 	
-	var success = true
-	match current_spell.effect_type:
-		"instant_heal":
-			hc.heal(current_spell.effect_value)
-		"hot":
-			var boost = 1.25 if hc.shield_amount > 0 else 1.0
-			hc.apply_hot(current_spell.effect_value * boost, current_spell.effect_duration)
-		"shield":
-			hc.apply_shield(current_spell.effect_value, current_spell.effect_duration)
-		_:
-			success = false
-			print("Unknown effect type:", current_spell.effect_type)
+	var last = combo_tracker[target_index]
+	if now - last.time < COMBO_WINDOW and last.tags.any(func(t): return t in spell.combo_tags):
+		# Bonus combo effect!
+		print("COMBO! on target ", target_index)
+		EventBus.emit_signal("combo_triggered", spell)
 	
-	EventBus.spell_cast_completed.emit(current_spell, current_target, success)
-	cast_finished.emit(current_spell)
+	combo_tracker[target_index] = {"time": now, "tags": spell.combo_tags}
+
+# Placeholder mana functions - connect to your mana system
+func has_sufficient_mana(cost: float) -> bool:
+	return true  # replace with real check
+
+func deduct_mana(cost: float):
+	pass  # replace with real deduction
+
+func _process(delta: float):
+	for id in cooldowns.keys():
+		if cooldowns[id] > 0:
+			cooldowns[id] -= delta
