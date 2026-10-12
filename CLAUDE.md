@@ -10,8 +10,8 @@ https://marz.gg/games/pythio/.
 
 **Loop:** choose a contract (procedural party with armor types, HP, threat, reward, risk)
 → round runs (damage, bursts, mana regen) → survive the timer to advance → harder
-contracts → final boss contract (round 5, "The Crimson Baron"). Later: unlock spells /
-talents between rounds.
+contracts → final boss contract (round 5, "The Crimson Baron"). Between rounds you draft
+new spells into your spellbook.
 
 ## Current direction (owner's decisions — these win over docs/design.md)
 - **The pitch:** World of Warcraft–style healing (raid frames, cast times, mana as the
@@ -20,6 +20,10 @@ talents between rounds.
 - **Spell synergies are a core feature, not a side system.** They were meant to be more
   prominent than the current code shows. When choosing between work items, favor the ones
   that make combos and synergies matter.
+- **The spellbook is the build:** start by drafting **1 of 3** spells; after each round,
+  draft 1 of 3 more into your spellbook (5 spells by the boss). Synergies come from
+  mixing and matching drafted spells into cool combinations. There is no separate upgrade
+  system; everything you pick is a spell.
 - **MVP scope = a 5-round run** that represents the full game loop (contract choice →
   round → … → round-5 boss). Endless rounds, 27 spells and a talent tree every 5 rounds
   (from the original web design) are post-MVP.

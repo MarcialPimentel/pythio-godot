@@ -3,10 +3,11 @@
 _Last updated: 2026-10-12. Owner: Marz. Claude works through this list one pull request at a time._
 
 ## What "MVP done" means
-A complete **5-round run**: draft your spells → pick a contract → survive the round →
-pick an upgrade → … → beat or fall to the Crimson Baron in round 5 → see your run
-summary and score. Two runs with different picks should **play differently**. That is
-the roguelite synergy promise, and it's the core feature.
+A complete **5-round run**: draft your first spell → pick a contract → survive the round →
+draft another spell into your spellbook → … → beat or fall to the Crimson Baron in
+round 5 → see your run summary and score. Your spellbook grows from 1 spell to 5, and
+**the spells you combine decide how you play**. Two runs with different drafts should
+play differently. That is the roguelite synergy promise, and it's the core feature.
 
 Grading scale: 1 = not started · 2 = built, not refined · 3 = nearly complete · 4 = MVP-done.
 
@@ -19,46 +20,56 @@ Grading scale: 1 = not started · 2 = built, not refined · 3 = nearly complete 
 | Debug panel | 1 | 4 after Phase 1 |
 | Target generation and armor | 2 | 3 after Phase 1, 4 after Phase 2 |
 | Damage patterns | 2 | 4 after Phase 2 |
-| **Synergies (combos + upgrades)** | 1 | 4 after Phase 3 |
+| **Spell drafting and synergies** | 1 | 4 after Phase 3 |
 | Contracts, modifiers and boss | 3 / 1 | 4 after Phase 4 |
 | Screens, VFX, leaderboard | 2 / 1 | 4 after Phase 5 |
 
-## How synergies will work (the design spine)
+## How drafting and synergies will work (the design spine)
 
-The spell list's synergies are mostly fixed pairs ("Renew + Healing Plague = +3s"). Pairs
-multiply with every new spell, and small % bonuses are hard to feel. Instead, every spell
-gets **tags**, and synergies key off tags and events. Any HoT spell then works with any
-HoT upgrade, and new spells slot into existing builds for free.
+**The spellbook is the build.** There's no separate upgrade system. Everything you pick
+is a spell, and the fun comes from mixing and matching spells into combinations.
+
+- **Opening draft:** choose **1 of 3** spells. The opening three are always spells that
+  heal on their own (e.g. Heal, Renew, Flash Heal), so round 1 is survivable with one
+  spell. Round 1 is the gentlest round.
+- **After rounds 1–4:** choose **1 of 3** spells to add to your spellbook, so you have
+  5 spells by the boss (keys Q/W/E/R/T).
+- **Synergy-aware offers:** at least one of the three offers combos with a spell you
+  already own, and each card says so ("Combos with Renew: …"). Combos are discoverable
+  while you draft, not only by reading a wiki.
+- **Some spells need others** (from the original design: Greater Heal needs Heal). A
+  spell with a prerequisite only shows up once you own what it builds on. This is what
+  makes certain drafts feel like a path.
+- **Passive spells** (Seraphic Blessing, Aura of Mending, Vital Bond) are drafted like any
+  other spell. They take a spellbook slot but no key.
+
+**How combos are built: tags, not fixed pairs.** The spell list's synergies are mostly
+fixed pairs ("Renew + Healing Plague = +3s"). Pairs multiply with every new spell, and
+small % bonuses are hard to feel. Instead, every spell gets **tags**, and a combo spell
+reacts to a tag. Overgrowth extends *any* HoT, Spirit Surge consumes *any* shield, Echo
+Heal repeats *any* direct heal. A new spell then combines with everything that shares
+its tag.
 
 - **Tags:** `DIRECT`, `HOT`, `SHIELD`, `CLEANSE`, `DELAYED`, `MULTI`
-- **Events synergies listen for:** cast, heal, overheal, HoT tick, shield absorbs,
+- **Events combos listen for:** cast, heal, overheal, HoT tick, shield absorbs,
   shield breaks, cleanse, heal during a burst warning
+- **When a combo fires:** golden-yellow flash and a dry Pythio quip.
 
-**Layer 1: in-fight combos (every run, the WoW-healing feel).** Built in, golden-yellow
-flash and a Pythio quip when they fire:
-- **Quicken:** a `DIRECT` heal on a target with a HoT consumes the HoT's remaining
-  healing as an instant burst.
-- **Overflow:** overhealing becomes a small shield, so wasted heals aren't wasted.
-- **Clutch:** healing a fighter during a burst warning refunds mana.
+Example combinations the MVP spell pool should make possible:
 
-**Layer 2: run upgrades (the roguelite build).** You start by **drafting 3 spells of the 6
-in the Universal Pool** (Q/W/E). After rounds 1–4 you pick **1 of 3 upgrades**. At least
-one offer gives a 4th spell for the R key. Upgrades are drawn from the spell list and
-pushed toward three builds:
-
-| Build | Core spells | Upgrades that feed it |
-|---|---|---|
-| **Bloom (HoT)** | Renew | Overgrowth, Lifebloom, Aura of Mending, "Quicken leaves a 2s HoT" |
-| **Bulwark (shield)** | Shield | Guardian Ward, Spirit Surge, "Overflow shields don't expire", Guardian Angel |
-| **Surgeon (direct)** | Heal, Flash Heal, Chain Heal | Echo Heal, Mend Wounds, Vital Bond, Seraphic Blessing |
+| Combination | What happens |
+|---|---|
+| Renew + Overgrowth + Lifebloom | Stack HoTs, stretch them, then cash in a delayed bloom |
+| Shield + Spirit Surge | Pre-shield before a burst, then convert leftover shields into healing |
+| Flash Heal + Echo Heal | Every emergency heal repeats 3s later at half strength |
+| Heal + Greater Heal + Seraphic Blessing | Slow, efficient, big heals: a mana-careful build |
+| Chain Heal + Aura of Mending + Vital Bond | Healing that splashes across the whole row |
 
 ### Spell list review: what goes in the MVP
-- **In the MVP:** all 6 Universal Pool spells, using the numbers from `docs/spells.md`
-  as the baseline. About 12 upgrades: Lifebloom, Spirit Surge, Overgrowth, Echo Heal,
-  Guardian Angel, Mend Wounds, Guardian Ward, Greater Heal, plus passives Seraphic Blessing,
-  Aura of Mending, Vital Bond and Shared Harmony, and combo boosters like the ones above.
-- **Passive "spells" become upgrades:** Aura of Mending, Seraphic Blessing and Vital Bond
-  aren't cast, so they live in the upgrade pool.
+- **In the MVP (~14 spells):** all 6 Universal Pool spells (Heal, Renew, Shield, Flash Heal,
+  Chain Heal, Cleanse), plus Greater Heal, Lifebloom, Overgrowth, Echo Heal, Spirit Surge,
+  Mend Wounds, Guardian Ward and Guardian Angel, plus passives Seraphic Blessing, Aura of
+  Mending and Vital Bond. Numbers from `docs/spells.md` are the baseline.
 - **Post-MVP:** Keystones (they're chosen at rounds 10/20, which a 5-round run never
   reaches), Rejuvenation, Healing Plague, Harmonize, Time Stop, Divine Channel, Tranquility,
   Fountain of Light, Aegis of Light.
@@ -98,14 +109,18 @@ Goal: the six starting spells feel distinct, because the damage gives each one a
 3. **Damage patterns by role:** bursts that actually hit after their warning,
    damage over time, escalating damage over time, and an icon showing when a fighter has
    a debuff.
-4. **Starting draft screen:** pick 3 of 6 spells for Q/W/E.
+4. **Opening draft screen:** pick 1 of 3 healing spells to start the run.
 
-### Phase 3: Synergies (the core feature)
-Goal: two runs with different picks feel different.
-1. **In-fight combos:** Quicken, Overflow and Clutch, each with a golden flash and quip.
-2. **Upgrade pick screen** after rounds 1–4, with the first 6 upgrades.
-3. **Full upgrade pool** (~12), balanced across Bloom, Bulwark and Surgeon.
-4. **R-slot spell offers** and a run-build panel showing what you've picked.
+### Phase 3: Spell drafting and synergies (the core feature)
+Goal: two runs with different drafts feel different.
+1. **Between-round draft screen:** after rounds 1–4, pick 1 of 3 spells to add
+   (keys Q–T). Spell cards show cost, cast time and tags.
+2. **Combo spells:** Overgrowth, Echo Heal, Spirit Surge, Lifebloom, with the golden flash
+   and quip when a combo fires.
+3. **Full MVP pool (~14 spells)** including passives and prerequisites (Greater Heal
+   needs Heal).
+4. **Synergy-aware offers and hints:** at least one offer combos with your spellbook, the
+   card says what it combos with, and a spellbook panel shows your build mid-run.
 
 ### Phase 4: Run structure and difficulty
 Goal: contracts are a real risk-or-reward decision, and round 5 is a fight.
@@ -133,7 +148,7 @@ difficulty modes · specializations · achievements · positional mechanics ·
 secondary objectives (bonus for keeping everyone above 50%).
 
 ## Open decisions (owner)
-1. Starting draft of 3 from the 6 Universal Pool spells: confirmed?
+1. Five spells by the boss (keys Q/W/E/R/T), or a cap of 4 with the option to swap one out?
 2. Use the spell list's numbers as the baseline: confirmed?
-3. What gold does in the MVP: reroll upgrade offers, a mini shop, or just score?
+3. What gold does in the MVP: reroll a draft, buy an extra draft pick, or just score?
 4. Keystones post-MVP: confirmed?
