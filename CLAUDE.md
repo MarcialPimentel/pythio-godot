@@ -23,6 +23,8 @@ talents between rounds.
 - **MVP scope = a 5-round run** that represents the full game loop (contract choice →
   round → … → round-5 boss). Endless rounds, 27 spells and a talent tree every 5 rounds
   (from the original web design) are post-MVP.
+- **What to work on next:** follow `docs/roadmap.md` (phases, one bullet ≈ one PR).
+  Spell ideas and baseline numbers: `docs/spells.md`.
 - The original web game's design document is in `docs/design.md`. Use it for intent, spell
   and synergy ideas, and reference numbers.
 
