@@ -13,6 +13,19 @@ https://marz.gg/games/pythio/.
 contracts → final boss contract (round 5, "The Crimson Baron"). Later: unlock spells /
 talents between rounds.
 
+## Current direction (owner's decisions — these win over docs/design.md)
+- **The pitch:** World of Warcraft–style healing (raid frames, cast times, mana as the
+  long game, reading incoming damage) combined with the **spell synergies and build-crafting
+  of a roguelite**. Each run should play differently because of the choices you make.
+- **Spell synergies are a core feature, not a side system.** They were meant to be more
+  prominent than the current code shows. When choosing between work items, favor the ones
+  that make combos and synergies matter.
+- **MVP scope = a 5-round run** that represents the full game loop (contract choice →
+  round → … → round-5 boss). Endless rounds, 27 spells and a talent tree every 5 rounds
+  (from the original web design) are post-MVP.
+- The original web game's design document is in `docs/design.md`. Use it for intent, spell
+  and synergy ideas, and reference numbers.
+
 **Design pillars** — check every change against these:
 1. Triage pressure — you can never fully keep up; you must prioritize.
 2. Meaningful choices — which spell, which target, when to combo, when to save mana.
