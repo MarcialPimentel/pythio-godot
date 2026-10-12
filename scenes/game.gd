@@ -32,9 +32,8 @@ func _ready() -> void:
 	GameManager.round_ended.connect(_on_round_ended)
 	TargetSystem.target_added.connect(_add_target)
 	TargetSystem.loss_condition.connect(_on_loss)
-	SpellSystem.cast_started.connect(_on_cast_start)
-	SpellSystem.cast_finished.connect(_on_cast_finish)
-	SpellSystem.selected_spell_changed.connect(_update_spell_ui)
+	SpellSystem.spell_cast_started.connect(_on_cast_start)
+	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
 	score_label.text = "High Score: %d" % GameManager.high_score
 	party_choice_panel.visible = false
 	game_ui.visible = false
@@ -72,9 +71,6 @@ func _process(delta: float) -> void:
 	
 	GameManager.regen_mana(delta)
 	mana_bar.value = (GameManager.mana / GameManager.max_mana) * 100
-	if SpellSystem.is_casting:
-		cast_bar.value = (SpellSystem.cast_progress / SpellSystem.current_spell.cast_time) * 100
-	
 	_update_spell_ui()
 	_check_selected_target()
 
@@ -207,11 +203,11 @@ func _on_round_ended(round_num: int) -> void:
 func _on_loss() -> void:
 	GameManager.end_round(false)
 
-func _on_cast_start() -> void:
+func _on_cast_start(_spell: SpellData, _target) -> void:
 	cast_bar.visible = true
 	cast_bar.value = 0
 
-func _on_cast_finish(_spell: Spell) -> void:
+func _on_cast_finish(_spell: SpellData, _target) -> void:
 	cast_bar.visible = false
 
 func _create_spell_buttons() -> void:
@@ -232,17 +228,17 @@ func _update_spell_ui() -> void:
 	for i in spell_buttons.size():
 		var spell = SpellSystem.spells[i]
 		var btn = spell_buttons[i]
-		var can_cast = not SpellSystem.is_casting and GameManager.mana >= spell.mana_cost
+		var can_cast = GameManager.mana >= spell.mana_cost
 		btn.disabled = not can_cast
-		if SpellSystem.selected_spell == spell:
+		if selected_spell == spell:
 			btn.modulate = Color.YELLOW
 		else:
 			btn.modulate = Color.WHITE
 
 
-var selected_spell: Spell = null
+var selected_spell: SpellData = null
 
-func _on_spell_pressed(spell: Spell) -> void:
+func _on_spell_pressed(spell: SpellData) -> void:
 	selected_spell = spell
 	print("Selected spell:", spell.display_name)
 

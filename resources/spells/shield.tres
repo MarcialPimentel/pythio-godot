@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="Spell" load_steps=3 format=3 uid="uid://b4j6ysvrc1dwb"]
+[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3 uid="uid://b4j6ysvrc1dwb"]
 
-[ext_resource type="Script" path="res://resources/spells/Spell.gd" id="1_u2lh5"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="1_u2lh5"]
 [ext_resource type="Texture2D" uid="uid://boawckf1i7l4t" path="res://assets/icons/shield.png" id="1_vr1vy"]
 
 [resource]
@@ -13,3 +13,4 @@ cast_time = 0.0
 effect_type = "shield"
 effect_value = 55.0
 effect_duration = 8.0
+vfx_color = "ELECTRIC_BLUE"

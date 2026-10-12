@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://bvvo6vh75ja7w"]
 
-[ext_resource type="Script" path="res://scenes/Game.gd" id="1_v6r81"]
+[ext_resource type="Script" path="res://scenes/game.gd" id="1_v6r81"]
 [ext_resource type="PackedScene" uid="uid://brh0vle4muwi0" path="res://ui/PartyChoicePanel.tscn" id="3_l3gr8"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_i2045"]

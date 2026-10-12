@@ -9,8 +9,8 @@ signal targets_spawned(targets: Array[Node])
 signal party_cleared()
 signal all_targets_dead()
 signal game_over(score: int)
-signal spell_cast_requested(spell: Spell, target: Node)
-signal spell_cast_completed(spell: Spell, target: Node, success: bool)
+signal spell_cast_requested(spell: SpellData, target: Node)
+signal spell_cast_completed(spell: SpellData, target: Node, success: bool)
 signal round_begun(round: int)  # emitted when round actually starts after spawn
 
 

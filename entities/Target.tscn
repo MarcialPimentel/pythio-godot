@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://entities/Target.gd" id="1_d07xr"]
 [ext_resource type="Theme" uid="uid://bgqaqbpt32tsd" path="res://entities/button_theme.tres" id="2_cqyge"]
-[ext_resource type="Texture2D" uid="uid://bko6ialxki3re" path="res://resources/shield.png" id="2_eikkp"]
+[ext_resource type="Texture2D" uid="uid://boawckf1i7l4t" path="res://assets/icons/shield.png" id="2_eikkp"]
 [ext_resource type="Script" path="res://components/HealthComponent.gd" id="3_svmpb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uc077"]
