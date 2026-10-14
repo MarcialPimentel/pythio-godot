@@ -27,6 +27,9 @@ func _ready() -> void:
 
 	if target_button:
 		target_button.pressed.connect(_on_target_button_pressed)
+		# Hover-to-cast: tell the spell system which fighter is under the mouse
+		target_button.mouse_entered.connect(func(): EventBus.target_hovered.emit(self))
+		target_button.mouse_exited.connect(func(): EventBus.target_hovered.emit(null))
 
 	if health_comp:
 		# Connect signals only once
@@ -40,7 +43,12 @@ func _ready() -> void:
 		modulate = Color(1.0, 0.3, 0.3)  # Reddish tint
 		print("Boss unit detected - enhanced visuals")
 
-		# Force initial display using current values
+	# Scale bars to this fighter's real max HP and show starting values
+	if health_comp:
+		if hp_bar:
+			hp_bar.max_value = health_comp.max_health
+		if shield_bar:
+			shield_bar.max_value = health_comp.max_health
 		_update_hp_display(health_comp.current_health)
 		_update_shield_display(health_comp.shield_amount)
 
