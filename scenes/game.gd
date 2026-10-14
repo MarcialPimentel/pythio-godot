@@ -18,6 +18,7 @@ extends Control
 @onready var final_score_label: Label    = $GameUI/GameOverPanel/GameOverContainer/ScoreLabel   # ← fixed nesting
 
 @onready var game_over_panel: Control    = $GameUI/GameOverPanel
+@onready var play_again_button: Button   = $GameUI/GameOverPanel/GameOverContainer/PlayAgainButton
 
 
 var spell_buttons: Array[Button] = []
@@ -46,6 +47,7 @@ func _ready() -> void:
 	EventBus.target_selected.connect(_on_target_selected)
 	EventBus.targets_spawned.connect(_on_targets_spawned)
 	EventBus.round_ended.connect(_on_round_ended)
+	play_again_button.pressed.connect(_on_play_again_pressed)
 	
 	# Safe connect pattern
 	if not party_choice_panel.contract_chosen.is_connected(_on_contract_chosen):
@@ -257,11 +259,16 @@ func _on_start_pressed() -> void:
 	GameManager.new_game()
 
 func _on_game_over(round_reached: int, final_score: int) -> void:
+	party_choice_panel.visible = false
 	game_over_panel.visible = true
 	final_score_label.text = "Round %d Complete!\nScore: %d" % [round_reached, final_score]
-	var play_again_btn = game_over_panel.get_node("PlayAgainButton")
-	if play_again_btn:
-		play_again_btn.pressed.connect(func(): GameManager.new_game(); game_over_panel.visible = false)
+	score_label.text = "High Score: %d" % GameManager.high_score
+
+func _on_play_again_pressed() -> void:
+	game_over_panel.visible = false
+	round_label.modulate = Color.WHITE
+	_clear_party_container()
+	GameManager.new_game()
 
 # Call _create_spell_buttons() in _ready if buttons not pre-made
 
