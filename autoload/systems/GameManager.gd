@@ -22,8 +22,9 @@ func new_game() -> void:
 	score = 0
 	mana = DifficultySystem.max_mana_base
 	max_mana = DifficultySystem.max_mana_base
+	regen_rate = DifficultySystem.regen_rate_base
 	in_round = false
-	round_time = DifficultySystem.round_time_base
+	round_time = DifficultySystem.get_round_time(current_round)
 	show_party_choice.emit()
 
 func end_round(success: bool) -> void:
@@ -44,7 +45,8 @@ func end_round(success: bool) -> void:
 	else:
 		round_time = DifficultySystem.get_round_time(current_round)
 		max_mana = DifficultySystem.get_max_mana(current_round)
-		mana = minf(max_mana, mana)
+		# Carry leftover mana and top up part of the pool, rewarding efficient rounds.
+		mana = minf(max_mana, mana + DifficultySystem.round_start_mana_refill * max_mana)
 		show_party_choice.emit()
 
 func spend_mana(cost: float) -> bool:
