@@ -22,6 +22,8 @@ extends Control
 
 
 var spell_buttons: Array[Button] = []
+var mana_label: Label
+var cast_label: Label
 
 var current_contract: ContractData
 var selected_target: Node = null   # optional, helps with future hover casting
@@ -35,6 +37,10 @@ func _ready() -> void:
 	TargetSystem.loss_condition.connect(_on_loss)
 	SpellSystem.spell_cast_started.connect(_on_cast_start)
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
+	SpellSystem.spell_cast_cancelled.connect(_on_cast_finish)
+	SpellSystem.spell_cast_failed.connect(_on_cast_failed)
+	mana_label = _add_bar_label(mana_bar)
+	cast_label = _add_bar_label(cast_bar)
 	score_label.text = "High Score: %d" % GameManager.high_score
 	party_choice_panel.visible = false
 	game_ui.visible = false
@@ -72,7 +78,11 @@ func _process(delta: float) -> void:
 		return	
 	
 	GameManager.regen_mana(delta)
-	mana_bar.value = (GameManager.mana / GameManager.max_mana) * 100
+	_update_mana_bar()
+	if SpellSystem.is_casting and SpellSystem.current_spell:
+		cast_bar.value = SpellSystem.cast_progress() * 100.0
+		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
+		cast_label.text = "Casting %s (%.1fs)" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
 	_update_spell_ui()
 	_check_selected_target()
 
@@ -159,6 +169,7 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	
 	GameManager.in_round = true
 	EventBus.round_started.emit(GameManager.current_round)
+	_update_mana_bar()
 	print("Round started emitted - in_round now true")
 	
 	# Ensure container is visible
@@ -205,23 +216,60 @@ func _on_round_ended(round_num: int) -> void:
 func _on_loss() -> void:
 	GameManager.end_round(false)
 
-func _on_cast_start(_spell: SpellData, _target) -> void:
-	cast_bar.visible = true
-	cast_bar.value = 0
+func _add_bar_label(bar: ProgressBar) -> Label:
+	bar.show_percentage = false
+	bar.custom_minimum_size.y = maxf(bar.custom_minimum_size.y, 20)
+	var label := Label.new()
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.add_child(label)
+	return label
+
+func _update_mana_bar() -> void:
+	mana_bar.max_value = GameManager.max_mana
+	mana_bar.value = GameManager.mana
+	mana_label.text = "%d / %d" % [int(GameManager.mana), int(GameManager.max_mana)]
+
+func _on_cast_start(spell: SpellData, _target) -> void:
+	if spell.cast_time > 0.0:
+		cast_bar.visible = true
+		cast_bar.value = 0
+		cast_label.text = "Casting %s" % spell.display_name
 
 func _on_cast_finish(_spell: SpellData, _target) -> void:
 	cast_bar.visible = false
+
+func _on_cast_failed(spell: SpellData, reason: String) -> void:
+	# Quick feedback until proper UI messages arrive (roadmap Phase 5)
+	var msg := {"mana": "Not enough mana", "cooldown": "%s isn't ready" % spell.display_name,
+		"busy": "Already casting", "no_target": "Hover or click a fighter first"}
+	if msg.has(reason):
+		print(msg[reason])
+		if reason == "mana":
+			var tw := create_tween()
+			mana_bar.modulate = Color(1.0, 0.3, 0.3)
+			tw.tween_property(mana_bar, "modulate", Color.WHITE, 0.4)
 
 func _create_spell_buttons() -> void:
 	for child in spell_container.get_children():
 		child.queue_free()
 	spell_buttons.clear()
-	for spell in SpellSystem.spells:
+	for i in SpellSystem.spells.size():
+		var spell: SpellData = SpellSystem.spells[i]
+		var key := SpellSystem.key_label_for_slot(i)
 		var btn = Button.new()
 		btn.custom_minimum_size = Vector2(64, 64)
 		btn.icon = spell.icon
-		btn.tooltip_text = "%s\nMana: %d" % [spell.display_name, spell.mana_cost]
-		#btn.pressed.connect(func(): SpellSystem.selected_spell = spell)
+		btn.text = key
+		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		btn.expand_icon = true
+		btn.focus_mode = Control.FOCUS_NONE   # so Q/W/E/R aren't swallowed by button focus
+		var cast_txt := "Instant" if spell.cast_time <= 0.0 else "%.1fs cast" % spell.cast_time
+		btn.tooltip_text = "%s [%s]\nMana: %d · %s%s" % [spell.display_name, key, spell.mana_cost, cast_txt,
+			("" if spell.cooldown <= 0.0 else " · %.0fs cooldown" % spell.cooldown)]
 		btn.pressed.connect(func(): _on_spell_pressed(spell))
 		spell_container.add_child(btn)
 		spell_buttons.append(btn)
@@ -230,8 +278,10 @@ func _update_spell_ui() -> void:
 	for i in spell_buttons.size():
 		var spell = SpellSystem.spells[i]
 		var btn = spell_buttons[i]
-		var can_cast = GameManager.mana >= spell.mana_cost
-		btn.disabled = not can_cast
+		btn.disabled = not SpellSystem.can_cast(spell)
+		var key := SpellSystem.key_label_for_slot(i)
+		var cd := SpellSystem.cooldown_remaining(spell.id)
+		btn.text = key if cd <= 0.0 else "%s %.0f" % [key, ceilf(cd)]
 		if selected_spell == spell:
 			btn.modulate = Color.YELLOW
 		else:
@@ -255,6 +305,7 @@ func _on_target_selected(target: Node) -> void:
 func _on_start_pressed() -> void:
 	start_screen.visible = false
 	game_ui.visible = true
+	mana_bar.visible = true
 	_create_spell_buttons()
 	GameManager.new_game()
 

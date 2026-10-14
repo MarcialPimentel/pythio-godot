@@ -6,7 +6,8 @@ extends Resource
 @export var display_name: String = "Flash Heal"
 @export var icon: Texture2D
 @export var mana_cost: float = 25.0
-@export var cast_time: float = 0.3
+@export var cast_time: float = 0.3      # seconds; 0 = instant
+@export var cooldown: float = 0.0       # seconds before it can be cast again; 0 = none
 
 @export_enum("instant_heal", "hot", "shield", "cleanse", "burst") var effect_type: String = "instant_heal"
 @export var effect_value: float = 45.0

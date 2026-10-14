@@ -1,6 +1,7 @@
 extends Node
 
 signal target_selected(target: Node)
+signal target_hovered(target: Node)   # null when the mouse leaves a fighter
 signal round_started(round: int)
 signal round_ended(success: bool)
 signal contract_chosen(contract: ContractData)
