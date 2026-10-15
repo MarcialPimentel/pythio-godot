@@ -14,6 +14,16 @@ extends Node
 @export var risk_per_unit: float = 0.25
 @export var max_risk: int = 5
 
+@export_group("Fighters")
+## Starting HP by armor type (original design: heavy 100 / medium 75 / light 50).
+@export var armor_base_hp := {"HEAVY": 100, "MEDIUM": 75, "LIGHT": 50}
+## Extra HP per round after the first (0.1 = +10% each round).
+@export var hp_growth_per_round: float = 0.1
+## Which characters can appear for each armor type.
+@export var armor_characters := {"HEAVY": ["knight"], "MEDIUM": ["mercenary"], "LIGHT": ["rogue", "adventurer"]}
+@export var character_names := {"knight": "Heavy Knight", "mercenary": "Desperate Mercenary",
+	"rogue": "Cursed Rogue", "adventurer": "Injured Adventurer", "baron": "Crimson Baron"}
+
 @export_group("Flavor Templates")
 @export var flavor_prefixes: PackedStringArray = ["Injured ", "Desperate ", "Cursed ", "Mercenary "]
 @export var flavor_suffixes: PackedStringArray = ["band", "squad", "caravan", "outpost"]
@@ -45,19 +55,19 @@ func generate_contract(round_num: int) -> ContractData:
 	
 	# ── Generate units ──
 	contract.unit_templates.clear()
-	var total_hp_budget := int(100 * target_units * (hp_budget_multiplier.sample(progress) if hp_budget_multiplier else 1.2))
-	var remaining_hp := total_hp_budget
+	var hp_mult := 1.0 + hp_growth_per_round * (round_num - 1)
+	if hp_budget_multiplier:
+		hp_mult *= hp_budget_multiplier.sample(progress)
 	
 	for i in target_units:
 		var template := UnitTemplate.new()
 		
-		# Armor type (weighted random)
+		# Armor type (weighted random) decides HP and which character shows up
 		template.armor_type = _weighted_random_armor()
-		
-		# Health (distribute budget, slight variance)
-		var hp_share := remaining_hp / float(target_units - i)
-		template.base_max_health = roundi(hp_share * randf_range(0.8, 1.2))
-		remaining_hp -= template.base_max_health
+		var options: Array = armor_characters.get(template.armor_type, ["adventurer"])
+		template.character = options[rng.randi() % options.size()]
+		template.display_name = character_names.get(template.character, "Fighter")
+		template.base_max_health = roundi(armor_base_hp.get(template.armor_type, 75) * hp_mult)
 		
 		# Burst threat (increases with round)
 		template.burst_threat = burst_frequency_curve.sample(progress) if burst_frequency_curve else 0.1 + 0.08 * (round_num - 1)
@@ -86,6 +96,7 @@ func generate_boss_contract(round_num: int) -> ContractData:
 	
 	var boss_unit := UnitTemplate.new()
 	boss_unit.display_name = "Crimson Baron"
+	boss_unit.character = "baron"
 	boss_unit.armor_type = "HEAVY"
 	boss_unit.base_max_health = 1200 + 200 * (round_num - 5)
 	boss_unit.burst_threat = 0.8
@@ -108,6 +119,4 @@ func _weighted_random_armor() -> String:
 		current += armor_weights[type]
 		if roll <= current:
 			return type
-		print("Rolled armor:", type)  # before return
-		return type
-	return "LIGHT"  # fallback
+	return "LIGHT"  # fallback (rounding)

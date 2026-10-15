@@ -13,6 +13,7 @@ var high_score: int = 0
 var mana: float = 100.0
 var max_mana: float = 100.0
 var regen_rate: float = 4.0
+var last_run_won: bool = false
 
 func _ready() -> void:
 	load_high_score()
@@ -34,12 +35,14 @@ func end_round(success: bool) -> void:
 	if success:
 		score += current_round * 100  # later tie to gold
 	else:
+		last_run_won = false
 		game_over.emit(current_round, score)
 		save_high_score()
 		return
 	
 	current_round += 1
 	if current_round > DifficultySystem.total_rounds:
+		last_run_won = true
 		game_over.emit(DifficultySystem.total_rounds, score)
 		save_high_score()
 	else:

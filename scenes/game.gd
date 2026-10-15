@@ -54,6 +54,7 @@ func _ready() -> void:
 	EventBus.target_selected.connect(_on_target_selected)
 	EventBus.targets_spawned.connect(_on_targets_spawned)
 	EventBus.round_ended.connect(_on_round_ended)
+	EventBus.target_died.connect(func(t): fallen_name = t.display_name)
 	play_again_button.pressed.connect(_on_play_again_pressed)
 	
 	# Safe connect pattern
@@ -194,11 +195,19 @@ func _on_new_round_started(round: int) -> void:
 		# Optional: play sound, show "FINAL CONTRACT" overlay
 
 func _on_round_ended(round_num: int) -> void:
-	print("Round ended — hiding party")
+	# Keep the party on screen after a loss so you can see who fell
+	await get_tree().process_frame
+	if game_over_panel.visible:
+		return
 	party_container.visible = false
 	# Next spawn will add new children after clear anyway
 
+var fallen_name: String = ""
+
 func _on_loss() -> void:
+	if not GameManager.in_round:
+		return   # already ended this round
+	SpellSystem.cancel_cast()
 	GameManager.end_round(false)
 
 func _add_bar_label(bar: ProgressBar) -> Label:
@@ -297,11 +306,15 @@ func _on_start_pressed() -> void:
 func _on_game_over(round_reached: int, final_score: int) -> void:
 	party_choice_panel.visible = false
 	game_over_panel.visible = true
-	final_score_label.text = "Round %d Complete!\nScore: %d" % [round_reached, final_score]
+	if GameManager.last_run_won:
+		final_score_label.text = "Contract fulfilled. All %d rounds survived.\nScore: %d" % [round_reached, final_score]
+	else:
+		final_score_label.text = "%s didn't make it.\nRun ended in round %d.  Score: %d" % [fallen_name if fallen_name != "" else "Someone", round_reached, final_score]
 	score_label.text = "High Score: %d" % GameManager.high_score
 
 func _on_play_again_pressed() -> void:
 	game_over_panel.visible = false
+	fallen_name = ""
 	round_label.modulate = Color.WHITE
 	_clear_party_container()
 	GameManager.new_game()
