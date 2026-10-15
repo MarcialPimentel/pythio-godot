@@ -1,88 +1,173 @@
-[gd_scene load_steps=8 format=3 uid="uid://cgdgfutgy464u"]
+[gd_scene load_steps=11 format=3 uid="uid://cgdgfutgy464u"]
 
-[ext_resource type="Script" path="res://entities/Target.gd" id="1_d07xr"]
-[ext_resource type="Theme" uid="uid://bgqaqbpt32tsd" path="res://entities/button_theme.tres" id="2_cqyge"]
-[ext_resource type="Texture2D" uid="uid://boawckf1i7l4t" path="res://assets/icons/shield.png" id="2_eikkp"]
-[ext_resource type="Script" path="res://components/HealthComponent.gd" id="3_svmpb"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uc077"]
-
-[sub_resource type="Theme" id="Theme_3n4qw"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5tslh"]
-bg_color = Color(0.302817, 0.70003, 0.321885, 1)
+[ext_resource type="Script" path="res://entities/Target.gd" id="1_target"]
+[ext_resource type="Script" path="res://components/HealthComponent.gd" id="2_health"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/adventurer/adventurer_1.png" id="3_sprite"]
+[ext_resource type="Texture2D" path="res://assets/art/vfx/danger/danger_telegraph_1.png" id="4_telegraph"]
+[ext_resource type="Texture2D" path="res://assets/art/vfx/heal/hot_circle_1.png" id="5_hot"]
+[ext_resource type="Texture2D" path="res://assets/art/vfx/shield/shield_loop_1.png" id="6_shield"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bars/health_bar_under.png" id="7_bar_under"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bars/health_bar_fill.png" id="8_bar_fill"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bars/shield_bar_fill.png" id="9_shield_fill"]
+[ext_resource type="FontFile" path="res://assets/fonts/oswald-latin-700-normal.woff2" id="10_oswald_bold"]
 
 [node name="Target" type="Control"]
-custom_minimum_size = Vector2(300, 100)
+custom_minimum_size = Vector2(300, 470)
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-script = ExtResource("1_d07xr")
+anchors_preset = 0
+offset_right = 300.0
+offset_bottom = 470.0
+mouse_filter = 2
+script = ExtResource("1_target")
 
-[node name="Panel" type="Panel" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Panel"]
-custom_minimum_size = Vector2(200, 60)
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -30.0
-offset_right = 100.0
-offset_bottom = 30.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Vbox" type="VBoxContainer" parent="Panel/MarginContainer"]
-layout_mode = 2
-
-[node name="TargetName" type="Label" parent="Panel/MarginContainer/Vbox"]
+[node name="Telegraph" type="TextureRect" parent="."]
 visible = false
-layout_mode = 2
-text = "(targetname)"
-horizontal_alignment = 1
+modulate = Color(1, 1, 1, 0.9)
+layout_mode = 0
+offset_left = 40.0
+offset_top = 280.0
+offset_right = 260.0
+offset_bottom = 360.0
+mouse_filter = 2
+texture = ExtResource("4_telegraph")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="shield_bar" type="ProgressBar" parent="Panel/MarginContainer/Vbox"]
-layout_mode = 2
-size_flags_vertical = 1
-theme_override_styles/fill = SubResource("StyleBoxFlat_uc077")
-step = 1.0
-
-[node name="health_bar" type="ProgressBar" parent="Panel/MarginContainer/Vbox"]
-layout_mode = 2
-size_flags_vertical = 1
-theme = SubResource("Theme_3n4qw")
-theme_override_styles/fill = SubResource("StyleBoxFlat_5tslh")
-step = 1.0
-
-[node name="TargetButton" type="Button" parent="Panel/MarginContainer"]
-light_mask = 0
-layout_mode = 2
-theme = ExtResource("2_cqyge")
-
-[node name="TextureRect" type="TextureRect" parent="Panel/MarginContainer"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 0
-texture = ExtResource("2_eikkp")
+[node name="HotRing" type="TextureRect" parent="."]
+visible = false
+modulate = Color(1, 1, 1, 0.85)
+layout_mode = 0
+offset_left = 55.0
+offset_top = 300.0
+offset_right = 245.0
+offset_bottom = 352.0
+mouse_filter = 2
+texture = ExtResource("5_hot")
 expand_mode = 1
 
+[node name="Sprite" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 50.0
+offset_right = 260.0
+offset_bottom = 330.0
+pivot_offset = Vector2(110, 280)
+mouse_filter = 2
+texture = ExtResource("3_sprite")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ShieldBubble" type="TextureRect" parent="."]
+visible = false
+modulate = Color(1, 1, 1, 0.45)
+layout_mode = 0
+offset_left = 20.0
+offset_top = 40.0
+offset_right = 280.0
+offset_bottom = 340.0
+mouse_filter = 2
+texture = ExtResource("6_shield")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatusIcons" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 300.0
+offset_bottom = 36.0
+mouse_filter = 2
+alignment = 1
+
+[node name="IncomingLabel" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 0.0
+offset_top = 6.0
+offset_right = 300.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.95, 0.22, 0.16, 1)
+theme_override_fonts/font = ExtResource("10_oswald_bold")
+theme_override_font_sizes/font_size = 24
+text = "! INCOMING"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = -20.0
+offset_top = 334.0
+offset_right = 320.0
+offset_bottom = 366.0
+theme_override_fonts/font = ExtResource("10_oswald_bold")
+theme_override_font_sizes/font_size = 22
+text = "Injured Adventurer"
+horizontal_alignment = 1
+
+[node name="HealthBar" type="TextureProgressBar" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 368.0
+offset_right = 379.0
+offset_bottom = 427.0
+scale = Vector2(0.78, 0.78)
+mouse_filter = 2
+step = 0.1
+value = 100.0
+texture_under = ExtResource("7_bar_under")
+texture_progress = ExtResource("8_bar_fill")
+texture_progress_offset = Vector2(56, 20)
+
+[node name="ShieldBar" type="TextureProgressBar" parent="."]
+modulate = Color(1, 1, 1, 0.95)
+layout_mode = 0
+offset_left = 47.68
+offset_top = 375.0
+offset_right = 337.68
+offset_bottom = 397.0
+scale = Vector2(0.78, 0.3)
+mouse_filter = 2
+step = 0.1
+texture_progress = ExtResource("9_shield_fill")
+
+[node name="HPLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 377.0
+offset_right = 270.0
+offset_bottom = 404.0
+theme_override_fonts/font = ExtResource("10_oswald_bold")
+theme_override_font_sizes/font_size = 18
+text = "50 / 50"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InfoLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = -20.0
+offset_top = 418.0
+offset_right = 320.0
+offset_bottom = 444.0
+theme_override_colors/font_color = Color(0.68, 0.66, 0.62, 1)
+theme_override_font_sizes/font_size = 17
+text = "LIGHT ARMOR"
+horizontal_alignment = 1
+
+[node name="FX" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 300.0
+offset_bottom = 340.0
+mouse_filter = 2
+
+[node name="TargetButton" type="Button" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 0
+offset_left = 20.0
+offset_top = 30.0
+offset_right = 280.0
+offset_bottom = 440.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+flat = true
+
 [node name="HealthComponent" type="Node" parent="."]
-script = ExtResource("3_svmpb")
+script = ExtResource("2_health")

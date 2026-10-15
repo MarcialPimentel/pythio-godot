@@ -38,7 +38,7 @@ func setup_contracts(choices: Array[ContractData]) -> void:
 	# Always fill left
 	left_choice = choices[0]
 	left_name.text = left_choice.contract_name
-	left_gold.text = str(left_choice.reward_gold) + " gold"
+	left_gold.text = describe(left_choice)
 	left_flavor.text = left_choice.flavor_text
 	left_button.disabled = false
 	
@@ -46,7 +46,7 @@ func setup_contracts(choices: Array[ContractData]) -> void:
 	if choices.size() >= 2:
 		right_choice = choices[1]
 		right_name.text = right_choice.contract_name
-		right_gold.text = str(right_choice.reward_gold) + " gold"
+		right_gold.text = describe(right_choice)
 		right_flavor.text = right_choice.flavor_text
 		right_button.disabled = false
 	else:
@@ -65,3 +65,15 @@ func _on_left_chosen() -> void:
 
 func _on_right_chosen() -> void:
 	emit_signal("contract_chosen", right_choice)
+
+
+## One-line summary of who you'd be healing and how risky it is.
+## (Gold rewards are hidden for the MVP; the shop idea comes later.)
+func describe(c: ContractData) -> String:
+	var counts := {}
+	for t in c.unit_templates:
+		counts[t.display_name] = counts.get(t.display_name, 0) + 1
+	var parts: Array[String] = []
+	for n in counts:
+		parts.append("%d× %s" % [counts[n], n])
+	return "%s\nRISK %s" % [", ".join(parts), "●".repeat(c.risk_level) + "○".repeat(maxi(0, 5 - c.risk_level))]

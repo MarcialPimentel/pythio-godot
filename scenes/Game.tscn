@@ -1,19 +1,65 @@
-[gd_scene load_steps=7 format=3 uid="uid://bvvo6vh75ja7w"]
+[gd_scene load_steps=22 format=3 uid="uid://bvvo6vh75ja7w"]
 
 [ext_resource type="Script" path="res://scenes/game.gd" id="1_v6r81"]
+[ext_resource type="Theme" path="res://ui/theme/pythio_theme.tres" id="2_theme"]
 [ext_resource type="PackedScene" uid="uid://brh0vle4muwi0" path="res://ui/PartyChoicePanel.tscn" id="3_l3gr8"]
+[ext_resource type="Shader" path="res://ui/theme/noir_background.gdshader" id="4_bg"]
+[ext_resource type="FontFile" path="res://assets/fonts/pirata-one-latin-400-normal.woff2" id="5_pirata"]
+[ext_resource type="FontFile" path="res://assets/fonts/oswald-latin-700-normal.woff2" id="6_oswald_bold"]
+[ext_resource type="FontFile" path="res://assets/fonts/special-elite-latin-400-normal.woff2" id="7_elite"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/frames/wanted_poster.png" id="8_poster"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/pythio/pythio_idle.png" id="9_pythio"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/frames/dialogue_box.png" id="10_bubble"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bars/mana_bar_under.png" id="11_mana_under"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bars/mana_bar_fill.png" id="12_mana_fill"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bars/mana_orb_4.png" id="13_orb"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/frames/portrait.png" id="14_portrait"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/knight/knight_2.png" id="15_knight"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/baron/baron_2.png" id="16_baron"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_i2045"]
-font_size = 64
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg"]
+shader = ExtResource("4_bg")
+shader_parameter/top_color = Color(0.07, 0.06, 0.08, 1)
+shader_parameter/bottom_color = Color(0.11, 0.08, 0.08, 1)
+shader_parameter/haze_color = Color(0.45, 0.06, 0.06, 1)
+shader_parameter/haze_center = Vector2(0.5, 0.42)
+shader_parameter/haze_strength = 0.35
+shader_parameter/vignette = 0.9
+shader_parameter/grain = 0.04
+shader_parameter/floor_y = 0.6
 
-[sub_resource type="LabelSettings" id="LabelSettings_hmfwm"]
-font_size = 24
+[sub_resource type="StyleBoxFlat" id="StyleBox_castbg"]
+bg_color = Color(0.04, 0.04, 0.05, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.82, 0.76, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7oso7"]
-bg_color = Color(1, 0.533333, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBox_castfill"]
+bg_color = Color(0.36, 0.86, 0.36, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xjq17"]
-bg_color = Color(0.230304, 0.639466, 0.878693, 1)
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("5_pirata")
+font_size = 190
+outline_size = 14
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 18
+shadow_color = Color(0.5, 0.05, 0.05, 0.6)
+
+[sub_resource type="LabelSettings" id="LabelSettings_round"]
+font = ExtResource("5_pirata")
+font_size = 72
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -22,7 +68,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_v6r81")
+
+[node name="Background" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_bg")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="StartScreen" type="Control" parent="."]
 visible = false
@@ -33,6 +90,30 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="StartKnight" type="TextureRect" parent="StartScreen"]
+modulate = Color(0.75, 0.72, 0.7, 1)
+layout_mode = 0
+offset_left = 230.0
+offset_top = 430.0
+offset_right = 530.0
+offset_bottom = 900.0
+mouse_filter = 2
+texture = ExtResource("15_knight")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StartBaron" type="TextureRect" parent="StartScreen"]
+modulate = Color(0.75, 0.72, 0.7, 1)
+layout_mode = 0
+offset_left = 1370.0
+offset_top = 330.0
+offset_right = 1700.0
+offset_bottom = 900.0
+mouse_filter = 2
+texture = ExtResource("16_baron")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="CenterContainer" type="VBoxContainer" parent="StartScreen"]
 layout_mode = 1
 anchors_preset = 8
@@ -40,29 +121,53 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -105.0
-offset_right = 150.0
-offset_bottom = 105.0
+offset_left = -400.0
+offset_top = -330.0
+offset_right = 400.0
+offset_bottom = 330.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="StartScreen/CenterContainer"]
 layout_mode = 2
-text = "Pythio"
-label_settings = SubResource("LabelSettings_i2045")
+text = "PYTHIO"
+label_settings = SubResource("LabelSettings_title")
 horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="StartScreen/CenterContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.2, 0.17, 1)
+theme_override_fonts/font = ExtResource("6_oswald_bold")
+theme_override_font_sizes/font_size = 40
+text = "— HEALER FOR HIRE —"
+horizontal_alignment = 1
+
+[node name="TaglineLabel" type="Label" parent="StartScreen/CenterContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("7_elite")
+theme_override_font_sizes/font_size = 24
+text = "Five contracts. Nobody dies on your watch. Probably."
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="StartScreen/CenterContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="StartScreen/CenterContainer"]
+custom_minimum_size = Vector2(340, 84)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("6_oswald_bold")
+theme_override_font_sizes/font_size = 34
+text = "TAKE THE JOB"
 
 [node name="HighScoreLabel" type="Label" parent="StartScreen/CenterContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.7, 0.35, 1)
 text = "High Score: 0"
-label_settings = SubResource("LabelSettings_hmfwm")
-
-[node name="StartButton" type="Button" parent="StartScreen/CenterContainer"]
-custom_minimum_size = Vector2(300, 80)
-layout_mode = 2
-text = "Start Game"
+horizontal_alignment = 1
 
 [node name="GameUI" type="Control" parent="."]
 layout_mode = 1
@@ -71,89 +176,259 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="Header" type="HBoxContainer" parent="GameUI"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -54.0
-offset_right = 54.0
-offset_bottom = 40.0
-grow_horizontal = 2
+[node name="Header" type="Control" parent="GameUI"]
+layout_mode = 0
+offset_left = 660.0
+offset_top = 10.0
+offset_right = 1260.0
+offset_bottom = 150.0
+mouse_filter = 2
 
 [node name="RoundLabel" type="Label" parent="GameUI/Header"]
-layout_mode = 2
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 90.0
+text = "Round 1"
+label_settings = SubResource("LabelSettings_round")
+horizontal_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="GameUI/Header"]
-layout_mode = 2
+layout_mode = 0
+offset_top = 88.0
+offset_right = 600.0
+offset_bottom = 136.0
+theme_override_colors/font_color = Color(0.92, 0.25, 0.2, 1)
+theme_override_fonts/font = ExtResource("6_oswald_bold")
+theme_override_font_sizes/font_size = 36
+text = "10.0s"
+horizontal_alignment = 1
+
+[node name="ContractInfo" type="Control" parent="GameUI"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 22.0
+offset_right = 640.0
+offset_bottom = 170.0
+mouse_filter = 2
+
+[node name="Poster" type="TextureRect" parent="GameUI/ContractInfo"]
+layout_mode = 0
+offset_right = 110.0
+offset_bottom = 138.0
+mouse_filter = 2
+texture = ExtResource("8_poster")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ContractCaption" type="Label" parent="GameUI/ContractInfo"]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 8.0
+offset_right = 600.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(0.65, 0.62, 0.56, 1)
+theme_override_font_sizes/font_size = 18
+text = "CONTRACT"
+
+[node name="ContractName" type="Label" parent="GameUI/ContractInfo"]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 30.0
+offset_right = 620.0
+offset_bottom = 84.0
+theme_override_fonts/font = ExtResource("5_pirata")
+theme_override_font_sizes/font_size = 42
+text = "4 Injured outpost"
+
+[node name="ContractRisk" type="Label" parent="GameUI/ContractInfo"]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 86.0
+offset_right = 600.0
+offset_bottom = 116.0
+theme_override_colors/font_color = Color(0.85, 0.3, 0.25, 1)
+theme_override_font_sizes/font_size = 20
+text = "RISK ●●○○○"
+
+[node name="PartyContainer" type="Control" parent="GameUI"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 230.0
+offset_right = 1860.0
+offset_bottom = 700.0
+mouse_filter = 2
+
+[node name="PartyTarget" type="HBoxContainer" parent="GameUI/PartyContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="Pythio" type="TextureRect" parent="GameUI"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 690.0
+offset_right = 330.0
+offset_bottom = 1075.0
+pivot_offset = Vector2(145, 385)
+mouse_filter = 2
+texture = ExtResource("9_pythio")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuipBubble" type="TextureRect" parent="GameUI"]
+visible = false
+layout_mode = 0
+offset_left = 300.0
+offset_top = 720.0
+offset_right = 600.0
+offset_bottom = 890.0
+mouse_filter = 2
+texture = ExtResource("10_bubble")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="QuipLabel" type="Label" parent="GameUI/QuipBubble"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 20.0
+offset_right = 272.0
+offset_bottom = 120.0
+theme_override_colors/font_color = Color(0.08, 0.07, 0.07, 1)
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("7_elite")
+theme_override_font_sizes/font_size = 20
+text = "Hold still. This stings less than dying."
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="PlayerContainer" type="Control" parent="GameUI"]
+layout_mode = 0
+offset_left = 560.0
+offset_top = 790.0
+offset_right = 1360.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="PlayerResources" type="Control" parent="GameUI/PlayerContainer"]
+anchors_preset = 0
+offset_right = 800.0
+offset_bottom = 290.0
+mouse_filter = 2
+
+[node name="CastBar" type="ProgressBar" parent="GameUI/PlayerContainer/PlayerResources"]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 10.0
+offset_right = 600.0
+offset_bottom = 36.0
+theme_override_styles/background = SubResource("StyleBox_castbg")
+theme_override_styles/fill = SubResource("StyleBox_castfill")
+show_percentage = false
+
+[node name="ManaOrb" type="TextureRect" parent="GameUI/PlayerContainer/PlayerResources"]
+layout_mode = 0
+offset_left = 104.0
+offset_top = 202.0
+offset_right = 178.0
+offset_bottom = 280.0
+mouse_filter = 2
+texture = ExtResource("13_orb")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaBar" type="TextureProgressBar" parent="GameUI/PlayerContainer/PlayerResources"]
+layout_mode = 0
+offset_left = 184.0
+offset_top = 210.0
+offset_right = 544.0
+offset_bottom = 261.0
+scale = Vector2(1.2, 1.2)
+mouse_filter = 2
+step = 0.1
+value = 100.0
+texture_under = ExtResource("11_mana_under")
+texture_progress = ExtResource("12_mana_fill")
+texture_progress_offset = Vector2(16, 16)
+
+[node name="SpellContainer" type="HBoxContainer" parent="GameUI"]
+layout_mode = 0
+offset_left = 660.0
+offset_top = 850.0
+offset_right = 1260.0
+offset_bottom = 990.0
+mouse_filter = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="Portrait" type="TextureRect" parent="GameUI"]
+layout_mode = 0
+offset_left = 1730.0
+offset_top = 860.0
+offset_right = 1890.0
+offset_bottom = 1012.0
+mouse_filter = 2
+texture = ExtResource("14_portrait")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PortraitName" type="Label" parent="GameUI"]
+layout_mode = 0
+offset_left = 1730.0
+offset_top = 1014.0
+offset_right = 1890.0
+offset_bottom = 1050.0
+theme_override_fonts/font = ExtResource("5_pirata")
+theme_override_font_sizes/font_size = 30
+text = "Pythio"
+horizontal_alignment = 1
 
 [node name="PartyChoicePanel" parent="GameUI" instance=ExtResource("3_l3gr8")]
 layout_mode = 1
 
-[node name="PartyContainer" type="MarginContainer" parent="GameUI"]
-custom_minimum_size = Vector2(187, 0)
-layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="PartyTarget" type="HBoxContainer" parent="GameUI/PartyContainer"]
-layout_mode = 2
-
-[node name="PlayerContainer" type="MarginContainer" parent="GameUI"]
-custom_minimum_size = Vector2(187, 0)
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -93.5
-offset_top = -148.0
-offset_right = 93.5
-offset_bottom = -105.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="PlayerResources" type="VBoxContainer" parent="GameUI/PlayerContainer"]
-layout_mode = 2
-
-[node name="CastBar" type="ProgressBar" parent="GameUI/PlayerContainer/PlayerResources"]
-custom_minimum_size = Vector2(44, 12)
-layout_mode = 2
-theme_override_styles/fill = SubResource("StyleBoxFlat_7oso7")
-show_percentage = false
-
-[node name="ManaBar" type="ProgressBar" parent="GameUI/PlayerContainer/PlayerResources"]
-layout_mode = 2
-theme_override_styles/fill = SubResource("StyleBoxFlat_xjq17")
-
-[node name="SpellContainer" type="HBoxContainer" parent="GameUI"]
-layout_mode = 1
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="GameOverPanel" type="Control" parent="GameUI"]
+[node name="GameOverPanel" type="Panel" parent="GameUI"]
 visible = false
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+layout_mode = 0
+offset_left = 610.0
+offset_top = 300.0
+offset_right = 1310.0
+offset_bottom = 640.0
 
 [node name="GameOverContainer" type="VBoxContainer" parent="GameUI/GameOverPanel"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="GameUI/GameOverPanel/GameOverContainer"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("6_oswald_bold")
+theme_override_font_sizes/font_size = 34
+text = "Contract fulfilled."
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="PlayAgainButton" type="Button" parent="GameUI/GameOverPanel/GameOverContainer"]
+custom_minimum_size = Vector2(300, 70)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("6_oswald_bold")
+theme_override_font_sizes/font_size = 30
 text = "Play Again"
 
 [connection signal="pressed" from="StartScreen/CenterContainer/StartButton" to="." method="_on_start_pressed"]

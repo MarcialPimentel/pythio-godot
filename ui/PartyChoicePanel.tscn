@@ -1,16 +1,39 @@
-[gd_scene load_steps=8 format=3 uid="uid://brh0vle4muwi0"]
+[gd_scene load_steps=9 format=3 uid="uid://brh0vle4muwi0"]
 
 [ext_resource type="Script" path="res://scenes/PartyChoicePanel.gd" id="1_dkfp8"]
-[ext_resource type="Texture2D" uid="uid://bdsxdphfm50wo" path="res://resources/icons/harmor.png" id="2_5h300"]
-[ext_resource type="Texture2D" uid="uid://c1la1l1d7wfp0" path="res://resources/icons/larmor.png" id="3_2cn3q"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/frames/wanted_poster.png" id="2_5h300"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/frames/wanted_poster.png" id="3_2cn3q"]
+[ext_resource type="FontFile" path="res://assets/fonts/pirata-one-latin-400-normal.woff2" id="4_pirata"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie608"]
-bg_color = Color(0.300024, 0.610346, 0.96027, 1)
+bg_color = Color(0.07, 0.06, 0.06, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.8, 0.72, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0.5, 0.05, 0.05, 0.45)
+shadow_size = 16
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jr3h1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mfcx6"]
-bg_color = Color(0.606321, 0.531692, 0.912367, 1)
+bg_color = Color(0.07, 0.06, 0.06, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.8, 0.72, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0.5, 0.05, 0.05, 0.45)
+shadow_size = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dkeci"]
 
@@ -42,7 +65,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="LeftParty" type="Panel" parent="ChoicesContainer"]
-custom_minimum_size = Vector2(400, 500)
+custom_minimum_size = Vector2(400, 580)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
@@ -55,17 +78,17 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -150.0
-offset_right = 100.0
-offset_bottom = 150.0
+offset_left = -175.0
+offset_top = -270.0
+offset_right = 175.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
 [node name="LeftIcon" type="TextureRect" parent="ChoicesContainer/LeftParty/LeftVBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 130)
 layout_mode = 2
 texture = ExtResource("2_5h300")
 stretch_mode = 5
@@ -75,7 +98,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(20, 80)
 layout_mode = 2
 size_flags_vertical = 1
-theme_override_font_sizes/font_size = 50
+theme_override_fonts/font = ExtResource("4_pirata")
+theme_override_font_sizes/font_size = 38
 text = "LeftName"
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -89,27 +113,29 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "Choose"
+text = "Take the job"
 
 [node name="LeftGold" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 20
 text = "Left Gold"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="LeftFlavor" type="Label" parent="ChoicesContainer/LeftParty/LeftVBox"]
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 1
 theme_override_font_sizes/font_size = 20
 text = "Left Flavor"
+horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="RightParty" type="Panel" parent="ChoicesContainer"]
-custom_minimum_size = Vector2(400, 500)
+custom_minimum_size = Vector2(400, 580)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
@@ -122,17 +148,17 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -150.0
-offset_right = 100.0
-offset_bottom = 150.0
+offset_left = -175.0
+offset_top = -270.0
+offset_right = 175.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
 [node name="RightIcon" type="TextureRect" parent="ChoicesContainer/RightParty/RightVBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 130)
 layout_mode = 2
 texture = ExtResource("3_2cn3q")
 stretch_mode = 5
@@ -142,7 +168,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(20, 80)
 layout_mode = 2
 size_flags_vertical = 1
-theme_override_font_sizes/font_size = 50
+theme_override_fonts/font = ExtResource("4_pirata")
+theme_override_font_sizes/font_size = 38
 text = "RightName"
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -156,22 +183,24 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "Choose"
+text = "Take the job"
 
 [node name="RightGold" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 20
 text = "Right Gold"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="RightFlavor" type="Label" parent="ChoicesContainer/RightParty/RightVBox"]
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 20
 text = "Right Flavor"
+horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="PartyChoiceText" type="Label" parent="."]
@@ -188,4 +217,4 @@ offset_bottom = -303.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 50
-text = "Who do you want to heal?"
+text = "Who needs a healer?"

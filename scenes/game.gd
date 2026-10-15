@@ -2,207 +2,200 @@ class_name Game
 
 extends Control
 
+# ── Scene references ──
 @onready var start_screen: Control       = $StartScreen
 @onready var game_ui: Control            = $GameUI
 @onready var round_label: Label          = $GameUI/Header/RoundLabel
 @onready var timer_label: Label          = $GameUI/Header/TimerLabel
 
+@onready var contract_name_label: Label  = $GameUI/ContractInfo/ContractName
+@onready var contract_risk_label: Label  = $GameUI/ContractInfo/ContractRisk
+@onready var contract_info: Control      = $GameUI/ContractInfo
+
 @onready var cast_bar: ProgressBar       = $GameUI/PlayerContainer/PlayerResources/CastBar
-@onready var mana_bar: ProgressBar       = $GameUI/PlayerContainer/PlayerResources/ManaBar
+@onready var mana_bar: TextureProgressBar = $GameUI/PlayerContainer/PlayerResources/ManaBar
+@onready var mana_orb: TextureRect       = $GameUI/PlayerContainer/PlayerResources/ManaOrb
 @onready var spell_container: HBoxContainer  = $GameUI/SpellContainer
+
+@onready var pythio_sprite: TextureRect  = $GameUI/Pythio
+@onready var quip_bubble: TextureRect    = $GameUI/QuipBubble
+@onready var quip_label: Label           = $GameUI/QuipBubble/QuipLabel
 
 @onready var contract_selector = ContractSelector
 @onready var party_choice_panel: Control = $GameUI/PartyChoicePanel
+@onready var party_area: Control         = $GameUI/PartyContainer
 @onready var party_container: HBoxContainer = $GameUI/PartyContainer/PartyTarget
 
 @onready var score_label: Label          = $StartScreen/CenterContainer/HighScoreLabel
-@onready var final_score_label: Label    = $GameUI/GameOverPanel/GameOverContainer/ScoreLabel   # ← fixed nesting
-
+@onready var final_score_label: Label    = $GameUI/GameOverPanel/GameOverContainer/ScoreLabel
 @onready var game_over_panel: Control    = $GameUI/GameOverPanel
 @onready var play_again_button: Button   = $GameUI/GameOverPanel/GameOverContainer/PlayAgainButton
 
+const ART := "res://assets/art/"
+## Spellbook size: keys Q W E R T. Empty slots show as "draft" until spell drafting exists.
+const SPELL_SLOTS := 5
+## Spell icon by spell id (falls back to the icon set on the SpellData resource).
+const SPELL_ICONS := {
+	"flash_heal": "ui/icons/spell_flash_heal.png",
+	"renew": "ui/icons/spell_hot.png",
+	"shield": "ui/icons/spell_shield.png",
+	"heal": "ui/icons/spell_instant_heal.png",
+}
+## Pythio's pose while casting each kind of effect.
+const CAST_POSES := {"instant_heal": "cast_heal", "hot": "cast_hot", "shield": "cast_shield"}
+
+## Pythio's dry one-liners. Edit freely.
+const QUIPS := {
+	"round_start": ["Hold still. This stings less than dying.", "Everyone breathing? Keep it that way.",
+		"I charge by the hour. Try not to bleed by the minute.", "Another job. Same blood."],
+	"boss": ["The Baron. Of course it's the Baron.", "Big man, big wounds, big invoice."],
+	"low_mana": ["Running on fumes.", "Pace yourselves. I'm not a fountain."],
+	"death": ["Well. That's a refund I won't be getting.", "Should've ducked."],
+	"victory": ["Contract fulfilled. Nobody died. Mostly.", "Pay up. I take coin, not thanks."],
+}
 
 var spell_buttons: Array[Button] = []
 var mana_label: Label
 var cast_label: Label
-
+var selected_spell: SpellData = null
 var current_contract: ContractData
-var selected_target: Node = null   # optional, helps with future hover casting
+var fallen_name: String = ""
+var _pose_reset_at := 0.0
+var _low_mana_warned := false
+var _quip_tween: Tween
+
 
 func _ready() -> void:
 	GameManager.game_over.connect(_on_game_over)
 	GameManager.show_party_choice.connect(_show_party_choice)
-	GameManager.round_started.connect(_on_new_round_started)
-	GameManager.round_ended.connect(_on_round_ended)
-	TargetSystem.target_added.connect(_add_target)
 	TargetSystem.loss_condition.connect(_on_loss)
 	SpellSystem.spell_cast_started.connect(_on_cast_start)
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
 	SpellSystem.spell_cast_cancelled.connect(_on_cast_finish)
 	SpellSystem.spell_cast_failed.connect(_on_cast_failed)
-	mana_label = _add_bar_label(mana_bar)
-	cast_label = _add_bar_label(cast_bar)
-	score_label.text = "High Score: %d" % GameManager.high_score
-	party_choice_panel.visible = false
-	game_ui.visible = false
-	cast_bar.visible = false
-	start_screen.visible = true
-	party_choice_panel.visible = false
-	mana_bar.visible = false
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
-	TargetSystem.all_targets_dead.connect(_on_loss)
 	EventBus.target_selected.connect(_on_target_selected)
 	EventBus.targets_spawned.connect(_on_targets_spawned)
 	EventBus.round_ended.connect(_on_round_ended)
-	EventBus.target_died.connect(func(t): fallen_name = t.display_name)
+	EventBus.target_died.connect(_on_target_died)
 	play_again_button.pressed.connect(_on_play_again_pressed)
-	
-	# Safe connect pattern
-	if not party_choice_panel.contract_chosen.is_connected(_on_contract_chosen):
-		party_choice_panel.contract_chosen.connect(_on_contract_chosen)
-	
-	if not EventBus.target_selected.is_connected(_on_target_selected):
-		EventBus.target_selected.connect(_on_target_selected)
+
+	cast_label = _add_bar_label(cast_bar, 18)
+	mana_label = _add_bar_label(mana_bar, 20)
+	mana_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	mana_label.position = Vector2(16, 12)
+	mana_label.size = Vector2(336, 27)
+
+	quip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	quip_label.size = Vector2(quip_bubble.size.x - 84, quip_bubble.size.y - 60)
+
+	score_label.text = "High Score: %d" % GameManager.high_score
+	game_ui.visible = false
+	cast_bar.visible = false
+	party_choice_panel.visible = false
+	start_screen.visible = true
+
 
 func _process(delta: float) -> void:
+	if _pose_reset_at > 0.0 and Time.get_ticks_msec() / 1000.0 > _pose_reset_at and not SpellSystem.is_casting:
+		_pose_reset_at = 0.0
+		_set_pose("idle")
+
 	if not GameManager.in_round:
 		return
-	
-	timer_label.visible = true
+
 	timer_label.text = "%.1fs" % GameManager.round_time
-	round_label.visible = true
-	round_label.text = "Round %d" % GameManager.current_round
-	
 	GameManager.round_time -= delta
 	if GameManager.round_time <= 0:
 		GameManager.round_time = 0
 		GameManager.end_round(true)
-		return	
-	
+		return
+
 	GameManager.regen_mana(delta)
 	_update_mana_bar()
 	if SpellSystem.is_casting and SpellSystem.current_spell:
 		cast_bar.value = SpellSystem.cast_progress() * 100.0
 		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
-		cast_label.text = "Casting %s (%.1fs)" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
+		cast_label.text = "Casting %s  %.1fs" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
 	_update_spell_ui()
-	_check_selected_target()
 
-func _check_selected_target():
-	# Optional: highlight selected target
-	pass
 
-func _add_target(target: Node) -> void:
-	party_container.add_child(target)
-
-func _remove_target(target: Node) -> void:
-	party_container.remove_child(target)
+# ── Rounds & contracts ─────────────────────────────────
 
 func _show_party_choice() -> void:
-	print("=== _show_party_choice ===")
-	print("Round:", GameManager.current_round)
-	
 	party_choice_panel.visible = true
-	
+	party_area.visible = false
+	contract_info.visible = false
 	var contracts = contract_selector.get_contracts_for_round(GameManager.current_round)
-	print("Got ", contracts.size(), " contract(s) for round ", GameManager.current_round)
-	
 	party_choice_panel.setup_contracts(contracts)
+	round_label.text = "Round %d" % GameManager.current_round
+	timer_label.text = "Choose your contract"
+
+
+func _on_contract_chosen(chosen: ContractData) -> void:
+	current_contract = chosen
+	party_choice_panel.visible = false
+	await _clear_party_container()
+
+	contract_name_label.text = chosen.contract_name.replace("  ", " ")
+	contract_risk_label.text = "RISK " + "●".repeat(chosen.risk_level) + "○".repeat(maxi(0, 5 - chosen.risk_level))
+	contract_info.visible = true
+	round_label.text = "The Final Contract" if chosen.is_boss else "Round %d" % GameManager.current_round
+	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
+
+	TargetSystem.spawn_from_contract(chosen)
+	GameManager.in_round = true
+	_low_mana_warned = false
+	EventBus.round_started.emit(GameManager.current_round)
+	_update_mana_bar()
+	party_area.visible = true
+	_say("boss" if chosen.is_boss else "round_start")
+
 
 func _on_targets_spawned(new_targets: Array[Node]) -> void:
-	print("Spawning ", new_targets.size(), " new targets")
-	
 	for target in new_targets:
 		if not is_instance_valid(target):
 			continue
-		
-		var parent = target.get_parent()
-		if parent != null:
-			if parent == party_container:
-				print("Target already parented — removing first")
-				parent.remove_child(target)
-			else:
-				print("Wrong parent ", parent.name, " — reparenting")
-				parent.remove_child(target)
-		
+		if target.get_parent() != null:
+			target.get_parent().remove_child(target)
 		party_container.add_child(target)
-		print("Added ", target.name if "name" in target else "Target", " (index ", target.index if "index" in target else "?", ")")
-	
-	party_container.queue_sort()
-	party_container.update_minimum_size()
-	print("Container now has ", party_container.get_child_count(), " children")
+	_fit_party(new_targets.size())
 
-func _on_contract_chosen(chosen: ContractData) -> void:
-	print("=== Contract chosen ===")
-	print("Name:", chosen.contract_name, " | Boss:", chosen.is_boss, " | Units:", chosen.unit_templates.size())
-	
-	current_contract = chosen
-	
-	# Hide panel regardless (safe even if already hidden)
-	party_choice_panel.visible = false
-	print("Choice panel hidden")
-	
-	# REMOVE or COMMENT this guard — it's causing early return in boss case
-	# if not party_choice_panel.visible:
-	#     return
-	
-	# Proceed with cleanup and spawn EVERY time
-	_clear_party_container()
-	print("Cleanup called")
-	
-	TargetSystem.spawn_from_contract(chosen)
-	print("Spawn called")
-	
-	GameManager.in_round = true
-	EventBus.round_started.emit(GameManager.current_round)
-	_update_mana_bar()
-	print("Round started emitted - in_round now true")
-	
-	# Ensure container is visible
-	party_container.visible = true
-	print("Forced party_container.visible = true")
+
+func _fit_party(count: int) -> void:
+	# Shrink the party row when a big contract wouldn't fit across the screen.
+	var frame_w := 300.0
+	var sep := float(party_container.get_theme_constant("separation"))
+	var needed := count * frame_w + maxi(0, count - 1) * sep
+	var avail := 1800.0
+	var s := minf(1.0, avail / maxf(needed, 1.0))
+	party_area.size.x = maxf(avail, needed)
+	party_area.scale = Vector2(s, s)
+	party_area.position.x = (1920.0 - party_area.size.x * s) / 2.0
+	party_area.position.y = 230.0 + (1.0 - s) * 300.0
+
 
 func _clear_party_container() -> void:
-	print("CLEARING party_container — children before: ", party_container.get_child_count())
-	
-	# Phase 1: Clean old targets via system (this queues free on anything it knows)
 	TargetSystem.clear_targets()
-	
-	# Phase 2: Immediately free anything still in the container (old stragglers)
-	# Do this BEFORE awaiting — so new adds happen after
-	var children_to_free = party_container.get_children().duplicate()  # snapshot
-	for child in children_to_free:
-		if is_instance_valid(child):
-			print("Immediate free on pre-spawn child: ", child.name if "name" in child else child)
-			child.queue_free()
-	
-	# Now wait for frees to process
+	for child in party_container.get_children():
+		child.queue_free()
 	await get_tree().process_frame
-	await get_tree().process_frame
-	
-	# Phase 3: Final check — should be 0 now, but no more freeing here
-	print("party_container after cleanup & await — children now: ", party_container.get_child_count())
-	
-	# Force layout refresh
-	party_container.queue_redraw()
-	party_container.update_minimum_size()
-	
-func _on_new_round_started(round: int) -> void:
-	party_choice_panel.visible = false
-	round_label.text = "Round %d" % round
-	if round == 5:
-		round_label.modulate = Color(1, 0.2, 0.2)  # Red for final round
-		# Optional: play sound, show "FINAL CONTRACT" overlay
 
-func _on_round_ended(round_num: int) -> void:
+
+func _on_round_ended(_round_num: int) -> void:
+	cast_bar.visible = false
 	# Keep the party on screen after a loss so you can see who fell
 	await get_tree().process_frame
 	if game_over_panel.visible:
 		return
-	party_container.visible = false
-	# Next spawn will add new children after clear anyway
+	party_area.visible = false
 
-var fallen_name: String = ""
+
+func _on_target_died(t: Node) -> void:
+	fallen_name = t.display_name
+	_set_pose("hurt", 99.0)
+	_say("death")
+
 
 func _on_loss() -> void:
 	if not GameManager.in_round:
@@ -210,33 +203,48 @@ func _on_loss() -> void:
 	SpellSystem.cancel_cast()
 	GameManager.end_round(false)
 
-func _add_bar_label(bar: ProgressBar) -> Label:
-	bar.show_percentage = false
-	bar.custom_minimum_size.y = maxf(bar.custom_minimum_size.y, 20)
+
+# ── Mana, casting, spell bar ───────────────────────────
+
+func _add_bar_label(bar: Control, font_size: int) -> Label:
 	var label := Label.new()
 	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_font_size_override("font_size", font_size)
 	bar.add_child(label)
 	return label
+
 
 func _update_mana_bar() -> void:
 	mana_bar.max_value = GameManager.max_mana
 	mana_bar.value = GameManager.mana
 	mana_label.text = "%d / %d" % [int(GameManager.mana), int(GameManager.max_mana)]
+	var frac := GameManager.mana / maxf(1.0, GameManager.max_mana)
+	var orb := clampi(int(ceil(frac * 4.0)), 1, 4)
+	var tex = load(ART + "ui/bars/mana_orb_%d.png" % orb)
+	if tex and mana_orb.texture != tex:
+		mana_orb.texture = tex
+	if GameManager.in_round and frac < 0.2 and not _low_mana_warned:
+		_low_mana_warned = true
+		_set_pose("low_mana", 2.0)
+		_say("low_mana")
+
 
 func _on_cast_start(spell: SpellData, _target) -> void:
+	_set_pose(CAST_POSES.get(spell.effect_type, "cast_heal"), maxf(0.5, spell.cast_time + 0.3))
 	if spell.cast_time > 0.0:
 		cast_bar.visible = true
 		cast_bar.value = 0
 		cast_label.text = "Casting %s" % spell.display_name
 
+
 func _on_cast_finish(_spell: SpellData, _target) -> void:
 	cast_bar.visible = false
 
+
 func _on_cast_failed(spell: SpellData, reason: String) -> void:
-	# Quick feedback until proper UI messages arrive (roadmap Phase 5)
 	var msg := {"mana": "Not enough mana", "cooldown": "%s isn't ready" % spell.display_name,
 		"busy": "Already casting", "no_target": "Hover or click a fighter first"}
 	if msg.has(reason):
@@ -246,81 +254,159 @@ func _on_cast_failed(spell: SpellData, reason: String) -> void:
 			mana_bar.modulate = Color(1.0, 0.3, 0.3)
 			tw.tween_property(mana_bar, "modulate", Color.WHITE, 0.4)
 
+
 func _create_spell_buttons() -> void:
 	for child in spell_container.get_children():
 		child.queue_free()
 	spell_buttons.clear()
-	for i in SpellSystem.spells.size():
-		var spell: SpellData = SpellSystem.spells[i]
+	for i in SPELL_SLOTS:
 		var key := SpellSystem.key_label_for_slot(i)
-		var btn = Button.new()
-		btn.custom_minimum_size = Vector2(64, 64)
-		btn.icon = spell.icon
-		btn.text = key
-		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		btn.expand_icon = true
-		btn.focus_mode = Control.FOCUS_NONE   # so Q/W/E/R aren't swallowed by button focus
-		var cast_txt := "Instant" if spell.cast_time <= 0.0 else "%.1fs cast" % spell.cast_time
-		btn.tooltip_text = "%s [%s]\nMana: %d · %s%s" % [spell.display_name, key, spell.mana_cost, cast_txt,
-			("" if spell.cooldown <= 0.0 else " · %.0fs cooldown" % spell.cooldown)]
-		btn.pressed.connect(func(): _on_spell_pressed(spell))
-		spell_container.add_child(btn)
-		spell_buttons.append(btn)
+		if i < SpellSystem.spells.size():
+			var spell: SpellData = SpellSystem.spells[i]
+			var btn := _make_spell_slot(spell, key)
+			btn.pressed.connect(func(): _on_spell_pressed(spell))
+			spell_container.add_child(btn)
+			spell_buttons.append(btn)
+		else:
+			spell_container.add_child(_make_empty_slot(key))
+
+
+func _make_spell_slot(spell: SpellData, key: String) -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(104, 116)
+	btn.focus_mode = Control.FOCUS_NONE   # so Q/W/E/R aren't swallowed by button focus
+	btn.flat = true
+	var cast_txt := "Instant" if spell.cast_time <= 0.0 else "%.1fs cast" % spell.cast_time
+	btn.tooltip_text = "%s  [%s]\nMana %d · %s%s" % [spell.display_name, key, spell.mana_cost, cast_txt,
+		("" if spell.cooldown <= 0.0 else " · %.0fs cooldown" % spell.cooldown)]
+
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	var icon_path: String = ART + SPELL_ICONS.get(spell.id, "")
+	icon.texture = load(icon_path) if SPELL_ICONS.has(spell.id) and ResourceLoader.exists(icon_path) else spell.icon
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(icon)
+
+	var cd := ColorRect.new()
+	cd.name = "Cooldown"
+	cd.color = Color(0, 0, 0, 0.65)
+	cd.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cd.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cd.visible = false
+	btn.add_child(cd)
+
+	btn.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
+	btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, Color(1.0, 0.8, 0.35), Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+	var cd_label := _slot_label("CdText", "", 34, Color.WHITE, Vector2(0, 36), HORIZONTAL_ALIGNMENT_CENTER)
+	btn.add_child(cd_label)
+	return btn
+
+
+func _make_empty_slot(key: String) -> Control:
+	var p := Panel.new()
+	p.custom_minimum_size = Vector2(104, 116)
+	p.modulate = Color(1, 1, 1, 0.45)
+	p.tooltip_text = "Empty — you'll draft spells into this slot between rounds."
+	p.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
+	p.add_child(_slot_label("Draft", "draft", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
+	return p
+
+
+func _slot_label(n: String, text: String, size: int, color: Color, offset: Vector2, align: HorizontalAlignment) -> Label:
+	var l := Label.new()
+	l.name = n
+	l.text = text
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	l.horizontal_alignment = align
+	l.position = offset
+	l.size = Vector2(104, 34)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return l
+
 
 func _update_spell_ui() -> void:
 	for i in spell_buttons.size():
-		var spell = SpellSystem.spells[i]
-		var btn = spell_buttons[i]
-		btn.disabled = not SpellSystem.can_cast(spell)
-		var key := SpellSystem.key_label_for_slot(i)
+		var spell: SpellData = SpellSystem.spells[i]
+		var btn := spell_buttons[i]
+		var castable := SpellSystem.can_cast(spell)
+		btn.disabled = not castable
 		var cd := SpellSystem.cooldown_remaining(spell.id)
-		btn.text = key if cd <= 0.0 else "%s %.0f" % [key, ceilf(cd)]
+		btn.get_node("Cooldown").visible = cd > 0.0
+		btn.get_node("CdText").text = "%d" % ceili(cd) if cd > 0.0 else ""
+		var col := Color.WHITE
 		if selected_spell == spell:
-			btn.modulate = Color.YELLOW
-		else:
-			btn.modulate = Color.WHITE
+			col = Color(1.25, 1.15, 0.7)
+		elif not castable:
+			col = Color(0.5, 0.5, 0.5)
+		btn.modulate = col
+		btn.scale = Vector2.ONE * (1.06 if selected_spell == spell else 1.0)
+		btn.pivot_offset = btn.size / 2.0
 
-
-var selected_spell: SpellData = null
 
 func _on_spell_pressed(spell: SpellData) -> void:
 	selected_spell = spell
-	print("Selected spell:", spell.display_name)
+
 
 func _on_target_selected(target: Node) -> void:
-	if not selected_spell:
-		print("No spell selected")
+	if selected_spell:
+		EventBus.spell_cast_requested.emit(selected_spell, target)
+
+
+# ── Pythio: poses and quips ────────────────────────────
+
+func _set_pose(pose: String, hold: float = 0.0) -> void:
+	var tex = load(ART + "characters/pythio/pythio_%s.png" % pose) if ResourceLoader.exists(ART + "characters/pythio/pythio_%s.png" % pose) else null
+	if tex:
+		pythio_sprite.texture = tex
+	_pose_reset_at = (Time.get_ticks_msec() / 1000.0 + hold) if hold > 0.0 else 0.0
+
+
+func _say(kind: String, seconds: float = 3.5) -> void:
+	var lines: Array = QUIPS.get(kind, [])
+	if lines.is_empty():
 		return
-	
-	print("Requesting cast: ", selected_spell.display_name, " on target ", target.index if "index" in target else "?")
-	EventBus.spell_cast_requested.emit(selected_spell, target)
+	quip_label.text = lines[randi() % lines.size()]
+	quip_bubble.visible = true
+	quip_bubble.modulate.a = 1.0
+	if _quip_tween:
+		_quip_tween.kill()
+	_quip_tween = create_tween()
+	_quip_tween.tween_interval(seconds)
+	_quip_tween.tween_property(quip_bubble, "modulate:a", 0.0, 0.5)
+	_quip_tween.tween_callback(func(): quip_bubble.visible = false)
+
+
+# ── Start / game over ──────────────────────────────────
 
 func _on_start_pressed() -> void:
 	start_screen.visible = false
 	game_ui.visible = true
-	mana_bar.visible = true
+	_set_pose("idle")
 	_create_spell_buttons()
 	GameManager.new_game()
+
 
 func _on_game_over(round_reached: int, final_score: int) -> void:
 	party_choice_panel.visible = false
 	game_over_panel.visible = true
+	cast_bar.visible = false
 	if GameManager.last_run_won:
-		final_score_label.text = "Contract fulfilled. All %d rounds survived.\nScore: %d" % [round_reached, final_score]
+		final_score_label.text = "Contract fulfilled.\nAll %d rounds survived.  Score: %d" % [round_reached, final_score]
+		_set_pose("victory", 99.0)
+		_say("victory", 6.0)
 	else:
 		final_score_label.text = "%s didn't make it.\nRun ended in round %d.  Score: %d" % [fallen_name if fallen_name != "" else "Someone", round_reached, final_score]
 	score_label.text = "High Score: %d" % GameManager.high_score
+
 
 func _on_play_again_pressed() -> void:
 	game_over_panel.visible = false
 	fallen_name = ""
 	round_label.modulate = Color.WHITE
-	_clear_party_container()
+	_set_pose("idle")
+	await _clear_party_container()
 	GameManager.new_game()
-
-# Call _create_spell_buttons() in _ready if buttons not pre-made
-
-
-func _on_start_button_pressed() -> void:
-	pass # Replace with function body.
