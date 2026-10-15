@@ -28,6 +28,9 @@ func spawn_from_contract(contract: ContractData) -> void:
 			hc.max_health = template.base_max_health
 			hc.current_health = template.base_max_health  # or randf_range(0.4, 0.9) * hc.max_health
 		
+		target.armor_type = template.armor_type
+		target.character = template.character
+		target.display_name = template.display_name
 		target.set_meta("armor_type", template.armor_type)
 		target.set_meta("burst_threat", template.burst_threat)
 		if template.is_boss_unit:
@@ -35,9 +38,9 @@ func spawn_from_contract(contract: ContractData) -> void:
 		
 		target.index = index
 		
-		# Connect signals
-		if target.has_signal("died"):
-			target.died.connect(func(): loss_condition.emit())
+		# Any fighter dying ends the run
+		if hc:
+			hc.died.connect(_on_target_died.bind(target))
 		if target.has_signal("target_pressed"):
 			target.target_pressed.connect(_on_target_clicked)
 		
@@ -58,11 +61,11 @@ func _on_target_clicked(target: Node) -> void:
 	target_selected.emit(target)
 
 func _on_target_died(dead_target: Node) -> void:
-	if dead_target in targets:
-		targets.erase(dead_target)
-	if targets.is_empty():
-		all_targets_dead.emit()
-		loss_condition.emit()
+	if not GameManager.in_round:
+		return
+	print("%s has fallen" % dead_target.display_name)
+	EventBus.target_died.emit(dead_target)
+	loss_condition.emit()
 
 func clear_targets() -> void:
 	print("TargetSystem.clear_targets() called — current count: ", targets.size())

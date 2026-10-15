@@ -16,6 +16,7 @@ var shield_amount: float = 0.0:
 		shield_amount = maxf(value, 0)
 		shield_changed.emit(shield_amount)
 
+var is_dead: bool = false
 var shield_time: float = 0.0
 var hot_amount: float = 0.0
 var hot_time: float = 0.0
@@ -30,26 +31,27 @@ func take_damage(amount: float) -> void:
 		shield_amount -= absorbed
 		amount -= absorbed
 		shield_changed.emit(shield_amount)
+	if is_dead:
+		return
 	current_health -= amount
-	health_changed.emit(current_health)
-	if current_health <= 0:
+	if current_health <= 0 and not is_dead:
+		is_dead = true
+		hot_time = 0.0
 		died.emit()
 
 func heal(amount: float) -> void:
+	if is_dead:
+		return
 	current_health += amount
-	print("Healed target for ", amount, " → current_health: ", current_health)
-	health_changed.emit(current_health)
 
 func apply_shield(amount: float, duration: float) -> void:
 	shield_amount = maxf(shield_amount, amount)
 	shield_time = maxf(shield_time, duration)
-	print("Applied shield: ", amount, " for ", duration, "s → shield_amount: ", shield_amount)
 	shield_changed.emit(shield_amount)
 
 func apply_hot(amount: float, duration: float) -> void:
 	hot_amount = amount
 	hot_time = duration
-	print("Applied HOT: ", amount, "/s for ", duration, "s")
 
 func tick_effects(delta: float) -> void:
 	if hot_time > 0:

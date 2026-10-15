@@ -7,3 +7,5 @@ extends Resource
 @export var base_max_health: int = 100
 @export var burst_threat: float = 0.0     # 0–1, influences telegraph frequency
 @export var is_boss_unit: bool = false
+## Which character art/name this fighter uses (see assets/art). Chosen from armor type.
+@export_enum("knight", "mercenary", "rogue", "adventurer", "baron") var character: String = "adventurer"

@@ -1,6 +1,8 @@
 extends Control
 
-@export var armor_type: String = "heavy"
+@export var armor_type: String = "LIGHT"          # LIGHT / MEDIUM / HEAVY (from UnitTemplate)
+@export var character: String = "adventurer"      # which art to show
+@export var display_name: String = "Fighter"
 @export var max_hp: float = 100.0
 @export var index: int = 0
 
@@ -18,12 +20,9 @@ extends Control
 signal target_pressed(target: Node)
 
 func _ready() -> void:
-	# Visual feedback for armor type
-	if armor_type == "heavy":
-		modulate = Color(0.7, 0.7, 1.2)
-	elif armor_type == "light":
-		modulate = Color(1.2, 0.7, 0.7)
-	print("Target ready - type:", armor_type, " hp:", max_hp)
+	if target_name:
+		target_name.text = "%s · %s" % [display_name, armor_type.capitalize()]
+		target_name.visible = true
 
 	if target_button:
 		target_button.pressed.connect(_on_target_button_pressed)
@@ -37,6 +36,7 @@ func _ready() -> void:
 			health_comp.health_changed.connect(_update_hp_display)
 		if not health_comp.shield_changed.is_connected(_update_shield_display):
 			health_comp.shield_changed.connect(_update_shield_display)
+		health_comp.died.connect(_on_died)
 
 	if "is_boss_unit" in get_meta_list() and get_meta("is_boss_unit", false):  # or check from template
 		scale = Vector2(1.5, 1.5)  # Bigger boss
@@ -78,8 +78,15 @@ func _on_target_button_pressed() -> void:
 	# Emit your custom signal and pass 'self' as the target
 	EventBus.target_selected.emit(self)
 
+func _on_died() -> void:
+	pending_burst_time = 0.0
+	if target_name:
+		target_name.text = "%s · FALLEN" % display_name
+
 func _process(delta: float) -> void:
-	if pending_burst_time > 0:
+	if health_comp and health_comp.is_dead:
+		modulate = Color(0.45, 0.2, 0.2)
+	elif pending_burst_time > 0:
 		pending_burst_time -= delta
 		var pulse = sin(Time.get_ticks_msec() * 0.01) * 0.5 + 0.5
 		modulate = Color(1 + pulse, pulse * 0.5, pulse * 0.5)  # red flash
