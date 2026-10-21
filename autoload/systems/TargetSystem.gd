@@ -7,9 +7,12 @@ signal target_selected(target: Node)
 
 var targets: Array[Node] = []
 var burst_timer: float = 0.0
+## Telegraphed bursts waiting to land: [{target, time_left, damage}]
+var pending_bursts: Array[Dictionary] = []
 
 func _ready() -> void:
 	EventBus.target_selected.connect(_on_target_selected)
+	EventBus.round_ended.connect(func(_r): _cancel_bursts())
 
 func _on_target_selected(target: Node) -> void:
 	print("TargetSystem received selection via EventBus: ", target.index if "index" in target else "no index")
@@ -75,6 +78,8 @@ func clear_targets() -> void:
 			print("Queue freeing target: ", t.name if "name" in t else t)
 			t.queue_free()
 	targets.clear()
+	pending_bursts.clear()
+	burst_timer = 0.0
 	print("Targets cleared — count now: ", targets.size())
 
 func _process(delta: float) -> void:
@@ -88,12 +93,49 @@ func update_all(delta: float) -> void:
 	burst_timer += delta
 	if burst_timer >= DifficultySystem.burst_interval:
 		burst_timer = 0.0
-		if targets.size() > 0:
-			var random_target = targets[randi() % targets.size()]
-			random_target.pending_burst_time = DifficultySystem.burst_telegraph_time
+		_warn_burst()
+	_resolve_bursts(delta)
 	
 	var base_dps = DifficultySystem.get_base_dps(GameManager.current_round)
 	for target in targets:
 		var dps_mult = DifficultySystem.armor_dps_multipliers.get(target.armor_type, 1.0)
 		target.health_comp.take_damage(base_dps * dps_mult * delta)
 		target.health_comp.tick_effects(delta)
+
+
+# ── Bursts: a red warning, then a big hit (shields absorb it first) ──
+
+func _warn_burst() -> void:
+	var busy := pending_bursts.map(func(b): return b.target)
+	var candidates := targets.filter(func(t): return not t.health_comp.is_dead and not busy.has(t))
+	if candidates.is_empty():
+		return
+	var target = candidates[randi() % candidates.size()]
+	var damage := DifficultySystem.get_burst_damage(GameManager.current_round, target.armor_type, target.is_boss)
+	var delay := DifficultySystem.burst_telegraph_time
+	pending_bursts.append({"target": target, "time_left": delay, "damage": damage})
+	target.pending_burst_time = delay
+	EventBus.burst_warned.emit(target, damage, delay)
+
+
+func _resolve_bursts(delta: float) -> void:
+	for burst in pending_bursts.duplicate():
+		burst.time_left -= delta
+		if burst.time_left > 0.0:
+			continue
+		pending_bursts.erase(burst)
+		var target = burst.target
+		if not is_instance_valid(target) or target.health_comp.is_dead:
+			continue
+		var hc: HealthComponent = target.health_comp
+		var absorbed := minf(hc.shield_amount, burst.damage)
+		hc.take_damage(burst.damage)
+		EventBus.burst_landed.emit(target, absorbed, burst.damage - absorbed)
+
+
+func _cancel_bursts() -> void:
+	for burst in pending_bursts:
+		if is_instance_valid(burst.target):
+			burst.target.pending_burst_time = 0.0
+	pending_bursts.clear()
+	burst_timer = 0.0

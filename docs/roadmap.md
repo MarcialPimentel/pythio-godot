@@ -14,10 +14,14 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
   mana, cooldowns) · fighters (death ends run, armor HP/damage, character types) · noir
   graphics with stand-in art · web build + FTP deploy · online leaderboard · build number
   in the corner (#18) · roadmap tracked on GitHub (#35).
-- **Next up:** #36 endless rounds → #19 bursts hit → #20 debug panel → Phase B.
+- **Endless is live (#43):** rounds 15s → 25s cap, the Crimson Baron every 5th round.
+- **Deploys:** fixed 2026-10-21. GitHub was uploading to `games/pythio-godot/`; the
+  `FTP_SERVER_DIR` secret now points at `pythio/`, so merges update marz.gg/games/pythio/.
+- **Next up:** #19 bursts hit → #20 debug panel → Phase B (spell picking, new spells).
 - **Waiting on owner:** playtest feedback after Phase A · spell numbers review in #22.
-- **Known rough spots:** today the game stops after round 5 · only 3 spells, all given at
-  the start · combos are a console-only placeholder · stand-in art is low-res · no sound.
+- **Known rough spots:** late rounds unbalanced (max mana +8/round forever; party size
+  stops at 8) · only 3 spells, all given at the start · combos are a console-only
+  placeholder · stand-in art is low-res · no sound.
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
