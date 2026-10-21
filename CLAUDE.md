@@ -70,6 +70,16 @@ game launching and playable. Before opening a PR:
 2. In the PR description, write **plain-language test steps** ("Start a run, pick the left
    contract, cast Flash Heal on the first fighter — their health bar should rise").
 
+## How we work (owner ↔ Claude)
+- Claude opens one PR per change with plain-language test steps. Every PR gets a CI check
+  (smoke test + web build, downloadable under the PR's Checks → Artifacts).
+- The owner approves in chat by saying **"merge #N"**; Claude merges only the PR named.
+  Merging to `master` deploys to https://marz.gg/games/pythio/ automatically.
+- Start a new session by reading `docs/roadmap.md` → "Where we are". Keep that section
+  current at the end of each batch of work.
+- Testing without a screen: `godot --headless --script <test>.gd` drives the game; real
+  screenshots via `xvfb-run godot --rendering-driver opengl3 --script <shot>.gd`.
+
 ## Working rules
 - One feature or fix per pull request, on its own branch. Never push to `main`.
 - Keep file names' capitalization consistent with how they're referenced (the game must

@@ -1,6 +1,20 @@
 # Pythio: roadmap to MVP
 
-_Last updated: 2026-10-12. Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull request at a time._
+
+## ▶ Where we are (read this first in a new session)
+- **Live:** https://marz.gg/games/pythio/ (deploys automatically when a PR merges into
+  `master`; see `docs/deploy.md`). The original JS version is at `games/pythio-classic/`.
+- **Done (PRs #5–#16):** project brief and docs · game launches · round flow (10s/20s/21s,
+  mana top-up, Play Again) · casting (hover + Q/W/E, cast times, mana, cooldown system) ·
+  fighters (death ends run, armor HP/damage, character types) · noir graphics overhaul with
+  stand-in art from the concept sheet · web build + FTP deploy · online leaderboard
+  (`web/leaderboard_godot.php`) · http→https redirect.
+- **Next up:** Phase 1 leftovers (bursts actually hit · F1 debug panel), then Phase 2.
+- **Waiting on owner:** feedback list from playtesting · open decisions at the bottom.
+- **Known rough spots:** stand-in art is low-res (`docs/art.md` has the regeneration
+  prompt pack) · Rogue sprites have white specks · no sound · boss is trivially easy ·
+  score = 100 × rounds survived (all full clears tie at 1500).
 
 ## What "MVP done" means
 A complete **5-round run**: draft your first spell → pick a contract → survive the round →
@@ -11,18 +25,19 @@ play differently. That is the roguelite synergy promise, and it's the core featu
 
 Grading scale: 1 = not started · 2 = built, not refined · 3 = nearly complete · 4 = MVP-done.
 
-| System | Today | After phase |
+| System | Now (Oct 21) | After phase |
 |---|---|---|
-| Round structure and loss | 2 | 4 after Phase 1 |
-| Spells and casting | 2 | 3 after Phase 1, 4 after Phase 2 |
-| Mana | 2 | 4 after Phase 1 |
-| Health visuals | 2 | 3 after Phase 1, 4 after Phase 5 |
+| Round structure and loss | 3 | 4 after Phase 4 (boss fight) |
+| Spells and casting | 3 | 4 after Phase 2 |
+| Mana | 4 | — (tuning only) |
+| Health visuals and UI | 4 | — |
 | Debug panel | 1 | 4 after Phase 1 |
-| Target generation and armor | 2 | 3 after Phase 1, 4 after Phase 2 |
+| Target generation and armor | 3 | 4 after Phase 2 |
 | Damage patterns | 2 | 4 after Phase 2 |
 | **Spell drafting and synergies** | 1 | 4 after Phase 3 |
 | Contracts, modifiers and boss | 3 / 1 | 4 after Phase 4 |
-| Screens, VFX, leaderboard | 2 / 1 | 4 after Phase 5 |
+| Screens, VFX, feel | 3 | 4 after Phase 5 (sound, run summary) |
+| Web build, deploy, online leaderboard | 4 | — |
 
 ## How drafting and synergies will work (the design spine)
 
@@ -87,8 +102,13 @@ Example combinations the MVP spell pool should make possible:
 Each phase ends with a **playtest checkpoint**: Marz plays a few runs and gives feedback
 before the next phase starts. One bullet ≈ one pull request.
 
-### Phase 1: The core loop actually works
+### Phase 1: The core loop actually works  — 3 of 5 done
 Goal: a full 5-round run you can genuinely win or lose.
+- ✅ #9 casting · ✅ #10 fighters · ✅ #8 round flow
+- ⬜ **Bursts actually hit** after their warning (moved up from Phase 2, so Shield has a job)
+- ⬜ **Debug panel (F1)**
+
+Original scope, for reference:
 1. **Casting:** hover a fighter and press Q/W/E/R. Cast times with the cast bar, cooldowns
    that count down, spells cost mana, and the mana bar is visible with numbers.
 2. **Fighters:** death ends the run, armor rolls correctly, HP comes from armor
@@ -126,12 +146,15 @@ Goal: two runs with different drafts feel different.
 Goal: contracts are a real risk-or-reward decision, and round 5 is a fight.
 1. **Contract risk shown,** with higher risk bringing round modifiers (Double Damage,
    Fast Attacks) announced in a red banner.
-2. **Gold has a purpose** (see open decisions).
+2. ~~Gold has a purpose~~ — **out of MVP scope** (gold was for a future shop).
 3. **Crimson Baron fight:** a boss with telegraphed phases, not just a big health bar.
 4. **Tuning pass,** using the debug panel.
 
-### Phase 5: Readability and feel
+### Phase 5: Readability and feel  — mostly done early (#12, #14)
 Goal: you can read the chaos at a glance, and it looks and sounds like Pythio.
+Remaining: game-over run summary (spells, healing done, combos) · basic sound ·
+swap in high-res art as it's generated. Floating numbers, noir theme and the online
+leaderboard are done.
 1. **Floating heal and damage numbers,** using the color language (emerald heal,
    electric-blue shield, gold combo, red danger).
 2. **Noir UI theme pass.**
@@ -143,12 +166,15 @@ Goal: you can read the chaos at a glance, and it looks and sounds like Pythio.
 
 ## After the MVP (parking lot)
 Keystones and their unlocks · the remaining spells from `docs/spells.md` ·
-endless mode and talent picks every 5 rounds (original design) · online leaderboard ·
+endless mode and talent picks every 5 rounds (original design) · gold and a shop ·
+better scoring (efficiency, fighters kept healthy) · smaller web download ·
 difficulty modes · specializations · achievements · positional mechanics ·
 secondary objectives (bonus for keeping everyone above 50%).
 
 ## Open decisions (owner)
-1. Five spells by the boss (keys Q/W/E/R/T), or a cap of 4 with the option to swap one out?
-2. Use the spell list's numbers as the baseline: confirmed?
-3. What gold does in the MVP: reroll a draft, buy an extra draft pick, or just score?
-4. Keystones post-MVP: confirmed?
+1. Five spells by the boss (keys Q/W/E/R/T, as the spell bar now shows), or a cap of 4
+   with the option to swap one out?
+2. Spell numbers: keep today's values (Flash Heal 45 HP instant, Shield 55/8s) or switch to
+   `docs/spells.md` (Flash Heal 40 HP, 1s cast, 5s cooldown; Shield 30/5s)?
+3. Keystones post-MVP: confirmed?
+- Decided: gold/shop is post-MVP (2026-10-21).
