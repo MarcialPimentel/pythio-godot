@@ -5,3 +5,6 @@
 # Godot editor temp files
 *.tmp
 *.TMP
+
+# Local export output
+/build/

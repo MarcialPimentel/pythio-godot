@@ -1,0 +1,115 @@
+# Builds the web version of Pythio on every pull request (so you can download
+# and try it), and on every merge to master uploads it to marz.gg over FTP.
+#
+# The upload needs these repository secrets (Settings → Secrets and variables → Actions):
+#   FTP_SERVER      e.g. ftp.marz.gg  (SiteGround: Site Tools → Site → FTP Accounts → FTP Credentials)
+#   FTP_USERNAME    the FTP account's username
+#   FTP_PASSWORD    the FTP account's password
+#   FTP_SERVER_DIR  folder to upload into, relative to that FTP account's root, ending in /
+#                   e.g. pythio-godot/   (see docs/deploy.md)
+# Without them, the build still runs and the upload step is skipped.
+name: Web build & deploy
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.3"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot and web export templates
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-web
+
+      - name: Download Godot and web export templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -e
+          mkdir -p ~/godot ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          cd ~/godot
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          unzip -q Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip && rm Godot_v*.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          unzip -q -o Godot_v*_export_templates.tpz 'templates/web_*' 'templates/version.txt'
+          mv templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          rm -rf templates Godot_v*_export_templates.tpz
+
+      - name: Remove editor-only plugins (not used by the game)
+        run: rm -rf addons/godot-git-plugin
+
+      - name: Import project
+        run: ~/godot/godot --headless --import || true
+
+      - name: Smoke test (game starts without script errors)
+        run: |
+          ~/godot/godot --headless --quit-after 300 2>&1 | tee run.log
+          if grep -E "SCRIPT ERROR|Parse Error" run.log; then echo "::error::Game has script errors"; exit 1; fi
+
+      - name: Export for the web
+        run: |
+          mkdir -p build/web
+          ~/godot/godot --headless --export-release "Web" build/web/index.html 2>&1 | tail -5
+          test -f build/web/index.wasm && test -f build/web/index.pck
+          cp web/.htaccess build/web/
+          cp web/*.php build/web/ 2>/dev/null || true
+          ls -la build/web
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pythio-web
+          path: build/web
+          retention-days: 14
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check FTP settings
+        id: check
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+        run: |
+          if [ -z "$FTP_SERVER" ]; then
+            echo "::notice::FTP secrets not set yet — skipping upload. See docs/deploy.md."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.check.outputs.ready == 'true'
+        with:
+          name: pythio-web
+          path: build/web
+
+      - name: Upload to marz.gg
+        if: steps.check.outputs.ready == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: build/web/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
