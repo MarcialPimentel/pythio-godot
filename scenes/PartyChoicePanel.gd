@@ -76,4 +76,4 @@ func describe(c: ContractData) -> String:
 	var parts: Array[String] = []
 	for n in counts:
 		parts.append("%d× %s" % [counts[n], n])
-	return "%s\nRISK %s" % [", ".join(parts), "●".repeat(c.risk_level) + "○".repeat(maxi(0, 5 - c.risk_level))]
+	return "%s\nRISK %d / 5" % [", ".join(parts), c.risk_level]

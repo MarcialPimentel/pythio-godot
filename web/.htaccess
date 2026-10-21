@@ -1,0 +1,19 @@
+# Served next to the Godot web build on SiteGround (Apache).
+# Make sure browsers get the right type for the engine files.
+AddType application/wasm .wasm
+AddType application/octet-stream .pck
+
+# Let browsers cache the big engine files; index.html always checks for updates.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(wasm|pck)$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# Don't let anyone download the raw leaderboard data file.
+<Files "leaderboard_godot.json">
+  Require all denied
+</Files>

@@ -138,7 +138,7 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	await _clear_party_container()
 
 	contract_name_label.text = chosen.contract_name.replace("  ", " ")
-	contract_risk_label.text = "RISK " + "●".repeat(chosen.risk_level) + "○".repeat(maxi(0, 5 - chosen.risk_level))
+	contract_risk_label.text = "RISK %d / 5" % chosen.risk_level
 	contract_info.visible = true
 	round_label.text = "The Final Contract" if chosen.is_boss else "Round %d" % GameManager.current_round
 	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
