@@ -13,7 +13,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game and pr
 ```bash
 godot --headless --script tools/tests/test_casting.gd
 godot --headless --script tools/tests/test_fighters.gd
-godot --headless --script tools/tests/test_full_run.gd
+timeout 30 godot --headless --script tools/tests/test_full_run.gd   # loops fast-forwarded; stop after the game-over line
 # screenshots need a (virtual) display:
 xvfb-run -a -s "-screen 0 1920x1080x24" godot --rendering-driver opengl3 --resolution 1920x1080 \
   --script tools/tests/screenshots.gd -- /tmp/pythio
