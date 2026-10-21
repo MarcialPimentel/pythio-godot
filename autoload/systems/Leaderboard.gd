@@ -8,7 +8,7 @@ signal top_loaded(ok: bool, entries: Array)
 signal submitted(ok: bool, rank: int, entries: Array, message: String)
 
 ## Used when the game isn't running in a browser (editor / desktop builds).
-@export var desktop_url: String = "https://marz.gg/games/pythio-godot/leaderboard_godot.php"
+@export var desktop_url: String = "https://marz.gg/games/pythio/leaderboard_godot.php"
 @export var timeout_seconds: float = 8.0
 
 const NAME_FILE := "user://player_name.cfg"
