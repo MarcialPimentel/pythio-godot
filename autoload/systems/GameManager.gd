@@ -14,6 +14,9 @@ var mana: float = 100.0
 var max_mana: float = 100.0
 var regen_rate: float = 4.0
 var last_run_won: bool = false
+## Set when the F1 debug panel changes anything; such runs can't be posted online.
+var debug_used: bool = false
+var god_mode: bool = false
 
 func _ready() -> void:
 	load_high_score()
@@ -21,6 +24,7 @@ func _ready() -> void:
 func new_game() -> void:
 	current_round = 1
 	score = 0
+	debug_used = god_mode
 	mana = DifficultySystem.max_mana_base
 	max_mana = DifficultySystem.max_mana_base
 	regen_rate = DifficultySystem.regen_rate_base
@@ -62,6 +66,8 @@ func regen_mana(delta: float) -> void:
 	mana = minf(max_mana, mana + regen_rate * delta)
 
 func save_high_score() -> void:
+	if debug_used:
+		return
 	if score > high_score:
 		high_score = score
 		var config = ConfigFile.new()
@@ -72,3 +78,30 @@ func load_high_score() -> void:
 	var config = ConfigFile.new()
 	if config.load("user://highscore.cfg") == OK:
 		high_score = config.get_value("scores", "high", 0)
+
+
+# ── Debug panel helpers (F1) ───────────────────────────
+
+func debug_skip_round() -> void:
+	if not in_round:
+		return
+	debug_used = true
+	end_round(true)
+
+
+func debug_jump_to_round(n: int) -> void:
+	debug_used = true
+	var was_in_round := in_round
+	in_round = false
+	if was_in_round:
+		EventBus.emit_signal("round_ended", current_round)
+	current_round = maxi(1, n)
+	round_time = DifficultySystem.get_round_time(current_round)
+	max_mana = DifficultySystem.get_max_mana(current_round)
+	mana = max_mana
+	show_party_choice.emit()
+
+
+func debug_add_mana(amount: float) -> void:
+	debug_used = true
+	mana = minf(max_mana, mana + amount)

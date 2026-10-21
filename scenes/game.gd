@@ -92,6 +92,7 @@ func _ready() -> void:
 	Leaderboard.fetch_top()
 
 	_add_build_label()
+	add_child(preload("res://ui/DebugPanel.gd").new())
 
 	cast_label = _add_bar_label(cast_bar, 18)
 	mana_label = _add_bar_label(mana_bar, 20)
@@ -440,6 +441,10 @@ func _on_game_over(round_reached: int, final_score: int) -> void:
 	submit_button.disabled = false
 	name_edit.editable = true
 	submit_status.text = "Post your run to the marz.gg leaderboard."
+	if GameManager.debug_used:
+		submit_button.disabled = true
+		name_edit.editable = false
+		submit_status.text = "Debug panel used — this run can't be posted."
 
 
 func _on_submit_pressed() -> void:
