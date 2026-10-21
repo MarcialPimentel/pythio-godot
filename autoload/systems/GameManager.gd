@@ -4,6 +4,10 @@ signal round_started(round: int)
 signal round_ended
 signal game_over(round_reached: int, score: int)
 signal show_party_choice
+## Run start: pick a specialization (Mending / Bloom / Ward).
+signal show_spec_choice
+## Between rounds on a pick round: choose 1 of `offers` to add to the spellbook.
+signal show_spell_pick(offers: Array, round_cleared: int)
 
 var current_round: int = 1
 var round_time: float
@@ -30,6 +34,12 @@ func new_game() -> void:
 	regen_rate = DifficultySystem.regen_rate_base
 	in_round = false
 	round_time = DifficultySystem.get_round_time(current_round)
+	DraftSystem.reset()
+	show_spec_choice.emit()
+
+
+## After the specialization pick or a spell pick: on to choosing a contract.
+func continue_to_contracts() -> void:
 	show_party_choice.emit()
 
 func end_round(success: bool) -> void:
@@ -54,7 +64,16 @@ func end_round(success: bool) -> void:
 		max_mana = DifficultySystem.get_max_mana(current_round)
 		# Carry leftover mana and top up part of the pool, rewarding efficient rounds.
 		mana = minf(max_mana, mana + DifficultySystem.round_start_mana_refill * max_mana)
+		_after_round(current_round - 1)
+
+
+## A spell pick if this was a pick round (and there's something to offer), else contracts.
+func _after_round(round_cleared: int) -> void:
+	var offers := DraftSystem.offers_after_round(round_cleared)
+	if offers.is_empty():
 		show_party_choice.emit()
+	else:
+		show_spell_pick.emit(offers, round_cleared)
 
 func spend_mana(cost: float) -> bool:
 	if mana >= cost:
@@ -105,3 +124,13 @@ func debug_jump_to_round(n: int) -> void:
 func debug_add_mana(amount: float) -> void:
 	debug_used = true
 	mana = minf(max_mana, mana + amount)
+
+
+## Debug: offer a spell pick right now (between rounds only).
+func debug_offer_pick() -> void:
+	if in_round:
+		return
+	debug_used = true
+	var offers := DraftSystem.make_offers()
+	if not offers.is_empty():
+		show_spell_pick.emit(offers, current_round - 1)

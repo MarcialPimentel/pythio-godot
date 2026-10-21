@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SpecData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/specs/SpecData.gd" id="1_emyd7"]
+[ext_resource type="Resource" path="res://resources/spells/renew.tres" id="2_dojkd"]
+
+[resource]
+script = ExtResource("1_emyd7")
+id = "bloom"
+display_name = "Bloom"
+school = "BLOOM"
+tagline = "Heals over time. Plant early, reap later."
+description = "Your heals keep working after you've moved on. Best when you like planning ahead."
+starter = ExtResource("2_dojkd")
+order = 1

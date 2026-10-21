@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SpecData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/specs/SpecData.gd" id="1_at48o"]
+[ext_resource type="Resource" path="res://resources/spells/heal.tres" id="2_rfv08"]
+
+[resource]
+script = ExtResource("1_at48o")
+id = "mending"
+display_name = "Mending"
+school = "MENDING"
+tagline = "Direct heals. Big numbers, right now."
+description = "You fix wounds the moment they happen. Best when you like reacting to every hit."
+starter = ExtResource("2_rfv08")
+order = 0

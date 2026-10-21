@@ -29,6 +29,8 @@ func eff(cls: String, props: Dictionary):
 	return e
 
 func _process(d):
+	if game and game.card_panel and game.card_panel.visible and not game.card_panel._locked:
+		game.card_panel._choose(0)
 	f += 1
 	wait -= d
 	if wait > 0: return false

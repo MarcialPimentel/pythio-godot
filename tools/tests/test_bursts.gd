@@ -10,6 +10,8 @@ func _initialize():
 func P(s): print("TEST: ", s)
 func now() -> float: return Time.get_ticks_msec() / 1000.0
 func _process(_d):
+	if game and game.card_panel and game.card_panel.visible and not game.card_panel._locked:
+		game.card_panel._choose(0)
 	f += 1
 	if f == 3:
 		GM = root.get_node("GameManager"); DS = root.get_node("DifficultySystem"); TS = root.get_node("TargetSystem"); EB = root.get_node("EventBus")

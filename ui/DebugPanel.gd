@@ -118,6 +118,7 @@ func _build() -> void:
 
 	_add_button(box, "+%d mana" % MANA_AMOUNT, _add_mana)
 	_add_button(box, "Skip round (counts as survived)", _skip_round)
+	_add_button(box, "Offer a spell pick (between rounds)", func(): GameManager.debug_offer_pick())
 
 	var jump := HBoxContainer.new()
 	box.add_child(jump)

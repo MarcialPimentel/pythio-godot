@@ -62,6 +62,9 @@ const QUIPS := {
 	"low_mana": ["Running on fumes.", "Pace yourselves. I'm not a fountain."],
 	"death": ["Well. That's a refund I won't be getting.", "Should've ducked."],
 	"victory": ["Contract fulfilled. Nobody died. Mostly.", "Pay up. I take coin, not thanks."],
+	"spec": ["Every healer has a habit. Pick yours.", "Choose how you'll keep them breathing."],
+	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
+	"build_complete": ["That's the whole kit. Now let's see how far it goes.", "No more tricks. Just you and the bleeding."],
 }
 
 var spell_buttons: Array[Button] = []
@@ -74,11 +77,18 @@ var _pose_reset_at := 0.0
 var _low_mana_warned := false
 var _quip_tween: Tween
 var _last_run := {"score": 0, "round": 1, "won": false}
+var card_panel: Control
+## What the open card screen is choosing: "spec" or "spell", and the options shown.
+var _card_mode := ""
+var _card_options: Array = []
 
 
 func _ready() -> void:
 	GameManager.game_over.connect(_on_game_over)
 	GameManager.show_party_choice.connect(_show_party_choice)
+	GameManager.show_spec_choice.connect(_show_spec_choice)
+	GameManager.show_spell_pick.connect(_show_spell_pick)
+	DraftSystem.build_complete.connect(func(): _say("build_complete", 5.0))
 	TargetSystem.loss_condition.connect(_on_loss)
 	SpellSystem.spell_cast_started.connect(_on_cast_start)
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
@@ -98,6 +108,9 @@ func _ready() -> void:
 	Leaderboard.fetch_top()
 
 	_add_build_label()
+	card_panel = preload("res://ui/CardChoicePanel.gd").new()
+	game_ui.add_child(card_panel)
+	card_panel.chosen.connect(_on_card_chosen)
 	add_child(preload("res://ui/DebugPanel.gd").new())
 
 	cast_label = _add_bar_label(cast_bar, 18)
@@ -140,9 +153,108 @@ func _process(delta: float) -> void:
 	_update_spell_ui()
 
 
+# ── Specialization and spell picks ─────────────────────
+
+func _show_spec_choice() -> void:
+	party_choice_panel.visible = false
+	party_area.visible = false
+	contract_info.visible = false
+	round_label.text = "A new job"
+	timer_label.text = "Choose your school"
+	_card_mode = "spec"
+	_card_options = DraftSystem.specs.duplicate()
+	var cards: Array = []
+	for spec in _card_options:
+		cards.append(spec_card(spec))
+	card_panel.show_cards("Choose your school", "It decides your first spell and which spells you're offered most.", cards)
+	_say("spec", 5.0)
+
+
+func _show_spell_pick(offers: Array, round_cleared: int) -> void:
+	party_choice_panel.visible = false
+	party_area.visible = false
+	contract_info.visible = false
+	round_label.text = "Round %d cleared" % round_cleared
+	timer_label.text = "Pick a spell"
+	_card_mode = "spell"
+	_card_options = offers.duplicate()
+	var cards: Array = []
+	for spell in _card_options:
+		cards.append(spell_card(spell))
+	var used := SpellSystem.spells.size()
+	var sub := "Spellbook %d / %d" % [used, DraftSystem.spellbook_cap]
+	sub += " — full: only rank-ups from here." if DraftSystem.is_full() else " — next pick after round %d." % _next_pick_round(round_cleared)
+	card_panel.show_cards("Add a spell", sub, cards)
+	_say("pick", 4.0)
+
+
+func _next_pick_round(after: int) -> int:
+	var r := after + 1
+	while not DraftSystem.is_pick_round(r) and r < after + 1000:
+		r += 1
+	return r
+
+
+func _on_card_chosen(index: int) -> void:
+	var choice = _card_options[index]
+	match _card_mode:
+		"spec":
+			DraftSystem.choose_spec(choice)
+		"spell":
+			DraftSystem.take(choice)
+	_card_mode = ""
+	GameManager.continue_to_contracts()
+
+
+## Card data for a school on the specialization screen.
+func spec_card(spec: SpecData) -> Dictionary:
+	var color: Color = SpellTags.SCHOOL_COLORS.get(spec.school, Color.WHITE)
+	var starter := spec.starter
+	var body := "[color=#%s]%s[/color]\n\n" % [Color(0.85, 0.82, 0.76).to_html(false), spec.description]
+	if starter:
+		body += "[b]Starts with %s[/b] — %s\n[color=#%s]%s[/color]" % [starter.display_name, starter.description_bb(),
+			Color(1.0, 0.8, 0.35).to_html(false), starter.stats_line()]
+	return {
+		"header": "SCHOOL", "header_color": color, "accent": color,
+		"icon": spell_icon(starter) if starter else null,
+		"title": spec.display_name,
+		"stats": spec.tagline,
+		"tags": starter.tags if starter else [],
+		"body_bb": body,
+	}
+
+
+## Card data for a spell on the pick screen.
+func spell_card(spell: SpellData) -> Dictionary:
+	var school_color: Color = SpellTags.SCHOOL_COLORS.get(spell.school, Color.WHITE)
+	var owned := SpellSystem.owned_rank(spell.family())
+	var badge := ""
+	var header: String = str(SpellTags.SCHOOL_LABELS.get(spell.school, "")).to_upper()
+	if owned > 0:
+		badge = "RANK UP"
+		var old := SpellSystem.spells.filter(func(s): return s.family() == spell.family())
+		if not old.is_empty():
+			header = "UPGRADES %s" % old[0].display_name.to_upper()
+	elif DraftSystem.school() != "" and spell.school != DraftSystem.school() and spell.school != "ANY":
+		badge = "OTHER SCHOOL"
+	return {
+		"header": header, "header_color": school_color, "accent": school_color,
+		"badge": badge,
+		"badge_color": SpellTags.COMBO_COLOR if badge == "RANK UP" else Color(0.7, 0.66, 0.6),
+		"icon": spell_icon(spell),
+		"title": spell.display_name,
+		"stats": spell.stats_line(),
+		"tags": spell.tags,
+		"body_bb": spell.description_bb(),
+		"flavor": spell.flavor,
+	}
+
+
 # ── Rounds & contracts ─────────────────────────────────
 
 func _show_party_choice() -> void:
+	if GameManager.in_round:
+		return
 	party_choice_panel.visible = true
 	party_area.visible = false
 	contract_info.visible = false
@@ -460,6 +572,7 @@ func _on_start_pressed() -> void:
 
 func _on_game_over(round_reached: int, final_score: int) -> void:
 	party_choice_panel.visible = false
+	card_panel.close()
 	game_over_panel.visible = true
 	cast_bar.visible = false
 	if GameManager.last_run_won:
