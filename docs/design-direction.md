@@ -14,7 +14,9 @@ casts are deliberate gambles (Divine Channel: stop healing for 5s to get mana ba
   grow to a ~25s cap) so the pace stays frantic. The Crimson Baron returns every 5th round.
 - **Specialization at the start:** Mending (Heal), Bloom (Renew), Ward (Shield).
 - **A new spell every 5 rounds,** 1 of 3, school-weighted with one off-school card,
-  capped (5 spells). There should be a moment where the build is complete and the run
+  capped (5 spells). As built: the first pick comes after round 1 (so nobody plays five
+  rounds with a single spell), then after rounds 5, 10, 15 …; at least one offer combos
+  with your spellbook when possible. All of it is `DraftSystem` settings. There should be a moment where the build is complete and the run
   becomes about how far you can take it.
 - **Keystones every 10 rounds,** rule-changing, capped.
 - **Contracts are repurposed** to show what you'll get (reward) and what you'll face

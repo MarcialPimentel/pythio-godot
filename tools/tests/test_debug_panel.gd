@@ -10,6 +10,8 @@ func press(key: Key):
 	var e := InputEventKey.new(); e.keycode = key; e.pressed = true
 	root.push_input(e)
 func _process(_d):
+	if game and game.card_panel and game.card_panel.visible and not game.card_panel._locked:
+		game.card_panel._choose(0)
 	f += 1
 	if wait > 0:
 		wait -= 1; return false
@@ -20,8 +22,9 @@ func _process(_d):
 			for c in game.get_children():
 				if c is CanvasLayer and c.has_method("_toggle_god"): dbg = c
 			P("panel found=%s hidden at start=%s" % [dbg != null, not dbg._panel.visible])
-			game._on_start_pressed(); press(KEY_F1); step = 1; wait = 2
+			game._on_start_pressed(); press(KEY_F1); step = 1; wait = 60
 		1:
+			if root.get_node("DraftSystem").current_spec == null: return false
 			P("F1 opens panel: %s" % dbg._panel.visible)
 			dbg._round_spin.value = 15; dbg._jump(); step = 2; wait = 2
 		2:
@@ -37,7 +40,8 @@ func _process(_d):
 			dbg._heal_target(); P("heal to full: hp=%.0f" % hc.current_health)
 			dbg._skip_round(); step = 4; wait = 3
 		4:
-			P("skip round: now round=%d in_round=%s" % [GM.current_round, GM.in_round])
+			if not game.party_choice_panel.visible or game.card_panel.visible: return false
+			P("skip round: now round=%d in_round=%s (round 15 was a pick round: spell picked=%s)" % [GM.current_round, GM.in_round, root.get_node("SpellSystem").spells.size() > 1])
 			game.party_choice_panel._on_left_chosen(); step = 5; wait = 3
 		5:
 			dbg._toggle_god(); dbg._target = TS.targets[0]

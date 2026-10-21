@@ -127,10 +127,8 @@ func _resolve_bursts(delta: float) -> void:
 		var target = burst.target
 		if not is_instance_valid(target) or target.health_comp.is_dead:
 			continue
-		var hc: HealthComponent = target.health_comp
-		var absorbed := minf(hc.shield_amount, burst.damage)
-		hc.take_damage(burst.damage)
-		EventBus.burst_landed.emit(target, absorbed, burst.damage - absorbed)
+		var hit: Dictionary = target.health_comp.take_damage(burst.damage)
+		EventBus.burst_landed.emit(target, hit.absorbed + hit.prevented, hit.dealt)
 
 
 func _cancel_bursts() -> void:
@@ -139,3 +137,39 @@ func _cancel_bursts() -> void:
 			burst.target.pending_burst_time = 0.0
 	pending_bursts.clear()
 	burst_timer = 0.0
+
+
+# ── Who's next to whom (the party is one row) ──────────
+
+## Living fighters directly left and right of `target`.
+func neighbors_of(target: Node) -> Array:
+	var alive := _alive_in_order()
+	var i := alive.find(target)
+	var out: Array = []
+	if i == -1:
+		return out
+	if i > 0:
+		out.append(alive[i - 1])
+	if i < alive.size() - 1:
+		out.append(alive[i + 1])
+	return out
+
+
+## The living fighter (other than `exclude`) with the lowest share of their health left.
+func most_injured(exclude: Node = null) -> Node:
+	var best: Node = null
+	var best_frac := 2.0
+	for t in _alive_in_order():
+		if t == exclude:
+			continue
+		var frac: float = t.health_comp.current_health / maxf(1.0, t.health_comp.max_health)
+		if frac < best_frac:
+			best_frac = frac
+			best = t
+	return best
+
+
+func _alive_in_order() -> Array:
+	var alive := targets.filter(func(t): return is_instance_valid(t) and not t.health_comp.is_dead)
+	alive.sort_custom(func(a, b): return a.index < b.index)
+	return alive

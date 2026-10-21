@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SpecData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/specs/SpecData.gd" id="1_v7ko5"]
+[ext_resource type="Resource" path="res://resources/spells/shield.tres" id="2_i1mds"]
+
+[resource]
+script = ExtResource("1_v7ko5")
+id = "ward"
+display_name = "Ward"
+school = "WARD"
+tagline = "Shields. Stop the damage before it lands."
+description = "You get there before the blade does. Best when you like reading what's coming."
+starter = ExtResource("2_i1mds")
+order = 2

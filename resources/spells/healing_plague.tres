@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_1u6dx"]
+[ext_resource type="Script" path="res://resources/spells/effects/HotEffect.gd" id="2_brgr2"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_b0l1y"]
+
+[sub_resource type="Resource" id="Resource_65qg4"]
+script = ExtResource("2_brgr2")
+per_second = 4.0
+duration = 6.0
+include_neighbors = true
+
+[resource]
+script = ExtResource("3_b0l1y")
+id = "healing_plague"
+display_name = "Healing Plague"
+school = "BLOOM"
+tags = Array[String](["HOT", "MULTI"])
+mana_cost = 22.0
+cast_time = 1.5
+cooldown = 0.0
+effects = Array[ExtResource("1_1u6dx")]([SubResource("Resource_65qg4")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = "Contagious, in the good way."

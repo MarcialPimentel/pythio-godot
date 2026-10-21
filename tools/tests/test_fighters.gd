@@ -5,6 +5,8 @@ func _initialize():
 	root.add_child.call_deferred(game)
 func P(s): print("TEST: ", s)
 func _process(d):
+	if game and game.card_panel and game.card_panel.visible and not game.card_panel._locked:
+		game.card_panel._choose(0)
 	wait -= d
 	if wait > 0: return false
 	match step:
@@ -23,7 +25,7 @@ func _process(d):
 			P("round3 units: %s" % [c3.unit_templates.map(func(t): return "%s/%s/%dHP" % [t.display_name, t.armor_type, t.base_max_health])])
 			var b = CG.generate_boss_contract(5).unit_templates[0]
 			P("boss: %s %s %dHP" % [b.display_name, b.character, b.base_max_health])
-			game._on_start_pressed(); wait = 0.1
+			game._on_start_pressed(); wait = 0.7
 		1:
 			game.party_choice_panel._on_left_chosen(); wait = 0.3
 		2:
@@ -41,7 +43,7 @@ func _process(d):
 			P("fallen frame: '%s'" % TS.targets[0].target_name.text)
 			TS.targets[0].health_comp.heal(50)
 			P("heal on fallen fighter ignored: hp=%.1f" % TS.targets[0].health_comp.current_health)
-			game.play_again_button.emit_signal("pressed"); wait = 0.3
+			game.play_again_button.emit_signal("pressed"); wait = 0.8
 		5:
 			P("play again: round=%d choice_visible=%s game_over_visible=%s" % [GM.current_round, game.party_choice_panel.visible, game.game_over_panel.visible])
 			quit()

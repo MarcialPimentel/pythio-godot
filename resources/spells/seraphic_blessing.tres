@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_0016p"]
+[ext_resource type="Script" path="res://resources/spells/passives/SeraphicBlessingRule.gd" id="2_1rqjm"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_syple"]
+
+[sub_resource type="Resource" id="Resource_ypi5p"]
+script = ExtResource("2_1rqjm")
+below_health = 0.4
+bonus = 0.3
+
+[resource]
+script = ExtResource("3_syple")
+id = "seraphic_blessing"
+display_name = "Seraphic Blessing"
+school = "MENDING"
+tags = Array[String]([])
+mana_cost = 0.0
+cast_time = 0.0
+cooldown = 0.0
+effects = Array[ExtResource("1_0016p")]([])
+passive = SubResource("Resource_ypi5p")
+rank_family = ""
+rank = 1
+requires_tags = Array[String](["DIRECT"])
+reacts_to_tags = Array[String](["DIRECT"])
+offer_weight = 1.0
+flavor = ""

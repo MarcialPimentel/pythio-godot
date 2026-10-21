@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_nssb5"]
+[ext_resource type="Script" path="res://resources/spells/effects/ManaEffect.gd" id="2_0uex8"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_fxv5b"]
+
+[sub_resource type="Resource" id="Resource_km40u"]
+script = ExtResource("2_0uex8")
+amount = 50.0
+
+[resource]
+script = ExtResource("3_fxv5b")
+id = "divine_channel"
+display_name = "Divine Channel"
+school = "ANY"
+tags = Array[String]([])
+mana_cost = 0.0
+cast_time = 3.0
+cooldown = 30.0
+effects = Array[ExtResource("1_nssb5")]([SubResource("Resource_km40u")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = "Breathe. Count to three. Refill."

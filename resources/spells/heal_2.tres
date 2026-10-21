@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_a516l"]
+[ext_resource type="Script" path="res://resources/spells/effects/HealEffect.gd" id="2_3bydp"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_j1y14"]
+
+[sub_resource type="Resource" id="Resource_xncbu"]
+script = ExtResource("2_3bydp")
+amount = 45.0
+neighbor_amount = 0.0
+lowest_other_amount = 0.0
+
+[resource]
+script = ExtResource("3_j1y14")
+id = "heal_2"
+display_name = "Heal II"
+school = "MENDING"
+tags = Array[String](["DIRECT"])
+mana_cost = 13.0
+cast_time = 1.5
+cooldown = 0.0
+effects = Array[ExtResource("1_a516l")]([SubResource("Resource_xncbu")])
+rank_family = "heal"
+rank = 2
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = ""

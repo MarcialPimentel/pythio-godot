@@ -37,17 +37,22 @@ extends Control
 @onready var lb_status: Label            = $StartScreen/LeaderboardPanel/LeaderboardBox/LeaderboardStatus
 
 const ART := "res://assets/art/"
-## Spellbook size: keys Q W E R T. Empty slots show as "draft" until spell drafting exists.
+## Spellbook size: keys Q W E R T. Empty slots wait for a spell pick.
 const SPELL_SLOTS := 5
-## Spell icon by spell id (falls back to the icon set on the SpellData resource).
+## Spell icon by spell id; other spells use the icon for their main tag (stand-in art).
 const SPELL_ICONS := {
 	"flash_heal": "ui/icons/spell_flash_heal.png",
 	"renew": "ui/icons/spell_hot.png",
 	"shield": "ui/icons/spell_shield.png",
 	"heal": "ui/icons/spell_instant_heal.png",
 }
-## Pythio's pose while casting each kind of effect.
-const CAST_POSES := {"instant_heal": "cast_heal", "hot": "cast_hot", "shield": "cast_shield"}
+const TAG_ICONS := {
+	"SHIELD": "ui/icons/spell_shield.png",
+	"HOT": "ui/icons/spell_hot.png",
+	"DIRECT": "ui/icons/spell_instant_heal.png",
+	"DELAYED": "ui/icons/status_buff_2.png",
+}
+const FALLBACK_ICON := "ui/icons/status_buff_4.png"
 
 ## Pythio's dry one-liners. Edit freely.
 const QUIPS := {
@@ -57,6 +62,11 @@ const QUIPS := {
 	"low_mana": ["Running on fumes.", "Pace yourselves. I'm not a fountain."],
 	"death": ["Well. That's a refund I won't be getting.", "Should've ducked."],
 	"victory": ["Contract fulfilled. Nobody died. Mostly.", "Pay up. I take coin, not thanks."],
+	"spec": ["Every healer has a habit. Pick yours.", "Choose how you'll keep them breathing."],
+	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
+	"combo": ["Now that's teamwork.", "Two spells, one invoice.", "Elegant. Expensive, but elegant.",
+		"Put that on the bill.", "That's how it's done."],
+	"build_complete": ["That's the whole kit. Now let's see how far it goes.", "No more tricks. Just you and the bleeding."],
 }
 
 var spell_buttons: Array[Button] = []
@@ -69,16 +79,30 @@ var _pose_reset_at := 0.0
 var _low_mana_warned := false
 var _quip_tween: Tween
 var _last_run := {"score": 0, "round": 1, "won": false}
+var card_panel: Control
+var _build_label: RichTextLabel
+## What the open card screen is choosing: "spec" or "spell", and the options shown.
+var _card_mode := ""
+## Pythio comments on combos, but not every single one.
+const COMBO_QUIP_GAP := 8.0
+var _last_combo_quip := -100.0
+var _card_options: Array = []
 
 
 func _ready() -> void:
 	GameManager.game_over.connect(_on_game_over)
 	GameManager.show_party_choice.connect(_show_party_choice)
+	GameManager.show_spec_choice.connect(_show_spec_choice)
+	GameManager.show_spell_pick.connect(_show_spell_pick)
+	DraftSystem.build_complete.connect(func(): _say("build_complete", 5.0))
+	EventBus.combo_fired.connect(_on_combo_fired)
+	EffectSystem.effect_applied.connect(func(kind, _t, _v, _c): if kind == "mana": _flash_mana())
 	TargetSystem.loss_condition.connect(_on_loss)
 	SpellSystem.spell_cast_started.connect(_on_cast_start)
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
 	SpellSystem.spell_cast_cancelled.connect(_on_cast_finish)
 	SpellSystem.spell_cast_failed.connect(_on_cast_failed)
+	SpellSystem.spellbook_changed.connect(func(): if game_ui.visible: _create_spell_buttons())
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
 	EventBus.target_selected.connect(_on_target_selected)
 	EventBus.targets_spawned.connect(_on_targets_spawned)
@@ -92,6 +116,21 @@ func _ready() -> void:
 	Leaderboard.fetch_top()
 
 	_add_build_label()
+	_build_label = RichTextLabel.new()
+	_build_label.bbcode_enabled = true
+	_build_label.fit_content = true
+	_build_label.scroll_active = false
+	_build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_build_label.add_theme_font_size_override("normal_font_size", 18)
+	_build_label.add_theme_font_size_override("bold_font_size", 18)
+	_build_label.position = Vector2(560, 812)
+	_build_label.size = Vector2(800, 30)
+	game_ui.add_child(_build_label)
+	SpellSystem.spellbook_changed.connect(_update_build_summary)
+	DraftSystem.spec_chosen.connect(func(_s): _update_build_summary())
+	card_panel = preload("res://ui/CardChoicePanel.gd").new()
+	game_ui.add_child(card_panel)
+	card_panel.chosen.connect(_on_card_chosen)
 	add_child(preload("res://ui/DebugPanel.gd").new())
 
 	cast_label = _add_bar_label(cast_bar, 18)
@@ -134,9 +173,161 @@ func _process(delta: float) -> void:
 	_update_spell_ui()
 
 
+## Mana came back (Divine Channel, Mana Conduit): a quick electric-blue pulse on the bar.
+func _flash_mana() -> void:
+	var tw := create_tween()
+	mana_bar.modulate = Color(0.6, 0.85, 1.6)
+	tw.tween_property(mana_bar, "modulate", Color.WHITE, 0.4)
+
+
+func _on_combo_fired(_target, _label: String) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _last_combo_quip < COMBO_QUIP_GAP:
+		return
+	_last_combo_quip = now
+	_say("combo", 2.5)
+
+
+# ── Specialization and spell picks ─────────────────────
+
+func _show_spec_choice() -> void:
+	party_choice_panel.visible = false
+	party_area.visible = false
+	contract_info.visible = false
+	round_label.text = "A new job"
+	timer_label.text = "Choose your school"
+	_card_mode = "spec"
+	_card_options = DraftSystem.specs.duplicate()
+	var cards: Array = []
+	for spec in _card_options:
+		cards.append(spec_card(spec))
+	card_panel.show_cards("Choose your school", "It decides your first spell and which spells you're offered most.", cards)
+	_say("spec", 5.0)
+
+
+func _show_spell_pick(offers: Array, round_cleared: int) -> void:
+	party_choice_panel.visible = false
+	party_area.visible = false
+	contract_info.visible = false
+	round_label.text = ("Round %d cleared" % round_cleared) if round_cleared > 0 else "Bonus pick"
+	timer_label.text = "Pick a spell"
+	_card_mode = "spell"
+	_card_options = offers.duplicate()
+	var cards: Array = []
+	for spell in _card_options:
+		cards.append(spell_card(spell))
+	var used := SpellSystem.spells.size()
+	var sub := "Spellbook %d / %d" % [used, DraftSystem.spellbook_cap]
+	sub += " — full: only rank-ups from here." if DraftSystem.is_full() else " — next pick after round %d." % _next_pick_round(round_cleared)
+	card_panel.show_cards("Add a spell", sub, cards)
+	_say("pick", 4.0)
+
+
+func _next_pick_round(after: int) -> int:
+	var r := after + 1
+	while not DraftSystem.is_pick_round(r) and r < after + 1000:
+		r += 1
+	return r
+
+
+func _on_card_chosen(index: int) -> void:
+	var choice = _card_options[index]
+	match _card_mode:
+		"spec":
+			DraftSystem.choose_spec(choice)
+		"spell":
+			DraftSystem.take(choice)
+	_card_mode = ""
+	GameManager.continue_to_contracts()
+
+
+## Card data for a school on the specialization screen.
+func spec_card(spec: SpecData) -> Dictionary:
+	var color: Color = SpellTags.SCHOOL_COLORS.get(spec.school, Color.WHITE)
+	var starter := spec.starter
+	var body := "[color=#%s]%s[/color]\n\n" % [Color(0.85, 0.82, 0.76).to_html(false), spec.description]
+	if starter:
+		body += "[b]Starts with %s[/b] — %s\n[color=#%s]%s[/color]" % [starter.display_name, starter.description_bb(),
+			Color(1.0, 0.8, 0.35).to_html(false), starter.stats_line()]
+	return {
+		"header": "SCHOOL", "header_color": color, "accent": color,
+		"icon": spell_icon(starter) if starter else null,
+		"title": spec.display_name,
+		"stats": spec.tagline,
+		"tags": starter.tags if starter else [],
+		"body_bb": body,
+	}
+
+
+## Card data for a spell on the pick screen.
+func spell_card(spell: SpellData) -> Dictionary:
+	var school_color: Color = SpellTags.SCHOOL_COLORS.get(spell.school, Color.WHITE)
+	var owned := SpellSystem.owned_rank(spell.family())
+	var badge := ""
+	var header: String = str(SpellTags.SCHOOL_LABELS.get(spell.school, "")).to_upper()
+	if owned > 0:
+		badge = "RANK UP"
+		var old := SpellSystem.spells.filter(func(s): return s.family() == spell.family())
+		if not old.is_empty():
+			header = "UPGRADES %s" % old[0].display_name.to_upper()
+	elif DraftSystem.school() != "" and spell.school != DraftSystem.school() and spell.school != "ANY":
+		badge = "OTHER SCHOOL"
+	return {
+		"header": header, "header_color": school_color, "accent": school_color,
+		"badge": badge,
+		"badge_color": SpellTags.COMBO_COLOR if badge == "RANK UP" else Color(0.7, 0.66, 0.6),
+		"icon": spell_icon(spell),
+		"title": spell.display_name,
+		"stats": spell.stats_line(),
+		"tags": spell.tags,
+		"body_bb": spell.description_bb(),
+		"hint_bb": synergy_hint_bb(spell),
+		"flavor": spell.flavor,
+	}
+
+
+## Gold "★ Combos with your Renew" lines for a pick card (empty if it doesn't connect).
+func synergy_hint_bb(spell: SpellData) -> String:
+	var syn := DraftSystem.synergy(spell)
+	var gold := SpellTags.COMBO_COLOR.to_html(false)
+	var tag_words := ", ".join(syn.tags.map(func(t): return SpellTags.label(t)))
+	var lines: Array[String] = []
+	if not syn.with.is_empty():
+		lines.append("★ Combos with your [b]%s[/b]" % ", ".join(syn.with.map(func(s): return s.display_name)))
+	if not syn.from.is_empty():
+		lines.append("★ Your [b]%s[/b] combos with this" % ", ".join(syn.from.map(func(s): return s.display_name)))
+	if lines.is_empty():
+		return ""
+	return "[color=#%s]%s[/color]\n[color=#%s][i]via %s[/i][/color]" % [gold, "\n".join(lines), Color(gold, 0.7).to_html(false), tag_words]
+
+
+## "BLOOM · Heal-over-Time ×2 · Shield ×1 · 3/5" above the spell bar.
+func _update_build_summary() -> void:
+	if not _build_label:
+		return
+	var school := DraftSystem.school()
+	if school == "":
+		_build_label.text = ""
+		return
+	var counts := {}
+	for s in SpellSystem.spells:
+		for t in s.tags:
+			counts[t] = counts.get(t, 0) + 1
+	var parts: Array[String] = []
+	var sc: Color = SpellTags.SCHOOL_COLORS.get(school, Color.WHITE)
+	parts.append("[color=#%s][b]%s[/b][/color]" % [sc.to_html(false), SpellTags.SCHOOL_LABELS.get(school, "").to_upper()])
+	for t in SpellTags.ALL:
+		if counts.has(t):
+			parts.append("%s ×%d" % [SpellTags.bb(t), counts[t]])
+	parts.append("[color=#a9a39a]%d / %d spells[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap])
+	_build_label.text = "[center]%s[/center]" % "   ·   ".join(parts)
+
+
 # ── Rounds & contracts ─────────────────────────────────
 
 func _show_party_choice() -> void:
+	if GameManager.in_round:
+		return
 	party_choice_panel.visible = true
 	party_area.visible = false
 	contract_info.visible = false
@@ -267,7 +458,7 @@ func _update_mana_bar() -> void:
 
 
 func _on_cast_start(spell: SpellData, _target) -> void:
-	_set_pose(CAST_POSES.get(spell.effect_type, "cast_heal"), maxf(0.5, spell.cast_time + 0.3))
+	_set_pose(spell.pose(), maxf(0.5, spell.cast_time + 0.3))
 	if spell.cast_time > 0.0:
 		cast_bar.visible = true
 		cast_bar.value = 0
@@ -293,16 +484,34 @@ func _create_spell_buttons() -> void:
 	for child in spell_container.get_children():
 		child.queue_free()
 	spell_buttons.clear()
+	if selected_spell and not SpellSystem.spells.has(selected_spell):
+		selected_spell = null
 	for i in SPELL_SLOTS:
 		var key := SpellSystem.key_label_for_slot(i)
 		if i < SpellSystem.spells.size():
 			var spell: SpellData = SpellSystem.spells[i]
-			var btn := _make_spell_slot(spell, key)
-			btn.pressed.connect(func(): _on_spell_pressed(spell))
+			var btn := _make_spell_slot(spell, "" if spell.is_passive() else key)
+			if not spell.is_passive():
+				btn.pressed.connect(func(): _on_spell_pressed(spell))
 			spell_container.add_child(btn)
 			spell_buttons.append(btn)
 		else:
 			spell_container.add_child(_make_empty_slot(key))
+
+
+func spell_icon(spell: SpellData) -> Texture2D:
+	var rel: String = SPELL_ICONS.get(spell.id, "")
+	if rel == "":
+		var look: Array = spell.tags + spell.reacts_to_tags   # passives: the tag they react to
+		for tag in ["SHIELD", "HOT", "DIRECT", "DELAYED"]:
+			if look.has(tag):
+				rel = TAG_ICONS[tag]
+				break
+	if rel == "" and spell.icon:
+		return spell.icon
+	if rel == "":
+		rel = FALLBACK_ICON
+	return load(ART + rel) if ResourceLoader.exists(ART + rel) else spell.icon
 
 
 func _make_spell_slot(spell: SpellData, key: String) -> Button:
@@ -310,14 +519,15 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	btn.custom_minimum_size = Vector2(104, 116)
 	btn.focus_mode = Control.FOCUS_NONE   # so Q/W/E/R aren't swallowed by button focus
 	btn.flat = true
-	var cast_txt := "Instant" if spell.cast_time <= 0.0 else "%.1fs cast" % spell.cast_time
-	btn.tooltip_text = "%s  [%s]\nMana %d · %s%s" % [spell.display_name, key, spell.mana_cost, cast_txt,
-		("" if spell.cooldown <= 0.0 else " · %.0fs cooldown" % spell.cooldown)]
+	btn.tooltip_text = "%s%s\n%s\n%s%s" % [spell.display_name, ("  [%s]" % key) if key != "" else "",
+		spell.stats_line(), spell.description_plain(),
+		("\nTags: " + ", ".join(spell.tag_labels())) if not spell.tags.is_empty() else ""]
 
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	var icon_path: String = ART + SPELL_ICONS.get(spell.id, "")
-	icon.texture = load(icon_path) if SPELL_ICONS.has(spell.id) and ResourceLoader.exists(icon_path) else spell.icon
+	icon.texture = spell_icon(spell)
+	if spell.is_passive():
+		icon.modulate = Color(1.0, 0.85, 0.45)   # gold-tinted: always on, no key
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -333,7 +543,14 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	btn.add_child(cd)
 
 	btn.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
-	btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, Color(1.0, 0.8, 0.35), Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+	if spell.is_passive():
+		btn.add_child(_slot_label("Cost", "passive", 16, Color(1.0, 0.8, 0.35), Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
+	else:
+		btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, Color(1.0, 0.8, 0.35), Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+	var name_lbl := _slot_label("Name", spell.display_name, 14, Color(0.92, 0.88, 0.8), Vector2(0, 116), HORIZONTAL_ALIGNMENT_CENTER)
+	name_lbl.size = Vector2(104, 22)
+	name_lbl.clip_text = true
+	btn.add_child(name_lbl)
 	var cd_label := _slot_label("CdText", "", 34, Color.WHITE, Vector2(0, 36), HORIZONTAL_ALIGNMENT_CENTER)
 	btn.add_child(cd_label)
 	return btn
@@ -343,9 +560,9 @@ func _make_empty_slot(key: String) -> Control:
 	var p := Panel.new()
 	p.custom_minimum_size = Vector2(104, 116)
 	p.modulate = Color(1, 1, 1, 0.45)
-	p.tooltip_text = "Empty — you'll draft spells into this slot between rounds."
+	p.tooltip_text = "Empty — you'll pick a new spell for this slot every few rounds."
 	p.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
-	p.add_child(_slot_label("Draft", "draft", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
+	p.add_child(_slot_label("Draft", "empty", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
 	return p
 
 
@@ -364,8 +581,13 @@ func _slot_label(n: String, text: String, size: int, color: Color, offset: Vecto
 
 func _update_spell_ui() -> void:
 	for i in spell_buttons.size():
+		if i >= SpellSystem.spells.size():
+			break
 		var spell: SpellData = SpellSystem.spells[i]
 		var btn := spell_buttons[i]
+		if spell.is_passive():
+			btn.modulate = Color.WHITE
+			continue
 		var castable := SpellSystem.can_cast(spell)
 		btn.disabled = not castable
 		var cd := SpellSystem.cooldown_remaining(spell.id)
@@ -426,6 +648,7 @@ func _on_start_pressed() -> void:
 
 func _on_game_over(round_reached: int, final_score: int) -> void:
 	party_choice_panel.visible = false
+	card_panel.close()
 	game_over_panel.visible = true
 	cast_bar.visible = false
 	if GameManager.last_run_won:

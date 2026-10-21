@@ -10,18 +10,28 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
   pilot). Builds come from a **specialization** pick at the start and a **new spell every
   5 rounds**, capped, so a run reaches a "build complete" point and then it's about how
   far you can take it. Full reasoning: `docs/design-direction.md`.
-- **Done (PRs #5–#35):** game launches · round flow · casting (hover + Q/W/E, cast times,
-  mana, cooldowns) · fighters (death ends run, armor HP/damage, character types) · noir
-  graphics with stand-in art · web build + FTP deploy · online leaderboard · build number
-  in the corner (#18) · roadmap tracked on GitHub (#35).
-- **Endless is live (#43):** rounds 15s → 25s cap, the Crimson Baron every 5th round.
-- **Deploys:** fixed 2026-10-21. GitHub was uploading to `games/pythio-godot/`; the
-  `FTP_SERVER_DIR` secret now points at `pythio/`, so merges update marz.gg/games/pythio/.
-- **Next up:** #19 bursts hit → #20 debug panel → Phase B (spell picking, new spells).
-- **Waiting on owner:** playtest feedback after Phase A · spell numbers review in #22.
-- **Known rough spots:** late rounds unbalanced (max mana +8/round forever; party size
-  stops at 8) · only 3 spells, all given at the start · combos are a console-only
-  placeholder · stand-in art is low-res · no sound.
+- **✅ Phase A done 2026-10-21 (Build 30, owner playtested):** endless rounds (#43),
+  bursts land after their warning and shields absorb them (#45), F1 debug panel (#46,
+  works on the live site; debug runs can't be posted to the leaderboard).
+- **Done before that (PRs #5–#44):** game launches · round flow · casting (hover +
+  Q/W/E, cast times, mana, cooldowns) · fighters (death ends run, armor HP/damage,
+  character types) · noir graphics with stand-in art · web build + FTP deploy · online
+  leaderboard · build number in the corner (#18, #44) · roadmap tracked on GitHub (#35).
+- **Deploys:** GitHub uploads to marz.gg/games/pythio/ (`FTP_SERVER_DIR` = `pythio/`,
+  fixed 2026-10-21). The old `games/pythio-godot/` folder is unused and can be deleted.
+- **Phase B built 2026-10-21 (one PR for the whole phase, awaiting owner review):** pick a
+  school (Mending / Bloom / Ward) → spell picks after round 1 and every 5 rounds (cap 5,
+  rank-ups, build complete) → 25 spells incl. combo spells and passives → tag-based combos
+  with gold flash and quips → synergy hints on cards and a build summary. Spell table with
+  real numbers: `docs/spells.md`. Defaults chosen for the owner to review are listed in the PR.
+- **Next up:** owner reviews Phase B → Phase C (#23 damage patterns, #29 contracts, #30 Baron,
+  #31 tuning).
+- **Waiting on owner:** Phase B review and playtest.
+- **Known rough spots:** endless scaling is steep (one more fighter every round up to 8,
+  plus damage +0.7/s per fighter per round, plus max mana +8/round forever). A simple bot
+  (`tools/tests/sim_bot.gd`) reaches rounds 3–6 with any school; tuning is #31. Rounds 1–3
+  use a gentler damage ramp (60/75/90%) because runs now start with one spell. The Baron's
+  bursts are small next to his HP · stand-in art (new spells reuse 4 icons) · no sound.
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
@@ -62,20 +72,20 @@ combination next time.
 Each phase ends with a **playtest checkpoint**: Marz plays a few runs and gives feedback.
 One bullet ≈ one pull request.
 
-### Phase A: Endless rounds
-- ⬜ #36 **Endless rounds:** no cap; rounds 15s growing 1s/round to a 25s cap; the Crimson
+### Phase A: Endless rounds  — ✅ done 2026-10-21
+- ✅ #36 **Endless rounds:** no cap; rounds 15s growing 1s/round to a 25s cap; the Crimson
   Baron every 5th round, tougher each time; scaling continues; leaderboard accepts any round.
-- ⬜ #19 **Bursts actually hit** after their warning (so Shield has a job).
-- ⬜ #20 **Debug panel (F1):** +50 mana, skip round, jump to round N, damage/heal a fighter, god mode.
+- ✅ #19 **Bursts actually hit** after their warning (so Shield has a job).
+- ✅ #20 **Debug panel (F1):** +50 mana, skip round, jump to round N, damage/heal a fighter, god mode.
 
-### Phase B: Picking spells and new spells (the core)
-- ⬜ #21 **Effect system with plain-language tags** (no visible change; the foundation).
-- ⬜ #24 **Pick a specialization** at the start of a run (Mending / Bloom / Ward).
-- ⬜ #25 **Pick a new spell every 5 rounds,** capped at 5, with rank-ups as options.
-- ⬜ #22 **First new-spell batch, rebalanced** (ranks collapsed; owner reviews numbers).
-- ⬜ #26 **Combo spells driven by tags:** Overgrowth, Echo Healing, a shield-break payoff.
-- ⬜ #27 **Remaining spells by school,** including passives and prerequisites.
-- ⬜ #28 **Synergy hints on pick cards** and a spellbook panel showing your build mid-run.
+### Phase B: Picking spells and new spells (the core)  — 🔶 built, in review (one PR)
+- 🔶 #21 **Effect system with plain-language tags** (no visible change; the foundation).
+- 🔶 #24 **Pick a specialization** at the start of a run (Mending / Bloom / Ward).
+- 🔶 #25 **Pick a new spell** after round 1, then every 5 rounds; capped at 5, with rank-ups.
+- 🔶 #22 **First new-spell batch, rebalanced** (ranks collapsed; owner reviews numbers).
+- 🔶 #26 **Combo spells driven by tags:** Overgrowth, Echo Healing, Spirit Surge.
+- 🔶 #27 **Remaining spells by school,** including passives and prerequisites.
+- 🔶 #28 **Synergy hints on pick cards** and a build summary above the spell bar.
 
 ### Phase C: Damage worth reacting to
 - ⬜ #23 **Damage patterns by role:** damage over time, escalating DoTs, debuff icons.

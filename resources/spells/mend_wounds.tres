@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_p266b"]
+[ext_resource type="Script" path="res://resources/spells/effects/HealEffect.gd" id="2_6cngp"]
+[ext_resource type="Script" path="res://resources/spells/effects/HotEffect.gd" id="3_vvmyc"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_gdgpw"]
+
+[sub_resource type="Resource" id="Resource_qm03e"]
+script = ExtResource("2_6cngp")
+amount = 20.0
+neighbor_amount = 0.0
+lowest_other_amount = 0.0
+
+[sub_resource type="Resource" id="Resource_g125i"]
+script = ExtResource("3_vvmyc")
+per_second = 3.0
+duration = 5.0
+include_neighbors = false
+
+[resource]
+script = ExtResource("4_gdgpw")
+id = "mend_wounds"
+display_name = "Mend Wounds"
+school = "ANY"
+tags = Array[String](["DIRECT", "HOT"])
+mana_cost = 16.0
+cast_time = 1.0
+cooldown = 0.0
+effects = Array[ExtResource("1_p266b")]([SubResource("Resource_qm03e"), SubResource("Resource_g125i")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = ""

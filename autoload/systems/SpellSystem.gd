@@ -1,7 +1,9 @@
 # autoload/systems/SpellSystem.gd
-# Owns the spellbook and the whole cast flow:
+# Owns the spell library (every spell in the game), your spellbook (what you've picked,
+# in key order) and the whole cast flow:
 #   request → checks (in round, mana, cooldown, not already casting)
-#   → cast time (cast bar) → spend mana → apply effect → start cooldown → combo check.
+#   → cast time (cast bar) → spend mana → EffectSystem.cast → start cooldown.
+# Combos are not decided here: spells react to each other through tags (see EffectSystem).
 # Players cast by hovering a fighter and pressing a spell key (Q/W/E/R/T),
 # or by clicking a spell button and then clicking a fighter.
 extends Node
@@ -10,17 +12,21 @@ signal spell_cast_started(spell: SpellData, target)
 signal spell_cast_finished(spell: SpellData, target)
 signal spell_cast_cancelled(spell: SpellData, target)
 signal spell_cast_failed(spell: SpellData, reason: String)
+signal spellbook_changed
 
 @onready var effect_system = get_node("/root/EffectSystem")
 
 ## Keys for spellbook slots, in order. Rebind in Project Settings → Input Map
 ## (actions "spell_1" … "spell_5") once they exist there; these are the defaults.
 const DEFAULT_SPELL_KEYS: Array[Key] = [KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T]
-const COMBO_WINDOW = 1.5
+## Spellbook slots (keys Q–T). A passive takes a slot but has no key.
+const SLOTS := 5
+## Spellbook before a specialization is picked (and in tests that skip the pick).
+@export var default_spellbook_ids: PackedStringArray = ["flash_heal", "renew", "shield"]
 
+var library: Array[SpellData] = []       # every spell in the game
 var spells: Array[SpellData] = []        # the spellbook, in key order
 var cooldowns: Dictionary = {}           # spell_id -> seconds remaining
-var combo_tracker: Dictionary = {}       # target instance id -> {time, tags}
 
 # Current cast
 var is_casting: bool = false
@@ -43,7 +49,7 @@ func _ready() -> void:
 
 
 func load_all_spells() -> void:
-	spells.clear()
+	library.clear()
 	var dir = DirAccess.open("res://resources/spells/")
 	if dir:
 		dir.list_dir_begin()
@@ -54,10 +60,73 @@ func load_all_spells() -> void:
 			if res_name.ends_with(".tres"):
 				var spell = load("res://resources/spells/" + res_name)
 				if spell is SpellData:
-					spells.append(spell)
+					library.append(spell)
 			file_name = dir.get_next()
-	spells.sort_custom(func(a, b): return a.id < b.id)
-	print("Loaded %d spells" % spells.size())
+	library.sort_custom(func(a, b): return a.id < b.id)
+	print("Loaded %d spells" % library.size())
+	set_spellbook_ids(default_spellbook_ids)
+
+
+# ── Spellbook ──────────────────────────────────────────
+
+func get_library_spell(id: String) -> SpellData:
+	for spell in library:
+		if spell.id == id:
+			return spell
+	return null
+
+
+func set_spellbook(new_spells: Array[SpellData]) -> void:
+	spells = new_spells.slice(0, SLOTS)
+	cooldowns.clear()
+	spellbook_changed.emit()
+
+
+func set_spellbook_ids(ids: PackedStringArray) -> void:
+	var list: Array[SpellData] = []
+	for id in ids:
+		var s := get_library_spell(id)
+		if s:
+			list.append(s)
+	set_spellbook(list)
+
+
+## Adds a spell. A higher rank of a spell you own replaces it in the same slot.
+## Returns the slot used, or -1 if the spellbook is full.
+func add_spell(spell: SpellData) -> int:
+	for i in spells.size():
+		if spells[i].family() == spell.family():
+			spells[i] = spell
+			spellbook_changed.emit()
+			return i
+	if spells.size() >= SLOTS:
+		return -1
+	spells.append(spell)
+	spellbook_changed.emit()
+	return spells.size() - 1
+
+
+func owns_tag(tag: String) -> bool:
+	for s in spells:
+		if s.tags.has(tag):
+			return true
+	return false
+
+
+## The rank you own of a spell family (0 = not owned).
+func owned_rank(family: String) -> int:
+	for s in spells:
+		if s.family() == family:
+			return s.rank
+	return 0
+
+
+func passive_rules() -> Array[PassiveRule]:
+	var out: Array[PassiveRule] = []
+	for s in spells:
+		if s.passive:
+			out.append(s.passive)
+	return out
 
 
 func _ensure_input_actions() -> void:
@@ -86,6 +155,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	for i in spells.size():
 		if event.is_action_pressed("spell_%d" % (i + 1)):
+			if spells[i].is_passive():
+				return
 			var target = hovered_target if is_instance_valid(hovered_target) else last_target
 			if is_instance_valid(target):
 				request_cast(spells[i], target)
@@ -102,12 +173,12 @@ func _on_target_hovered(target: Node) -> void:
 # ── Casting ─────────────────────────────────────────────
 
 func can_cast(spell: SpellData) -> bool:
-	return GameManager.in_round and not is_casting \
+	return not spell.is_passive() and GameManager.in_round and not is_casting \
 		and not is_on_cooldown(spell.id) and GameManager.mana >= spell.mana_cost
 
 
 func request_cast(spell: SpellData, target: Node) -> bool:
-	if not spell or not is_instance_valid(target):
+	if not spell or not is_instance_valid(target) or spell.is_passive():
 		return false
 	if not GameManager.in_round:
 		spell_cast_failed.emit(spell, "not_in_round"); return false
@@ -165,10 +236,9 @@ func _finish_cast() -> void:
 	if not is_instance_valid(target) or not GameManager.spend_mana(spell.mana_cost):
 		spell_cast_cancelled.emit(spell, target)
 		return
-	effect_system.apply_effect(target, spell)
+	effect_system.cast(spell, target)
 	if spell.cooldown > 0.0:
 		cooldowns[spell.id] = spell.cooldown
-	detect_combo(target, spell)
 	spell_cast_finished.emit(spell, target)
 
 
@@ -179,7 +249,7 @@ func _clear_cast() -> void:
 	cast_elapsed = 0.0
 
 
-# ── Cooldowns & combos ─────────────────────────────────
+# ── Cooldowns ──────────────────────────────────────────
 
 func get_spell_by_id(id: String) -> SpellData:
 	for spell in spells:
@@ -194,12 +264,3 @@ func is_on_cooldown(spell_id: String) -> bool:
 
 func cooldown_remaining(spell_id: String) -> float:
 	return maxf(0.0, cooldowns.get(spell_id, 0.0))
-
-
-func detect_combo(target: Node, spell: SpellData) -> void:
-	# Placeholder: combos become a real system in roadmap Phase 3.
-	var now = Time.get_ticks_msec() / 1000.0
-	var key = target.get_instance_id()
-	if combo_tracker.has(key) and now - combo_tracker[key].time < COMBO_WINDOW:
-		print("COMBO! on target ", target.index if "index" in target else "?", " with ", spell.id)
-	combo_tracker[key] = {"time": now, "tags": spell.combo_tags}

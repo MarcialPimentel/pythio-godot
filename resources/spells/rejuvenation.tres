@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_2s22v"]
+[ext_resource type="Script" path="res://resources/spells/effects/HotEffect.gd" id="2_xy7n3"]
+[ext_resource type="Texture2D" path="res://assets/icons/renew.png" id="3_n8wvr"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_pml5m"]
+
+[sub_resource type="Resource" id="Resource_ehyuv"]
+script = ExtResource("2_xy7n3")
+per_second = 8.0
+duration = 8.0
+include_neighbors = false
+
+[resource]
+script = ExtResource("4_pml5m")
+id = "rejuvenation"
+display_name = "Rejuvenation"
+icon = ExtResource("3_n8wvr")
+school = "BLOOM"
+tags = Array[String](["HOT"])
+mana_cost = 16.0
+cast_time = 0.0
+cooldown = 0.0
+effects = Array[ExtResource("1_2s22v")]([SubResource("Resource_ehyuv")])
+rank_family = "renew"
+rank = 2
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = ""

@@ -44,24 +44,43 @@ Decided 2026-10-21; full reasoning in `docs/design-direction.md`.
 high-contrast UI. Accent colors carry meaning: emerald green = heals, electric blue =
 shields, golden yellow = combos / powerful effects, blood red = danger / bursts.
 
-**Combos:** complementary spells on the same target within a short window grant bonuses
-(stronger heals, longer durations, mana refunds).
+**Combos:** spells react to **tags**, not to fixed partners: Overgrowth extends any
+Heal-over-Time, Echo Healing repeats any Direct heal, Spirit Surge cashes in any Shield,
+passives (Aura of Mending, Vital Bond…) react to tag events. When one fires: gold text,
+gold flash, sometimes a Pythio quip.
 
 ## Tech
 - Godot **4.3**, GDScript, GL Compatibility renderer.
 - Main scene: `scenes/Game.tscn` (script `scenes/game.gd`).
 - Global systems are autoloads (see `project.godot`): GameManager, SpellSystem,
-  TargetSystem, ContractGenerator, DifficultySystem, EventBus, PartyChoicePanel.
-- Data lives in Resources: spells in `resources/spells/*.tres`, contracts and units in
-  `data/`.
+  DraftSystem, EffectSystem, TargetSystem, ContractGenerator, DifficultySystem, EventBus,
+  PartyChoicePanel.
+- Data lives in Resources: spells in `resources/spells/*.tres`, schools in
+  `resources/specs/*.tres`, contracts and units in `data/`.
+
+**How spells work (the building blocks):**
+- A spell (`SpellData`) = cost + cast time + cooldown + **tags** + a list of **effects**
+  (`resources/spells/effects/`: heal, heal-over-time, shield, delayed heal, protection,
+  death save, extend HoTs, echo mark, consume shields, mana). Card text is generated from
+  the effects, so it always matches the numbers.
+- What an effect leaves on a fighter is a **status** (`components/statuses/`), held by
+  `HealthComponent`, which reports ticks and endings to `EffectSystem`.
+- `EffectSystem` is the one place healing happens; it runs every passive's hooks
+  (`resources/spells/passives/PassiveRule.gd`) and announces events on `EventBus`
+  (healed, hot_ticked, shield_absorbed, shield_ended, combo_fired …).
+- Add a spell = a new `.tres` in `resources/spells/` built from existing effects; a new
+  mechanic = a new effect/status/passive class. Ranks share `rank_family`.
+- `DraftSystem` owns the school pick, the pick schedule, offers, the cap and rank-ups.
 
 ## Folder layout
 - `autoload/systems/` — game-wide logic (rounds, spells, targets, difficulty, contracts)
 - `autoload/events/EventBus.gd` — shared signals; systems talk through these
-- `components/` — reusable node components (HealthComponent)
+- `components/` — reusable node components (HealthComponent) and `statuses/`
 - `entities/` — the party member scene (Target)
 - `scenes/`, `ui/` — main game scene and panels
-- `data/`, `resources/` — data definitions and .tres files
+- `data/`, `resources/` — data definitions and .tres files (`resources/spells/effects`,
+  `resources/spells/passives`, `resources/specs`)
+- `tools/tests/` — automated checks (see its README); `sim_bot.gd` plays real runs for balance
 
 ## How to check a change
 The project owner is not a programmer and tests by playing. Every change must leave the
@@ -75,6 +94,8 @@ game launching and playable. Before opening a PR:
 - Claude opens one PR per change with plain-language test steps. When the change is a roadmap
   bullet, the PR description says "Closes #N" for that bullet's GitHub issue. Every PR gets a CI check
   (smoke test + web build, downloadable under the PR's Checks → Artifacts).
+- When the owner asks for a whole phase at once, it goes in **one branch and one PR for the
+  phase**, with one commit per roadmap issue, and the PR closes all of them.
 - The owner approves in chat by saying **"merge #N"**; Claude merges only the PR named.
   Merging to `master` deploys to https://marz.gg/games/pythio/ automatically.
 - Start a new session by reading `docs/roadmap.md` → "Where we are". Keep that section

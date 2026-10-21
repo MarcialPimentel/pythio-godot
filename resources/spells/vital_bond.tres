@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_fgmnd"]
+[ext_resource type="Script" path="res://resources/spells/passives/VitalBondRule.gd" id="2_40g1q"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_6nb2w"]
+
+[sub_resource type="Resource" id="Resource_41t1l"]
+script = ExtResource("2_40g1q")
+shield_amount = 10.0
+duration = 5.0
+
+[resource]
+script = ExtResource("3_6nb2w")
+id = "vital_bond"
+display_name = "Vital Bond"
+school = "WARD"
+tags = Array[String]([])
+mana_cost = 0.0
+cast_time = 0.0
+cooldown = 0.0
+effects = Array[ExtResource("1_fgmnd")]([])
+passive = SubResource("Resource_41t1l")
+rank_family = ""
+rank = 1
+requires_tags = Array[String](["SHIELD"])
+reacts_to_tags = Array[String](["SHIELD"])
+offer_weight = 1.0
+flavor = ""

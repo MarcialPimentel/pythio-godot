@@ -9,6 +9,8 @@ func _initialize():
 	root.add_child.call_deferred(game)
 func P(s): print("TEST: ", s)
 func _process(d):
+	if game and game.card_panel and game.card_panel.visible and not game.card_panel._locked:
+		game.card_panel._choose(0)
 	f += 1
 	if f == 3:
 		GM = root.get_node("GameManager"); DS = root.get_node("DifficultySystem"); TS = root.get_node("TargetSystem")

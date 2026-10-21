@@ -32,6 +32,10 @@ extends Node
 ## The Crimson Baron's bursts hit this many times harder.
 @export var boss_burst_multiplier: float = 4.0
 
+## Gentler opening while you only have one or two spells: damage multiplier for rounds
+## 1, 2, 3 … (rounds past the list take full damage). Applies to steady damage and bursts.
+@export var early_damage_scale: PackedFloat32Array = [0.6, 0.75, 0.9]
+
 @export var armor_dps_multipliers: Dictionary = {"LIGHT": 1.6, "MEDIUM": 1.2, "HEAVY": 0.8}
 
 func get_round_time(round: int) -> float:
@@ -53,7 +57,12 @@ func get_max_mana(round: int) -> float:
 func get_burst_damage(round: int, armor_type: String, is_boss: bool) -> float:
 	var armor_mult: float = armor_dps_multipliers.get(armor_type, 1.0)
 	var dmg: float = (burst_damage_base + burst_damage_growth * maxi(0, round - 1)) * armor_mult
-	return dmg * (boss_burst_multiplier if is_boss else 1.0)
+	return dmg * (boss_burst_multiplier if is_boss else 1.0) * damage_scale(round)
 
 func get_base_dps(round: int) -> float:
-	return base_dps + (round - 1) * dps_growth
+	return (base_dps + (round - 1) * dps_growth) * damage_scale(round)
+
+
+func damage_scale(round: int) -> float:
+	var i := round - 1
+	return early_damage_scale[i] if i >= 0 and i < early_damage_scale.size() else 1.0

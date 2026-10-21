@@ -5,6 +5,55 @@
 > Spell ideas from the owner, for inspiration. Numbers here are the intended baseline.
 > See `docs/roadmap.md` for which spells are in the MVP and how they map to the synergy system.
 
+## Spells in the game now (Phase B, 2026-10-21)
+
+The game's real numbers, generated from `resources/spells/*.tres` (edit those files to change a
+spell; the card text is built from them). **Rule: fast, efficient, big — pick two.** Slow casts
+are the mana-efficient ones; instant or big heals cost more per point healed. "HP per mana"
+counts every point of healing/absorb a cast can do (shields count what they absorb).
+
+- **Schools:** you start with Mending (Heal), Bloom (Renew) or Ward (Shield).
+- **Picks:** after round 1, then every 5 rounds, choose 1 of 3. Spellbook cap 5 (keys Q–T;
+  passives take a slot but no key). Ranks replace in place: Heal → Heal II → Heal III,
+  Renew → Rejuvenation, Shield → Shield II.
+- **Combo spells and passives** react to tags and are only offered once you own that tag.
+
+| Spell | School | Tags | Mana | Cast | Cooldown | What it does | HP per mana |
+|---|---|---|---|---|---|---|---|
+| Binding Heal | Mending | Direct, Multi-target | 18 | 1.5s | — | Heals 30. Also heals your most injured other fighter for 20. | 2.8 |
+| Echo Healing | Mending | — | 12 | instant | 10s | For 8s, Direct heals on this fighter echo: 50% of each heal repeats 2s later. Offered once you own a Direct spell. | — |
+| Flash Heal | Mending | Direct | 20 | instant | — | Heals 32. | 1.6 |
+| Guardian Angel | Mending | — | 25 | instant | 25s | For 6s, a killing blow leaves the fighter at 1 health instead, then heals them for 30. | — |
+| Heal | Mending | Direct | 10 | 1.5s | — | Heals 30. | 3.0 |
+| Heal II *(rank 2)* | Mending | Direct | 13 | 1.5s | — | Heals 45. | 3.5 |
+| Heal III *(rank 3)* | Mending | Direct | 16 | 1.5s | — | Heals 62. | 3.9 |
+| Seraphic Blessing | Mending | — | passive | — | — | Your Direct heals on a fighter below 40% health heal 30% more. Offered once you own a Direct spell. | — |
+| Aura of Mending | Bloom | — | passive | — | — | Each time one of your Heal-over-Time effects heals, the fighters on each side are healed for 30% of it. Offered once you own a Heal-over-Time spell. | — |
+| Healing Plague | Bloom | Heal-over-Time, Multi-target | 22 | 1.5s | — | Heals 24 over 6s (4 each second). Also on the fighters on each side. | 3.3 |
+| Lifebloom | Bloom | Delayed | 10 | instant | — | After 6s, heals 45. | 4.5 |
+| Overgrowth | Bloom | — | 10 | instant | 6s | Extends every Heal-over-Time effect on the fighter by 5s. Offered once you own a Heal-over-Time spell. | — |
+| Renew | Bloom | Heal-over-Time | 12 | instant | — | Heals 40 over 8s (5 each second). | 3.3 |
+| Rejuvenation *(rank 2)* | Bloom | Heal-over-Time | 16 | instant | — | Heals 64 over 8s (8 each second). | 4.0 |
+| Divine Protection | Ward | — | 20 | instant | 12s | The fighter takes 50% less damage for 5s. | — |
+| Guardian Ward | Ward | Shield | 18 | instant | — | Absorbs the next 25 damage for 6s. When it breaks or fades, heals 20. | 2.5 |
+| Shield | Ward | Shield | 14 | instant | — | Absorbs the next 30 damage for 8s. | 2.1 |
+| Shield II *(rank 2)* | Ward | Shield | 17 | instant | — | Absorbs the next 45 damage for 8s. | 2.6 |
+| Spirit Surge | Ward | Direct | 10 | instant | 4s | Consumes the Shield effects on this fighter and heals for 150% of what they had left. Offered once you own a Shield spell. | — |
+| Time Stop | Ward | — | 25 | instant | 20s | The fighter takes no damage for 2.5s. | — |
+| Vital Bond | Ward | — | passive | — | — | When one of your Shield effects breaks, the fighters on each side gain a 10 Shield for 5s. Offered once you own a Shield spell. | — |
+| Chain Heal | Any school | Direct, Multi-target | 26 | 2s | — | Heals 30. Also heals the fighters on each side for 15. | 2.3 |
+| Divine Channel | Any school | — | 0 | 3s | 30s | Restores 50 of your mana. | — |
+| Mana Conduit | Any school | — | passive | — | — | Overhealing isn't wasted: you get 20% of it back as mana. | — |
+| Mend Wounds | Any school | Direct, Heal-over-Time | 16 | 1s | — | Heals 20. Then heals 15 over 5s (3 each second). | 2.2 |
+
+### Not in the game yet
+Keystones (Phase D) · Cleanse / Purify (need damage-over-time, Phase C) · Harmonize, Decoy,
+Healing Spirit, Soulbond, Hallowed Ground (pets / positioning, parked) · Shadow Strike
+(name doesn't match the effect; rename first) · Vital Bond and Lifebloom follow the reworked
+versions above, not the original wording below.
+
+## Original spell ideas (owner's list)
+
 A comprehensive list of spells categorized by their function, including basic spells, advanced spells, keystone spells, and experimental mechanics.
 
 ## Universal Pool (Basic Spells)
