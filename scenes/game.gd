@@ -91,6 +91,8 @@ func _ready() -> void:
 	Leaderboard.submitted.connect(_on_score_submitted)
 	Leaderboard.fetch_top()
 
+	_add_build_label()
+
 	cast_label = _add_bar_label(cast_bar, 18)
 	mana_label = _add_bar_label(mana_bar, 20)
 	mana_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -213,6 +215,26 @@ func _on_loss() -> void:
 		return   # already ended this round
 	SpellSystem.cancel_cast()
 	GameManager.end_round(false)
+
+
+## Small build stamp in the bottom-right corner (set by CI at export; "dev" locally),
+## so a screenshot or bug report always says which build it came from.
+func _add_build_label() -> void:
+	var version := str(ProjectSettings.get_setting("application/config/version", "dev"))
+	print("Pythio %s" % version)
+	var label := Label.new()
+	label.name = "BuildLabel"
+	label.text = version if version.begins_with("Build") else "Build: %s" % version
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.35))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	label.position -= Vector2(12, 8)
+	label.z_index = 100
+	add_child(label)
 
 
 # ── Mana, casting, spell bar ───────────────────────────

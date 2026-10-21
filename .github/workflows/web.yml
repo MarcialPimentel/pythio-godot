@@ -30,6 +30,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Stamp build number
+        # Shown in the bottom-right corner of the game, so you can tell which build you're playing.
+        # Local/editor runs show "dev".
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          STAMP="Build ${{ github.run_number }} · ${SHA::7} · $(date -u +%Y-%m-%d)"
+          if [ -n "$PR_NUMBER" ]; then STAMP="$STAMP · PR #$PR_NUMBER preview"; fi
+          sed -i "s|^config/version=.*|config/version=\"$STAMP\"|" project.godot
+          grep '^config/version' project.godot
+          echo "::notice::$STAMP"
+
       - name: Cache Godot and web export templates
         id: cache-godot
         uses: actions/cache@v4
