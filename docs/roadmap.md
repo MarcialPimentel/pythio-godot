@@ -1,193 +1,102 @@
-# Pythio: roadmap to MVP
+# Pythio: roadmap
 
 _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull request at a time._
 
 ## ▶ Where we are (read this first in a new session)
 - **Live:** https://marz.gg/games/pythio/ (deploys automatically when a PR merges into
   `master`; see `docs/deploy.md`). The original JS version is at `games/pythio-classic/`.
-- **Progress tracking:** milestones + issues on GitHub (see Phases below). Every web build
-  shows a build number bottom-right (PR #18) — check it matches the latest Actions run.
-- **Done (PRs #5–#17):** project brief and docs · game launches · round flow (10s/20s/21s,
-  mana top-up, Play Again) · casting (hover + Q/W/E, cast times, mana, cooldown system) ·
-  fighters (death ends run, armor HP/damage, character types) · noir graphics overhaul with
-  stand-in art from the concept sheet · web build + FTP deploy · online leaderboard
-  (`web/leaderboard_godot.php`) · http→https redirect.
-- **Verified 2026-10-21:** 5 rounds, timers 10/20/20/21/21s = ~92s of timed play (plus
-  contract-choice time, so a run is ~1½–2 min). Spell review: 3 spells, all loaded at start
-  (no drafting); combos are a console-only placeholder; no spell leveling exists or is planned.
-- **Next up:** Phase 1 leftovers (#19 bursts actually hit · #20 F1 debug panel), then Phase 2.
-- **Waiting on owner:** spell guidance and a spell list (incl. whether spells level up —
-  e.g. re-drafting a spell ranks it up) · PR #18 to merge · open decisions at the bottom.
-- **Known rough spots:** stand-in art is low-res (`docs/art.md` has the regeneration
-  prompt pack) · Rogue sprites have white specks · no sound · boss is trivially easy ·
-  score = 100 × rounds survived (all full clears tie at 1500).
+  Every build shows a build number bottom-right; it should match the latest Actions run.
+- **Direction changed 2026-10-21:** the game is **endless** again (the 5-round run was a
+  pilot). Builds come from a **specialization** pick at the start and a **new spell every
+  5 rounds**, capped, so a run reaches a "build complete" point and then it's about how
+  far you can take it. Full reasoning: `docs/design-direction.md`.
+- **Done (PRs #5–#35):** game launches · round flow · casting (hover + Q/W/E, cast times,
+  mana, cooldowns) · fighters (death ends run, armor HP/damage, character types) · noir
+  graphics with stand-in art · web build + FTP deploy · online leaderboard · build number
+  in the corner (#18) · roadmap tracked on GitHub (#35).
+- **Next up:** #36 endless rounds → #19 bursts hit → #20 debug panel → Phase B.
+- **Waiting on owner:** playtest feedback after Phase A · spell numbers review in #22.
+- **Known rough spots:** today the game stops after round 5 · only 3 spells, all given at
+  the start · combos are a console-only placeholder · stand-in art is low-res · no sound.
 
-## What "MVP done" means
-A complete **5-round run**: draft your first spell → pick a contract → survive the round →
-draft another spell into your spellbook → … → beat or fall to the Crimson Baron in
-round 5 → see your run summary and score. Your spellbook grows from 1 spell to 5, and
-**the spells you combine decide how you play**. Two runs with different drafts should
-play differently. That is the roguelite synergy promise, and it's the core feature.
+**Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
+`roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
+"Closes #N", so merging it ticks the issue off and fills the phase's progress bar.
+This file is the plan; GitHub shows the progress.
 
-Grading scale: 1 = not started · 2 = built, not refined · 3 = nearly complete · 4 = MVP-done.
+## The game in one paragraph
+Real-time, high-APM "plate spinning" healing in the style of WoW healer raid frames,
+combined with roguelite build-crafting. Rounds never stop until a fighter dies. You pick
+a school at the start, add a spell every 5 rounds, and the spells you combine (through
+plain-language tags) decide how you play. Every run should tempt you to try a different
+combination next time.
 
-| System | Now (Oct 21) | After phase |
-|---|---|---|
-| Round structure and loss | 3 | 4 after Phase 4 (boss fight) |
-| Spells and casting | 3 | 4 after Phase 2 |
-| Mana | 4 | — (tuning only) |
-| Health visuals and UI | 4 | — |
-| Debug panel | 1 | 4 after Phase 1 |
-| Target generation and armor | 3 | 4 after Phase 2 |
-| Damage patterns | 2 | 4 after Phase 2 |
-| **Spell drafting and synergies** | 1 | 4 after Phase 3 |
-| Contracts, modifiers and boss | 3 / 1 | 4 after Phase 4 |
-| Screens, VFX, feel | 3 | 4 after Phase 5 (sound, run summary) |
-| Web build, deploy, online leaderboard | 4 | — |
-
-## How drafting and synergies will work (the design spine)
-
-**The spellbook is the build.** There's no separate upgrade system. Everything you pick
-is a spell, and the fun comes from mixing and matching spells into combinations.
-
-- **Opening draft:** choose **1 of 3** spells. The opening three are always spells that
-  heal on their own (e.g. Heal, Renew, Flash Heal), so round 1 is survivable with one
-  spell. Round 1 is the gentlest round.
-- **After rounds 1–4:** choose **1 of 3** spells to add to your spellbook, so you have
-  5 spells by the boss (keys Q/W/E/R/T).
-- **Synergy-aware offers:** at least one of the three offers combos with a spell you
-  already own, and each card says so ("Combos with Renew: …"). Combos are discoverable
-  while you draft, not only by reading a wiki.
-- **Some spells need others** (from the original design: Greater Heal needs Heal). A
-  spell with a prerequisite only shows up once you own what it builds on. This is what
-  makes certain drafts feel like a path.
-- **Passive spells** (Seraphic Blessing, Aura of Mending, Vital Bond) are drafted like any
-  other spell. They take a spellbook slot but no key.
-
-**How combos are built: tags, not fixed pairs.** The spell list's synergies are mostly
-fixed pairs ("Renew + Healing Plague = +3s"). Pairs multiply with every new spell, and
-small % bonuses are hard to feel. Instead, every spell gets **tags**, and a combo spell
-reacts to a tag. Overgrowth extends *any* HoT, Spirit Surge consumes *any* shield, Echo
-Heal repeats *any* direct heal. A new spell then combines with everything that shares
-its tag.
-
-- **Tags:** `DIRECT`, `HOT`, `SHIELD`, `CLEANSE`, `DELAYED`, `MULTI`
-- **Events combos listen for:** cast, heal, overheal, HoT tick, shield absorbs,
-  shield breaks, cleanse, heal during a burst warning
-- **When a combo fires:** golden-yellow flash and a dry Pythio quip.
-
-Example combinations the MVP spell pool should make possible:
-
-| Combination | What happens |
-|---|---|
-| Renew + Overgrowth + Lifebloom | Stack HoTs, stretch them, then cash in a delayed bloom |
-| Shield + Spirit Surge | Pre-shield before a burst, then convert leftover shields into healing |
-| Flash Heal + Echo Heal | Every emergency heal repeats 3s later at half strength |
-| Heal + Greater Heal + Seraphic Blessing | Slow, efficient, big heals: a mana-careful build |
-| Chain Heal + Aura of Mending + Vital Bond | Healing that splashes across the whole row |
-
-### Spell list review: what goes in the MVP
-- **In the MVP (~14 spells):** all 6 Universal Pool spells (Heal, Renew, Shield, Flash Heal,
-  Chain Heal, Cleanse), plus Greater Heal, Lifebloom, Overgrowth, Echo Heal, Spirit Surge,
-  Mend Wounds, Guardian Ward and Guardian Angel, plus passives Seraphic Blessing, Aura of
-  Mending and Vital Bond. Numbers from `docs/spells.md` are the baseline.
-- **Post-MVP:** Keystones (they're chosen at rounds 10/20, which a 5-round run never
-  reaches), Rejuvenation, Healing Plague, Harmonize, Time Stop, Divine Channel, Tranquility,
-  Fountain of Light, Aegis of Light.
-- **Need a rethink before use:** Hallowed Ground and Soulbond assume positioning, and the
-  party is a single row. "Adjacent" can mean the neighbour in the row, but "area" has no
-  meaning yet.
-- **Duplicates to resolve:** Lifebloom appears twice with different effects
-  (50 HP after 10s, and a 40 HP burst at the end). Cleanse and Purify, and Shield,
-  Guardian Ward, Foresight Ward and Aegis of Light, overlap. Each will need a clear
-  difference.
-- **Cleanse needs something to cleanse,** so damage-over-time effects (Phase 2) come
-  before Cleanse is worth drafting.
+## How builds work (the design spine)
+- **Specialization (run start):** pick 1 of 3 schools, each with its starter spell:
+  **Mending** (Heal, direct heals), **Bloom** (Renew, heals over time),
+  **Ward** (Shield, shields and damage reduction).
+- **Spell picks:** after every 5th round, pick 1 of 3. Offers favour your school and
+  always include one off-school card (splashing is where creative builds come from).
+  Spellbook cap: 5 spells (keys Q–T), so the build is complete at round 20.
+  Cadence, first-pick round and cap are settings, so playtests can try alternatives.
+- **Ranks, not duplicate spells:** Lesser Heal / Heal / Greater Heal are one spell with
+  ranks (Heal I → II → III); likewise Renew → Rejuvenation, Cleanse → Purify. A rank-up
+  appears as a pick option, so "go deeper or go wider?" is a real choice.
+- **Keystones (Phase D):** every 10 rounds, a rule-changing pick, capped.
+- **Synergies through plain-language tags** (Balatro-style): spell text names tags like
+  **Direct**, **Heal-over-Time**, **Shield**, **Cleanse**, **Delayed**, **Multi-target**,
+  and combo spells react to any spell with that tag ("Extends your **Heal-over-Time**
+  effects by 5s"). A new spell automatically combines with everything sharing its tag.
+  When a combo fires: golden flash and a dry Pythio quip.
+- **Balance rule:** fast, efficient, big — pick two. Fast spells cost more mana per HP;
+  slow spells are the efficient ones. No spell is better than another on every axis.
+- **Every spell needs a threat that asks for it:** shields ↔ telegraphed spikes,
+  HoTs/Chain Heal ↔ party-wide damage, Cleanse ↔ damage over time, Guardian Angel ↔
+  execute moments. Spells and damage patterns are designed together.
 
 ## Phases
-**Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
-`roadmap`) — https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
-"Closes #N", so merging it ticks the issue off and fills the phase's progress bar.
-This file stays the plan; GitHub shows the progress.
+Each phase ends with a **playtest checkpoint**: Marz plays a few runs and gives feedback.
+One bullet ≈ one pull request.
 
-Each phase ends with a **playtest checkpoint**: Marz plays a few runs and gives feedback
-before the next phase starts. One bullet ≈ one pull request.
+### Phase A: Endless rounds
+- ⬜ #36 **Endless rounds:** no cap; rounds 15s growing 1s/round to a 25s cap; the Crimson
+  Baron every 5th round, tougher each time; scaling continues; leaderboard accepts any round.
+- ⬜ #19 **Bursts actually hit** after their warning (so Shield has a job).
+- ⬜ #20 **Debug panel (F1):** +50 mana, skip round, jump to round N, damage/heal a fighter, god mode.
 
-### Phase 1: The core loop actually works  — 3 of 5 done
-Goal: a full 5-round run you can genuinely win or lose.
-- ✅ #9 casting · ✅ #10 fighters · ✅ #8 round flow
-- ⬜ #19 **Bursts actually hit** after their warning (moved up from Phase 2, so Shield has a job)
-- ⬜ #20 **Debug panel (F1)**
+### Phase B: Picking spells and new spells (the core)
+- ⬜ #21 **Effect system with plain-language tags** (no visible change; the foundation).
+- ⬜ #24 **Pick a specialization** at the start of a run (Mending / Bloom / Ward).
+- ⬜ #25 **Pick a new spell every 5 rounds,** capped at 5, with rank-ups as options.
+- ⬜ #22 **First new-spell batch, rebalanced** (ranks collapsed; owner reviews numbers).
+- ⬜ #26 **Combo spells driven by tags:** Overgrowth, Echo Healing, a shield-break payoff.
+- ⬜ #27 **Remaining spells by school,** including passives and prerequisites.
+- ⬜ #28 **Synergy hints on pick cards** and a spellbook panel showing your build mid-run.
 
-Original scope, for reference:
-1. **Casting:** hover a fighter and press Q/W/E/R. Cast times with the cast bar, cooldowns
-   that count down, spells cost mana, and the mana bar is visible with numbers.
-2. **Fighters:** death ends the run, armor rolls correctly, HP comes from armor
-   (100/75/50, scaled by round), armor damage multipliers apply, health bars scale to max
-   HP, and each fighter shows an armor icon and "80/100 (+8.0s)" text. Reuse that code from
-   the old `scenes/panel_container.gd`, then delete it and the unused party presets.
-3. **Round flow:** round lengths from the original design (10s, then 20s and up), half your
-   max mana restored at round start, casting stops when the round ends, Play Again works,
-   and the high score refreshes.
-4. **Debug panel (F1):** +50 mana, skip round, damage or heal a fighter, god mode.
+### Phase C: Damage worth reacting to
+- ⬜ #23 **Damage patterns by role:** damage over time, escalating DoTs, debuff icons.
+- ⬜ #29 **Contracts show a reward and a threat preview** (Hades-door style), so the choice matters.
+- ⬜ #30 **Crimson Baron fight** with telegraphed phases.
+- ⬜ #31 **Tuning pass** for endless play (round lengths, scaling, mana, spell numbers).
 
-### Phase 2: Spells and damage worth reacting to
-Goal: the six starting spells feel distinct, because the damage gives each one a job.
-1. #21 **Effect pipeline:** spell tags and events (no visible change; it lays the track for
-   synergies).
-2. #22 **Universal Pool:** Heal, Renew, Shield, Flash Heal, Chain Heal and Cleanse at the
-   spell list's numbers.
-3. #23 **Damage patterns by role:** damage over time, escalating damage over time, and an icon showing when a fighter has
-   a debuff.
-4. #24 **Opening draft screen:** pick 1 of 3 healing spells to start the run.
+### Phase D: Keystones
+- ⬜ #37 **Keystones every 10 rounds,** 1 of 3, capped.
 
-### Phase 3: Spell drafting and synergies (the core feature)
-Goal: two runs with different drafts feel different.
-1. #25 **Between-round draft screen:** after rounds 1–4, pick 1 of 3 spells to add
-   (keys Q–T). Spell cards show cost, cast time and tags.
-2. #26 **Combo spells:** Overgrowth, Echo Heal, Spirit Surge, Lifebloom, with the golden flash
-   and quip when a combo fires.
-3. #27 **Full MVP pool (~14 spells)** including passives and prerequisites (Greater Heal
-   needs Heal).
-4. #28 **Synergy-aware offers and hints:** at least one offer combos with your spellbook, the
-   card says what it combos with, and a spellbook panel shows your build mid-run.
+### Phase E: Readability and feel
+Done early: floating numbers, noir theme, online leaderboard (#12, #14).
+- ⬜ #32 **Game-over run summary:** spells picked, healing done, combos fired.
+- ⬜ #33 **Basic sound:** casts, combos, bursts, death.
+- ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
 
-### Phase 4: Run structure and difficulty
-Goal: contracts are a real risk-or-reward decision, and round 5 is a fight.
-1. #29 **Contract risk shown,** with higher risk bringing round modifiers (Double Damage,
-   Fast Attacks) announced in a red banner.
-2. ~~Gold has a purpose~~ — **out of MVP scope** (gold was for a future shop).
-3. #30 **Crimson Baron fight:** a boss with telegraphed phases, not just a big health bar.
-4. #31 **Tuning pass,** using the debug panel. Includes round timers (now 10/20/20/21/21s,
-   ~92s total, built for endless mode) and scoring (every full clear ties at 1500).
-
-### Phase 5: Readability and feel  — mostly done early (#12, #14)
-Goal: you can read the chaos at a glance, and it looks and sounds like Pythio.
-Remaining: #32 game-over run summary (spells, healing done, combos) · #33 basic sound ·
-#34 swap in high-res art as it's generated. Floating numbers, noir theme and the online
-leaderboard are done.
-1. **Floating heal and damage numbers,** using the color language (emerald heal,
-   electric-blue shield, gold combo, red danger).
-2. **Noir UI theme pass.**
-3. **Game-over run summary:** builds picked, healing done, combos fired, plus a local
-   top-10 leaderboard with name entry.
-4. **Basic sound:** casts, combos, bursts, death.
-
-**MVP complete.**
-
-## After the MVP (parking lot)
-Keystones and their unlocks · the remaining spells from `docs/spells.md` ·
-endless mode and talent picks every 5 rounds (original design) · gold and a shop ·
-better scoring (efficiency, fighters kept healthy) · smaller web download ·
-difficulty modes · specializations · achievements · positional mechanics ·
-secondary objectives (bonus for keeping everyone above 50%).
+## Backlog (parked on purpose)
+#38 duo spells · #39 rerolls for spell picks · #40 skill tree / meta-progression ·
+#41 pet and positional spells (Decoy, Healing Spirit, Soulbond, Hallowed Ground) ·
+click-casting with mouse button + modifier bindings (the original web game's input model) ·
+gold and a shop · better scoring · difficulty modes · achievements.
 
 ## Open decisions (owner)
-1. Five spells by the boss (keys Q/W/E/R/T, as the spell bar now shows), or a cap of 4
-   with the option to swap one out?
-2. Spell numbers: keep today's values (Flash Heal 45 HP instant, Shield 55/8s) or switch to
-   `docs/spells.md` (Flash Heal 40 HP, 1s cast, 5s cooldown; Shield 30/5s)?
-3. Keystones post-MVP: confirmed?
-4. Spell leveling: do spells rank up (e.g. drafting one you already own), or is
-   progression only through prerequisite spells? (Owner is sending spell guidance.)
-- Decided: gold/shop is post-MVP (2026-10-21).
+1. Flash Heal and Shield numbers: settled in #22 (spell batch review).
+- Decided 2026-10-21: endless rounds; rounds under 30s; 3 specializations; ranks replace
+  duplicate spells; a spell every 5 rounds, capped; keystones every 10, capped;
+  contracts repurposed; plain-language tags; duo spells, rerolls and skill tree parked;
+  gold/shop post-core.

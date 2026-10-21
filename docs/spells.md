@@ -1,5 +1,7 @@
 # Pythio: expanded spell list (owner's ideas)
 
+> The original web game's spell data (exact numbers, input bindings) is in `docs/spells-web.json`.
+> The 2026-10-21 review of these spells (balance, ranks, schools) is in `docs/design-direction.md`.
 > Spell ideas from the owner, for inspiration. Numbers here are the intended baseline.
 > See `docs/roadmap.md` for which spells are in the MVP and how they map to the synergy system.
 
