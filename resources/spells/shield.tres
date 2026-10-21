@@ -1,30 +1,30 @@
 [gd_resource type="Resource" script_class="SpellData" load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_ii0qb"]
-[ext_resource type="Script" path="res://resources/spells/effects/ShieldEffect.gd" id="2_c35b2"]
-[ext_resource type="Texture2D" path="res://assets/icons/shield.png" id="3_lm87l"]
-[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_1cv3f"]
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_myahg"]
+[ext_resource type="Script" path="res://resources/spells/effects/ShieldEffect.gd" id="2_ackdj"]
+[ext_resource type="Texture2D" path="res://assets/icons/shield.png" id="3_5c52e"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_5e2yt"]
 
-[sub_resource type="Resource" id="Resource_krccs"]
-script = ExtResource("2_c35b2")
-amount = 55.0
+[sub_resource type="Resource" id="Resource_kkuht"]
+script = ExtResource("2_ackdj")
+amount = 30.0
 duration = 8.0
 heal_on_end = 0.0
 
 [resource]
-script = ExtResource("4_1cv3f")
+script = ExtResource("4_5e2yt")
 id = "shield"
 display_name = "Shield"
-icon = ExtResource("3_lm87l")
+icon = ExtResource("3_5c52e")
 school = "WARD"
 tags = Array[String](["SHIELD"])
-mana_cost = 18.0
+mana_cost = 14.0
 cast_time = 0.0
 cooldown = 0.0
-effects = Array[ExtResource("1_ii0qb")]([SubResource("Resource_krccs")])
-rank_family = ""
+effects = Array[ExtResource("1_myahg")]([SubResource("Resource_kkuht")])
+rank_family = "shield"
 rank = 1
 requires_tags = Array[String]([])
 reacts_to_tags = Array[String]([])
 offer_weight = 1.0
-flavor = ""
+flavor = "Cheaper than stitches."

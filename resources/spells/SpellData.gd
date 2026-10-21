@@ -54,6 +54,8 @@ func description_raw() -> String:
 	for e in effects:
 		if e:
 			var d: String = e.describe()
+			if d != "" and not parts.is_empty() and d.begins_with("Heals "):
+				d = "Then heals " + d.substr(6)
 			if d != "":
 				parts.append(d)
 	return " ".join(parts)

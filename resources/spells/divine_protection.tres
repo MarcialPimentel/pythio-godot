@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_jhsun"]
+[ext_resource type="Script" path="res://resources/spells/effects/ProtectEffect.gd" id="2_b5r1o"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_v80nx"]
+
+[sub_resource type="Resource" id="Resource_53wyd"]
+script = ExtResource("2_b5r1o")
+reduction = 0.5
+duration = 5.0
+
+[resource]
+script = ExtResource("3_v80nx")
+id = "divine_protection"
+display_name = "Divine Protection"
+school = "WARD"
+tags = Array[String]([])
+mana_cost = 20.0
+cast_time = 0.0
+cooldown = 12.0
+effects = Array[ExtResource("1_jhsun")]([SubResource("Resource_53wyd")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = ""

@@ -1,30 +1,30 @@
 [gd_resource type="Resource" script_class="SpellData" load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_hc1tq"]
-[ext_resource type="Script" path="res://resources/spells/effects/HealEffect.gd" id="2_g4cn0"]
-[ext_resource type="Texture2D" path="res://assets/icons/flashheal.png" id="3_pgv1s"]
-[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_6ico1"]
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_2bkb1"]
+[ext_resource type="Script" path="res://resources/spells/effects/HealEffect.gd" id="2_6hsdc"]
+[ext_resource type="Texture2D" path="res://assets/icons/flashheal.png" id="3_p4eey"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_jf5ja"]
 
-[sub_resource type="Resource" id="Resource_xjdp8"]
-script = ExtResource("2_g4cn0")
-amount = 45.0
+[sub_resource type="Resource" id="Resource_ppvrw"]
+script = ExtResource("2_6hsdc")
+amount = 32.0
 neighbor_amount = 0.0
 lowest_other_amount = 0.0
 
 [resource]
-script = ExtResource("4_6ico1")
+script = ExtResource("4_jf5ja")
 id = "flash_heal"
 display_name = "Flash Heal"
-icon = ExtResource("3_pgv1s")
+icon = ExtResource("3_p4eey")
 school = "MENDING"
 tags = Array[String](["DIRECT"])
 mana_cost = 20.0
 cast_time = 0.0
 cooldown = 0.0
-effects = Array[ExtResource("1_hc1tq")]([SubResource("Resource_xjdp8")])
+effects = Array[ExtResource("1_2bkb1")]([SubResource("Resource_ppvrw")])
 rank_family = ""
 rank = 1
 requires_tags = Array[String]([])
 reacts_to_tags = Array[String]([])
 offer_weight = 1.0
-flavor = ""
+flavor = "Fast. Expensive. Like everything good."
