@@ -30,6 +30,11 @@ extends Control
 @onready var final_score_label: Label    = $GameUI/GameOverPanel/GameOverContainer/ScoreLabel
 @onready var game_over_panel: Control    = $GameUI/GameOverPanel
 @onready var play_again_button: Button   = $GameUI/GameOverPanel/GameOverContainer/PlayAgainButton
+@onready var name_edit: LineEdit         = $GameUI/GameOverPanel/GameOverContainer/SubmitRow/NameEdit
+@onready var submit_button: Button       = $GameUI/GameOverPanel/GameOverContainer/SubmitRow/SubmitButton
+@onready var submit_status: Label        = $GameUI/GameOverPanel/GameOverContainer/SubmitStatus
+@onready var lb_grid: GridContainer      = $StartScreen/LeaderboardPanel/LeaderboardBox/LeaderboardGrid
+@onready var lb_status: Label            = $StartScreen/LeaderboardPanel/LeaderboardBox/LeaderboardStatus
 
 const ART := "res://assets/art/"
 ## Spellbook size: keys Q W E R T. Empty slots show as "draft" until spell drafting exists.
@@ -63,6 +68,7 @@ var fallen_name: String = ""
 var _pose_reset_at := 0.0
 var _low_mana_warned := false
 var _quip_tween: Tween
+var _last_run := {"score": 0, "round": 1, "won": false}
 
 
 func _ready() -> void:
@@ -79,6 +85,11 @@ func _ready() -> void:
 	EventBus.round_ended.connect(_on_round_ended)
 	EventBus.target_died.connect(_on_target_died)
 	play_again_button.pressed.connect(_on_play_again_pressed)
+	submit_button.pressed.connect(_on_submit_pressed)
+	name_edit.text_submitted.connect(func(_t): _on_submit_pressed())
+	Leaderboard.top_loaded.connect(_show_leaderboard)
+	Leaderboard.submitted.connect(_on_score_submitted)
+	Leaderboard.fetch_top()
 
 	cast_label = _add_bar_label(cast_bar, 18)
 	mana_label = _add_bar_label(mana_bar, 20)
@@ -401,6 +412,62 @@ func _on_game_over(round_reached: int, final_score: int) -> void:
 	else:
 		final_score_label.text = "%s didn't make it.\nRun ended in round %d.  Score: %d" % [fallen_name if fallen_name != "" else "Someone", round_reached, final_score]
 	score_label.text = "High Score: %d" % GameManager.high_score
+	# Leaderboard entry
+	_last_run = {"score": final_score, "round": maxi(1, round_reached), "won": GameManager.last_run_won}
+	name_edit.text = Leaderboard.load_player_name()
+	submit_button.disabled = false
+	name_edit.editable = true
+	submit_status.text = "Post your run to the marz.gg leaderboard."
+
+
+func _on_submit_pressed() -> void:
+	var player := name_edit.text.strip_edges()
+	if player == "":
+		submit_status.text = "Enter a name first."
+		name_edit.grab_focus()
+		return
+	submit_button.disabled = true
+	name_edit.editable = false
+	submit_status.text = "Posting…"
+	Leaderboard.submit(player, _last_run.score, _last_run.round, _last_run.won)
+
+
+func _on_score_submitted(ok: bool, rank: int, entries: Array, message: String) -> void:
+	if ok:
+		submit_status.text = "Posted. You're #%d on the board." % rank
+		_show_leaderboard(true, entries)
+	else:
+		submit_status.text = message
+		submit_button.disabled = false
+		name_edit.editable = true
+
+
+func _show_leaderboard(ok: bool, entries: Array) -> void:
+	for c in lb_grid.get_children():
+		c.queue_free()
+	if not ok:
+		lb_status.text = "Leaderboard offline. It works once the game is on marz.gg."
+		return
+	lb_status.text = "No one yet. Be the first." if entries.is_empty() else ""
+	for i in entries.size():
+		var e: Dictionary = entries[i]
+		var gold := Color(0.95, 0.78, 0.35) if i == 0 else Color(0.9, 0.87, 0.8)
+		_lb_cell("%d." % (i + 1), gold)
+		_lb_cell(str(e.get("name", "?")), gold, true)
+		_lb_cell(str(int(e.get("score", 0))), gold)
+		_lb_cell("WON" if e.get("won", false) else "R%d" % int(e.get("round", 0)),
+			Color(0.45, 0.9, 0.4) if e.get("won", false) else Color(0.6, 0.58, 0.55))
+
+
+func _lb_cell(text: String, color: Color, expand := false) -> void:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_color_override("font_color", color)
+	l.add_theme_font_size_override("font_size", 24)
+	if expand:
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.clip_text = true
+	lb_grid.add_child(l)
 
 
 func _on_play_again_pressed() -> void:

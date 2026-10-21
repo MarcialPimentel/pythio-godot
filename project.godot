@@ -26,6 +26,7 @@ ContractGenerator="*res://autoload/systems/ContractGenerator.gd"
 DifficultySystem="*res://autoload/systems/DifficultySystem.gd"
 EventBus="*res://autoload/events/EventBus.gd"
 ContractSelector="*res://autoload/systems/ContractSelector.gd"
+Leaderboard="*res://autoload/systems/Leaderboard.gd"
 
 [display]
 
