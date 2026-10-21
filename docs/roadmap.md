@@ -10,18 +10,21 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
   pilot). Builds come from a **specialization** pick at the start and a **new spell every
   5 rounds**, capped, so a run reaches a "build complete" point and then it's about how
   far you can take it. Full reasoning: `docs/design-direction.md`.
-- **Done (PRs #5–#35):** game launches · round flow · casting (hover + Q/W/E, cast times,
-  mana, cooldowns) · fighters (death ends run, armor HP/damage, character types) · noir
-  graphics with stand-in art · web build + FTP deploy · online leaderboard · build number
-  in the corner (#18) · roadmap tracked on GitHub (#35).
-- **Endless is live (#43):** rounds 15s → 25s cap, the Crimson Baron every 5th round.
-- **Deploys:** fixed 2026-10-21. GitHub was uploading to `games/pythio-godot/`; the
-  `FTP_SERVER_DIR` secret now points at `pythio/`, so merges update marz.gg/games/pythio/.
-- **Next up:** #19 bursts hit → #20 debug panel → Phase B (spell picking, new spells).
-- **Waiting on owner:** playtest feedback after Phase A · spell numbers review in #22.
+- **✅ Phase A done 2026-10-21 (Build 30, owner playtested):** endless rounds (#43),
+  bursts land after their warning and shields absorb them (#45), F1 debug panel (#46,
+  works on the live site; debug runs can't be posted to the leaderboard).
+- **Done before that (PRs #5–#44):** game launches · round flow · casting (hover +
+  Q/W/E, cast times, mana, cooldowns) · fighters (death ends run, armor HP/damage,
+  character types) · noir graphics with stand-in art · web build + FTP deploy · online
+  leaderboard · build number in the corner (#18, #44) · roadmap tracked on GitHub (#35).
+- **Deploys:** GitHub uploads to marz.gg/games/pythio/ (`FTP_SERVER_DIR` = `pythio/`,
+  fixed 2026-10-21). The old `games/pythio-godot/` folder is unused and can be deleted.
+- **Next up: Phase B** — #21 effect system with plain-language tags → #24 specialization
+  pick → #25 spell pick every 5 rounds → #22 first spell batch (owner reviews numbers).
+- **Waiting on owner:** spell numbers review when #22 opens.
 - **Known rough spots:** late rounds unbalanced (max mana +8/round forever; party size
-  stops at 8) · only 3 spells, all given at the start · combos are a console-only
-  placeholder · stand-in art is low-res · no sound.
+  stops at 8; the Baron's bursts are small next to his HP) · only 3 spells, all given at
+  the start · combos are a console-only placeholder · stand-in art is low-res · no sound.
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
@@ -62,11 +65,11 @@ combination next time.
 Each phase ends with a **playtest checkpoint**: Marz plays a few runs and gives feedback.
 One bullet ≈ one pull request.
 
-### Phase A: Endless rounds
-- ⬜ #36 **Endless rounds:** no cap; rounds 15s growing 1s/round to a 25s cap; the Crimson
+### Phase A: Endless rounds  — ✅ done 2026-10-21
+- ✅ #36 **Endless rounds:** no cap; rounds 15s growing 1s/round to a 25s cap; the Crimson
   Baron every 5th round, tougher each time; scaling continues; leaderboard accepts any round.
-- ⬜ #19 **Bursts actually hit** after their warning (so Shield has a job).
-- ⬜ #20 **Debug panel (F1):** +50 mana, skip round, jump to round N, damage/heal a fighter, god mode.
+- ✅ #19 **Bursts actually hit** after their warning (so Shield has a job).
+- ✅ #20 **Debug panel (F1):** +50 mana, skip round, jump to round N, damage/heal a fighter, god mode.
 
 ### Phase B: Picking spells and new spells (the core)
 - ⬜ #21 **Effect system with plain-language tags** (no visible change; the foundation).
