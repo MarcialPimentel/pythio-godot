@@ -71,7 +71,8 @@ game launching and playable. Before opening a PR:
    contract, cast Flash Heal on the first fighter — their health bar should rise").
 
 ## How we work (owner ↔ Claude)
-- Claude opens one PR per change with plain-language test steps. Every PR gets a CI check
+- Claude opens one PR per change with plain-language test steps. When the change is a roadmap
+  bullet, the PR description says "Closes #N" for that bullet's GitHub issue. Every PR gets a CI check
   (smoke test + web build, downloadable under the PR's Checks → Artifacts).
 - The owner approves in chat by saying **"merge #N"**; Claude merges only the PR named.
   Merging to `master` deploys to https://marz.gg/games/pythio/ automatically.

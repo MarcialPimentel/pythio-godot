@@ -5,13 +5,19 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
 ## ▶ Where we are (read this first in a new session)
 - **Live:** https://marz.gg/games/pythio/ (deploys automatically when a PR merges into
   `master`; see `docs/deploy.md`). The original JS version is at `games/pythio-classic/`.
-- **Done (PRs #5–#16):** project brief and docs · game launches · round flow (10s/20s/21s,
+- **Progress tracking:** milestones + issues on GitHub (see Phases below). Every web build
+  shows a build number bottom-right (PR #18) — check it matches the latest Actions run.
+- **Done (PRs #5–#17):** project brief and docs · game launches · round flow (10s/20s/21s,
   mana top-up, Play Again) · casting (hover + Q/W/E, cast times, mana, cooldown system) ·
   fighters (death ends run, armor HP/damage, character types) · noir graphics overhaul with
   stand-in art from the concept sheet · web build + FTP deploy · online leaderboard
   (`web/leaderboard_godot.php`) · http→https redirect.
-- **Next up:** Phase 1 leftovers (bursts actually hit · F1 debug panel), then Phase 2.
-- **Waiting on owner:** feedback list from playtesting · open decisions at the bottom.
+- **Verified 2026-10-21:** 5 rounds, timers 10/20/20/21/21s = ~92s of timed play (plus
+  contract-choice time, so a run is ~1½–2 min). Spell review: 3 spells, all loaded at start
+  (no drafting); combos are a console-only placeholder; no spell leveling exists or is planned.
+- **Next up:** Phase 1 leftovers (#19 bursts actually hit · #20 F1 debug panel), then Phase 2.
+- **Waiting on owner:** spell guidance and a spell list (incl. whether spells level up —
+  e.g. re-drafting a spell ranks it up) · PR #18 to merge · open decisions at the bottom.
 - **Known rough spots:** stand-in art is low-res (`docs/art.md` has the regeneration
   prompt pack) · Rogue sprites have white specks · no sound · boss is trivially easy ·
   score = 100 × rounds survived (all full clears tie at 1500).
@@ -99,14 +105,19 @@ Example combinations the MVP spell pool should make possible:
   before Cleanse is worth drafting.
 
 ## Phases
+**Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
+`roadmap`) — https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
+"Closes #N", so merging it ticks the issue off and fills the phase's progress bar.
+This file stays the plan; GitHub shows the progress.
+
 Each phase ends with a **playtest checkpoint**: Marz plays a few runs and gives feedback
 before the next phase starts. One bullet ≈ one pull request.
 
 ### Phase 1: The core loop actually works  — 3 of 5 done
 Goal: a full 5-round run you can genuinely win or lose.
 - ✅ #9 casting · ✅ #10 fighters · ✅ #8 round flow
-- ⬜ **Bursts actually hit** after their warning (moved up from Phase 2, so Shield has a job)
-- ⬜ **Debug panel (F1)**
+- ⬜ #19 **Bursts actually hit** after their warning (moved up from Phase 2, so Shield has a job)
+- ⬜ #20 **Debug panel (F1)**
 
 Original scope, for reference:
 1. **Casting:** hover a fighter and press Q/W/E/R. Cast times with the cast bar, cooldowns
@@ -122,38 +133,38 @@ Original scope, for reference:
 
 ### Phase 2: Spells and damage worth reacting to
 Goal: the six starting spells feel distinct, because the damage gives each one a job.
-1. **Effect pipeline:** spell tags and events (no visible change; it lays the track for
+1. #21 **Effect pipeline:** spell tags and events (no visible change; it lays the track for
    synergies).
-2. **Universal Pool:** Heal, Renew, Shield, Flash Heal, Chain Heal and Cleanse at the
+2. #22 **Universal Pool:** Heal, Renew, Shield, Flash Heal, Chain Heal and Cleanse at the
    spell list's numbers.
-3. **Damage patterns by role:** bursts that actually hit after their warning,
-   damage over time, escalating damage over time, and an icon showing when a fighter has
+3. #23 **Damage patterns by role:** damage over time, escalating damage over time, and an icon showing when a fighter has
    a debuff.
-4. **Opening draft screen:** pick 1 of 3 healing spells to start the run.
+4. #24 **Opening draft screen:** pick 1 of 3 healing spells to start the run.
 
 ### Phase 3: Spell drafting and synergies (the core feature)
 Goal: two runs with different drafts feel different.
-1. **Between-round draft screen:** after rounds 1–4, pick 1 of 3 spells to add
+1. #25 **Between-round draft screen:** after rounds 1–4, pick 1 of 3 spells to add
    (keys Q–T). Spell cards show cost, cast time and tags.
-2. **Combo spells:** Overgrowth, Echo Heal, Spirit Surge, Lifebloom, with the golden flash
+2. #26 **Combo spells:** Overgrowth, Echo Heal, Spirit Surge, Lifebloom, with the golden flash
    and quip when a combo fires.
-3. **Full MVP pool (~14 spells)** including passives and prerequisites (Greater Heal
+3. #27 **Full MVP pool (~14 spells)** including passives and prerequisites (Greater Heal
    needs Heal).
-4. **Synergy-aware offers and hints:** at least one offer combos with your spellbook, the
+4. #28 **Synergy-aware offers and hints:** at least one offer combos with your spellbook, the
    card says what it combos with, and a spellbook panel shows your build mid-run.
 
 ### Phase 4: Run structure and difficulty
 Goal: contracts are a real risk-or-reward decision, and round 5 is a fight.
-1. **Contract risk shown,** with higher risk bringing round modifiers (Double Damage,
+1. #29 **Contract risk shown,** with higher risk bringing round modifiers (Double Damage,
    Fast Attacks) announced in a red banner.
 2. ~~Gold has a purpose~~ — **out of MVP scope** (gold was for a future shop).
-3. **Crimson Baron fight:** a boss with telegraphed phases, not just a big health bar.
-4. **Tuning pass,** using the debug panel.
+3. #30 **Crimson Baron fight:** a boss with telegraphed phases, not just a big health bar.
+4. #31 **Tuning pass,** using the debug panel. Includes round timers (now 10/20/20/21/21s,
+   ~92s total, built for endless mode) and scoring (every full clear ties at 1500).
 
 ### Phase 5: Readability and feel  — mostly done early (#12, #14)
 Goal: you can read the chaos at a glance, and it looks and sounds like Pythio.
-Remaining: game-over run summary (spells, healing done, combos) · basic sound ·
-swap in high-res art as it's generated. Floating numbers, noir theme and the online
+Remaining: #32 game-over run summary (spells, healing done, combos) · #33 basic sound ·
+#34 swap in high-res art as it's generated. Floating numbers, noir theme and the online
 leaderboard are done.
 1. **Floating heal and damage numbers,** using the color language (emerald heal,
    electric-blue shield, gold combo, red danger).
@@ -177,4 +188,6 @@ secondary objectives (bonus for keeping everyone above 50%).
 2. Spell numbers: keep today's values (Flash Heal 45 HP instant, Shield 55/8s) or switch to
    `docs/spells.md` (Flash Heal 40 HP, 1s cast, 5s cooldown; Shield 30/5s)?
 3. Keystones post-MVP: confirmed?
+4. Spell leveling: do spells rank up (e.g. drafting one you already own), or is
+   progression only through prerequisite spells? (Owner is sending spell guidance.)
 - Decided: gold/shop is post-MVP (2026-10-21).
