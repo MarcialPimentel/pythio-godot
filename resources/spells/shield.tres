@@ -1,16 +1,30 @@
-[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3 uid="uid://b4j6ysvrc1dwb"]
+[gd_resource type="Resource" script_class="SpellData" load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="1_u2lh5"]
-[ext_resource type="Texture2D" uid="uid://boawckf1i7l4t" path="res://assets/icons/shield.png" id="1_vr1vy"]
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_ii0qb"]
+[ext_resource type="Script" path="res://resources/spells/effects/ShieldEffect.gd" id="2_c35b2"]
+[ext_resource type="Texture2D" path="res://assets/icons/shield.png" id="3_lm87l"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_1cv3f"]
+
+[sub_resource type="Resource" id="Resource_krccs"]
+script = ExtResource("2_c35b2")
+amount = 55.0
+duration = 8.0
+heal_on_end = 0.0
 
 [resource]
-script = ExtResource("1_u2lh5")
+script = ExtResource("4_1cv3f")
 id = "shield"
 display_name = "Shield"
-icon = ExtResource("1_vr1vy")
+icon = ExtResource("3_lm87l")
+school = "WARD"
+tags = Array[String](["SHIELD"])
 mana_cost = 18.0
 cast_time = 0.0
-effect_type = "shield"
-effect_value = 55.0
-effect_duration = 8.0
-vfx_color = "ELECTRIC_BLUE"
+cooldown = 0.0
+effects = Array[ExtResource("1_ii0qb")]([SubResource("Resource_krccs")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = ""

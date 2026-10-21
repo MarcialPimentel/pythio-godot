@@ -1,16 +1,30 @@
-[gd_resource type="Resource" script_class="SpellData" load_steps=3 format=3 uid="uid://sj5yhbvngfei"]
+[gd_resource type="Resource" script_class="SpellData" load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="1_h7vc0"]
-[ext_resource type="Texture2D" uid="uid://du1wg8ps7ixl3" path="res://assets/icons/flashheal.png" id="1_riaom"]
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_hc1tq"]
+[ext_resource type="Script" path="res://resources/spells/effects/HealEffect.gd" id="2_g4cn0"]
+[ext_resource type="Texture2D" path="res://assets/icons/flashheal.png" id="3_pgv1s"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="4_6ico1"]
+
+[sub_resource type="Resource" id="Resource_xjdp8"]
+script = ExtResource("2_g4cn0")
+amount = 45.0
+neighbor_amount = 0.0
+lowest_other_amount = 0.0
 
 [resource]
-script = ExtResource("1_h7vc0")
+script = ExtResource("4_6ico1")
 id = "flash_heal"
 display_name = "Flash Heal"
-icon = ExtResource("1_riaom")
+icon = ExtResource("3_pgv1s")
+school = "MENDING"
+tags = Array[String](["DIRECT"])
 mana_cost = 20.0
 cast_time = 0.0
-effect_type = "instant_heal"
-effect_value = 45.0
-effect_duration = 0.0
-vfx_color = "EMERALD_GREEN"
+cooldown = 0.0
+effects = Array[ExtResource("1_hc1tq")]([SubResource("Resource_xjdp8")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = ""

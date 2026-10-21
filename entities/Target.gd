@@ -42,6 +42,8 @@ var _feet_y := 330.0
 var _icon_hot: TextureRect
 var _icon_shield: TextureRect
 var _icon_danger: TextureRect
+var _icon_protect: TextureRect
+var _icon_delayed: TextureRect
 
 
 func _ready() -> void:
@@ -95,6 +97,8 @@ func _setup_status_icons() -> void:
 	_icon_hot = _make_status_icon("ui/icons/status_buff_1.png")
 	_icon_shield = _make_status_icon("ui/icons/status_buff_3.png")
 	_icon_danger = _make_status_icon("ui/icons/status_debuff_1.png")
+	_icon_protect = _make_status_icon("ui/icons/status_buff_4.png")
+	_icon_delayed = _make_status_icon("ui/icons/status_buff_2.png")
 
 
 func _make_status_icon(path: String) -> TextureRect:
@@ -155,7 +159,15 @@ func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: S
 			_float_text("+%d shield" % int(value), FLOAT_SHIELD)
 			_spawn_fx("vfx/shield/shield_impact_2.png", Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.5), 0.5, Color.WHITE)
 		"hot":
-			_float_text("Renewing", FLOAT_HEAL)
+			_float_text("+%d over time" % int(value), FLOAT_HEAL)
+		"hot_tick":
+			_float_text("+%d" % int(value), FLOAT_HEAL, 0.7)
+		"protect":
+			_float_text("Protected", FLOAT_SHIELD)
+			_spawn_fx("vfx/shield/shield_impact_2.png", Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.5), 0.5, Color.WHITE)
+		"delayed":
+			if value > 0.0:
+				_float_text("Blooms soon", FLOAT_HEAL, 0.8)
 
 
 func _on_burst_warned(target, damage: float, _delay: float) -> void:
@@ -176,11 +188,11 @@ func _on_burst_landed(target, absorbed: float, dealt: float) -> void:
 		_spawn_fx("vfx/danger/blood_burst_1.png", mid, 0.6, Color.WHITE)
 
 
-func _float_text(text: String, color: Color) -> void:
+func _float_text(text: String, color: Color, scale_factor: float = 1.0) -> void:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_color_override("font_color", color)
-	l.add_theme_font_size_override("font_size", 34)
+	l.add_theme_font_size_override("font_size", int(34 * scale_factor))
 	l.position = Vector2(size.x * 0.5 + randf_range(-30, 30), _feet_y - sprite.size.y - 10)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fx_layer.add_child(l)
@@ -237,8 +249,14 @@ func _process(delta: float) -> void:
 	_icon_shield.visible = has_shield
 	if has_shield:
 		shield_bubble.modulate.a = 0.75 + 0.2 * sin(t * 3.0)
+	_icon_protect.visible = not dead and (health_comp.has_status("PROTECT") or health_comp.has_status("SAVE"))
+	_icon_delayed.visible = not dead and (health_comp.has_status("DELAYED") or health_comp.has_status("ECHO"))
 	if has_hot:
-		info_label.text = "RENEW %.1fs" % health_comp.hot_time
+		var longest: Status = null
+		for s in health_comp.get_statuses("HOT"):
+			if longest == null or s.time_left > longest.time_left:
+				longest = s
+		info_label.text = "%s %.1fs" % [longest.label.to_upper(), longest.time_left]
 		info_label.add_theme_color_override("font_color", FLOAT_HEAL)
 	elif not dead:
 		info_label.text = ("BOSS · " if is_boss else "") + "%s ARMOR" % armor_type

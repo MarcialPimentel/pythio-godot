@@ -37,17 +37,22 @@ extends Control
 @onready var lb_status: Label            = $StartScreen/LeaderboardPanel/LeaderboardBox/LeaderboardStatus
 
 const ART := "res://assets/art/"
-## Spellbook size: keys Q W E R T. Empty slots show as "draft" until spell drafting exists.
+## Spellbook size: keys Q W E R T. Empty slots wait for a spell pick.
 const SPELL_SLOTS := 5
-## Spell icon by spell id (falls back to the icon set on the SpellData resource).
+## Spell icon by spell id; other spells use the icon for their main tag (stand-in art).
 const SPELL_ICONS := {
 	"flash_heal": "ui/icons/spell_flash_heal.png",
 	"renew": "ui/icons/spell_hot.png",
 	"shield": "ui/icons/spell_shield.png",
 	"heal": "ui/icons/spell_instant_heal.png",
 }
-## Pythio's pose while casting each kind of effect.
-const CAST_POSES := {"instant_heal": "cast_heal", "hot": "cast_hot", "shield": "cast_shield"}
+const TAG_ICONS := {
+	"SHIELD": "ui/icons/spell_shield.png",
+	"HOT": "ui/icons/spell_hot.png",
+	"DIRECT": "ui/icons/spell_instant_heal.png",
+	"DELAYED": "ui/icons/status_buff_2.png",
+}
+const FALLBACK_ICON := "ui/icons/status_buff_4.png"
 
 ## Pythio's dry one-liners. Edit freely.
 const QUIPS := {
@@ -79,6 +84,7 @@ func _ready() -> void:
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
 	SpellSystem.spell_cast_cancelled.connect(_on_cast_finish)
 	SpellSystem.spell_cast_failed.connect(_on_cast_failed)
+	SpellSystem.spellbook_changed.connect(func(): if game_ui.visible: _create_spell_buttons())
 	party_choice_panel.contract_chosen.connect(_on_contract_chosen)
 	EventBus.target_selected.connect(_on_target_selected)
 	EventBus.targets_spawned.connect(_on_targets_spawned)
@@ -267,7 +273,7 @@ func _update_mana_bar() -> void:
 
 
 func _on_cast_start(spell: SpellData, _target) -> void:
-	_set_pose(CAST_POSES.get(spell.effect_type, "cast_heal"), maxf(0.5, spell.cast_time + 0.3))
+	_set_pose(spell.pose(), maxf(0.5, spell.cast_time + 0.3))
 	if spell.cast_time > 0.0:
 		cast_bar.visible = true
 		cast_bar.value = 0
@@ -293,16 +299,33 @@ func _create_spell_buttons() -> void:
 	for child in spell_container.get_children():
 		child.queue_free()
 	spell_buttons.clear()
+	if selected_spell and not SpellSystem.spells.has(selected_spell):
+		selected_spell = null
 	for i in SPELL_SLOTS:
 		var key := SpellSystem.key_label_for_slot(i)
 		if i < SpellSystem.spells.size():
 			var spell: SpellData = SpellSystem.spells[i]
-			var btn := _make_spell_slot(spell, key)
-			btn.pressed.connect(func(): _on_spell_pressed(spell))
+			var btn := _make_spell_slot(spell, "" if spell.is_passive() else key)
+			if not spell.is_passive():
+				btn.pressed.connect(func(): _on_spell_pressed(spell))
 			spell_container.add_child(btn)
 			spell_buttons.append(btn)
 		else:
 			spell_container.add_child(_make_empty_slot(key))
+
+
+func spell_icon(spell: SpellData) -> Texture2D:
+	var rel: String = SPELL_ICONS.get(spell.id, "")
+	if rel == "":
+		for tag in ["SHIELD", "HOT", "DIRECT", "DELAYED"]:
+			if spell.tags.has(tag):
+				rel = TAG_ICONS[tag]
+				break
+	if rel == "" and spell.icon:
+		return spell.icon
+	if rel == "":
+		rel = FALLBACK_ICON
+	return load(ART + rel) if ResourceLoader.exists(ART + rel) else spell.icon
 
 
 func _make_spell_slot(spell: SpellData, key: String) -> Button:
@@ -310,14 +333,13 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	btn.custom_minimum_size = Vector2(104, 116)
 	btn.focus_mode = Control.FOCUS_NONE   # so Q/W/E/R aren't swallowed by button focus
 	btn.flat = true
-	var cast_txt := "Instant" if spell.cast_time <= 0.0 else "%.1fs cast" % spell.cast_time
-	btn.tooltip_text = "%s  [%s]\nMana %d · %s%s" % [spell.display_name, key, spell.mana_cost, cast_txt,
-		("" if spell.cooldown <= 0.0 else " · %.0fs cooldown" % spell.cooldown)]
+	btn.tooltip_text = "%s%s\n%s\n%s%s" % [spell.display_name, ("  [%s]" % key) if key != "" else "",
+		spell.stats_line(), spell.description_plain(),
+		("\nTags: " + ", ".join(spell.tag_labels())) if not spell.tags.is_empty() else ""]
 
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	var icon_path: String = ART + SPELL_ICONS.get(spell.id, "")
-	icon.texture = load(icon_path) if SPELL_ICONS.has(spell.id) and ResourceLoader.exists(icon_path) else spell.icon
+	icon.texture = spell_icon(spell)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -333,7 +355,14 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	btn.add_child(cd)
 
 	btn.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
-	btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, Color(1.0, 0.8, 0.35), Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+	if spell.is_passive():
+		btn.add_child(_slot_label("Cost", "passive", 16, Color(1.0, 0.8, 0.35), Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
+	else:
+		btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, Color(1.0, 0.8, 0.35), Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+	var name_lbl := _slot_label("Name", spell.display_name, 14, Color(0.92, 0.88, 0.8), Vector2(0, 116), HORIZONTAL_ALIGNMENT_CENTER)
+	name_lbl.size = Vector2(104, 22)
+	name_lbl.clip_text = true
+	btn.add_child(name_lbl)
 	var cd_label := _slot_label("CdText", "", 34, Color.WHITE, Vector2(0, 36), HORIZONTAL_ALIGNMENT_CENTER)
 	btn.add_child(cd_label)
 	return btn
@@ -343,9 +372,9 @@ func _make_empty_slot(key: String) -> Control:
 	var p := Panel.new()
 	p.custom_minimum_size = Vector2(104, 116)
 	p.modulate = Color(1, 1, 1, 0.45)
-	p.tooltip_text = "Empty — you'll draft spells into this slot between rounds."
+	p.tooltip_text = "Empty — you'll pick a new spell for this slot every few rounds."
 	p.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
-	p.add_child(_slot_label("Draft", "draft", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
+	p.add_child(_slot_label("Draft", "empty", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
 	return p
 
 
@@ -364,8 +393,13 @@ func _slot_label(n: String, text: String, size: int, color: Color, offset: Vecto
 
 func _update_spell_ui() -> void:
 	for i in spell_buttons.size():
+		if i >= SpellSystem.spells.size():
+			break
 		var spell: SpellData = SpellSystem.spells[i]
 		var btn := spell_buttons[i]
+		if spell.is_passive():
+			btn.modulate = Color.WHITE
+			continue
 		var castable := SpellSystem.can_cast(spell)
 		btn.disabled = not castable
 		var cd := SpellSystem.cooldown_remaining(spell.id)
