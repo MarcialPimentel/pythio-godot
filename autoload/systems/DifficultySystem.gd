@@ -24,7 +24,13 @@ extends Node
 @export var base_dps: float = 3.0
 @export var dps_growth: float = 0.7
 @export var burst_interval: float = 5.0
-@export var burst_telegraph_time: float = 1.2
+## Seconds of red warning before a burst lands (time to react with a shield or heal).
+@export var burst_telegraph_time: float = 1.5
+## Burst hit size: base + growth per round, then × the fighter's armor multiplier.
+@export var burst_damage_base: float = 18.0
+@export var burst_damage_growth: float = 1.5
+## The Crimson Baron's bursts hit this many times harder.
+@export var boss_burst_multiplier: float = 4.0
 
 @export var armor_dps_multipliers: Dictionary = {"LIGHT": 1.6, "MEDIUM": 1.2, "HEAVY": 0.8}
 
@@ -43,6 +49,11 @@ func boss_appearance(round: int) -> int:
 
 func get_max_mana(round: int) -> float:
 	return max_mana_base + (round - 1) * max_mana_growth
+
+func get_burst_damage(round: int, armor_type: String, is_boss: bool) -> float:
+	var armor_mult: float = armor_dps_multipliers.get(armor_type, 1.0)
+	var dmg: float = (burst_damage_base + burst_damage_growth * maxi(0, round - 1)) * armor_mult
+	return dmg * (boss_burst_multiplier if is_boss else 1.0)
 
 func get_base_dps(round: int) -> float:
 	return base_dps + (round - 1) * dps_growth
