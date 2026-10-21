@@ -153,7 +153,7 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	contract_name_label.text = chosen.contract_name.replace("  ", " ")
 	contract_risk_label.text = "RISK %d / 5" % chosen.risk_level
 	contract_info.visible = true
-	round_label.text = "The Final Contract" if chosen.is_boss else "Round %d" % GameManager.current_round
+	round_label.text = ("Round %d · The Crimson Baron" if chosen.is_boss else "Round %d") % GameManager.current_round
 	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
 
 	TargetSystem.spawn_from_contract(chosen)
@@ -432,7 +432,7 @@ func _on_game_over(round_reached: int, final_score: int) -> void:
 		_set_pose("victory", 99.0)
 		_say("victory", 6.0)
 	else:
-		final_score_label.text = "%s didn't make it.\nRun ended in round %d.  Score: %d" % [fallen_name if fallen_name != "" else "Someone", round_reached, final_score]
+		final_score_label.text = "%s didn't make it in round %d.\nRounds survived: %d.  Score: %d" % [fallen_name if fallen_name != "" else "Someone", round_reached, round_reached - 1, final_score]
 	score_label.text = "High Score: %d" % GameManager.high_score
 	# Leaderboard entry
 	_last_run = {"score": final_score, "round": maxi(1, round_reached), "won": GameManager.last_run_won}
