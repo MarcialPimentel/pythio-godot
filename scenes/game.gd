@@ -225,8 +225,8 @@ func _add_build_label() -> void:
 	var label := Label.new()
 	label.name = "BuildLabel"
 	label.text = version if version.begins_with("Build") else "Build: %s" % version
-	label.add_theme_font_size_override("font_size", 14)
-	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.35))
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
