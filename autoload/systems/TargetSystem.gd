@@ -28,6 +28,7 @@ func spawn_from_contract(contract: ContractData) -> void:
 		# Apply template data
 		var hc = target.get_node("HealthComponent") as HealthComponent
 		if hc:
+			hc.invulnerable = GameManager.god_mode
 			hc.max_health = template.base_max_health
 			hc.current_health = template.base_max_health  # or randf_range(0.4, 0.9) * hc.max_health
 		

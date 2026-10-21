@@ -17,6 +17,8 @@ var shield_amount: float = 0.0:
 		shield_changed.emit(shield_amount)
 
 var is_dead: bool = false
+## Debug god mode: damage still shows, but health never drops below 1.
+var invulnerable: bool = false
 var shield_time: float = 0.0
 var hot_amount: float = 0.0
 var hot_time: float = 0.0
@@ -32,6 +34,9 @@ func take_damage(amount: float) -> void:
 		amount -= absorbed
 		shield_changed.emit(shield_amount)
 	if is_dead:
+		return
+	if invulnerable:
+		current_health = maxf(1.0, current_health - amount)
 		return
 	current_health -= amount
 	if current_health <= 0 and not is_dead:
