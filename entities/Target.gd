@@ -176,7 +176,7 @@ func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: S
 func _on_combo_fired(target, label: String) -> void:
 	if target != self:
 		return
-	_float_text(label, FLOAT_COMBO, 1.15)
+	_float_text(label, FLOAT_COMBO, 1.15, 56.0)   # above the heal numbers
 	_spawn_fx("vfx/heal/heal_burst_6.png", Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.55), 0.7, FLOAT_COMBO)
 	var tw := create_tween()
 	sprite.self_modulate = Color(1.8, 1.5, 0.7)
@@ -201,12 +201,12 @@ func _on_burst_landed(target, absorbed: float, dealt: float) -> void:
 		_spawn_fx("vfx/danger/blood_burst_1.png", mid, 0.6, Color.WHITE)
 
 
-func _float_text(text: String, color: Color, scale_factor: float = 1.0) -> void:
+func _float_text(text: String, color: Color, scale_factor: float = 1.0, lift: float = 0.0) -> void:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_font_size_override("font_size", int(34 * scale_factor))
-	l.position = Vector2(size.x * 0.5 + randf_range(-30, 30), _feet_y - sprite.size.y - 10)
+	l.position = Vector2(size.x * 0.5 + randf_range(-30, 30), _feet_y - sprite.size.y - 10 - lift)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fx_layer.add_child(l)
 	var tw := create_tween().set_parallel()

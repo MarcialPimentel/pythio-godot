@@ -32,3 +32,15 @@ timeout 180 godot --headless --script tools/tests/test_full_run.gd   # fast-forw
 xvfb-run -a -s "-screen 0 1920x1080x24" godot --rendering-driver opengl3 --resolution 1920x1080 \
   --script tools/tests/screenshots.gd -- /tmp/pythio
 ```
+
+## Balance bot (not a pass/fail test)
+
+`sim_bot.gd` plays real runs like a simple player (shields incoming bursts, heals the lowest
+fighters, keeps heals-over-time rolling, picks rank-ups → healing → combos) and prints, per
+round, healing done, burst damage, casts, mana left and how fighters died.
+
+```bash
+godot --headless --script tools/tests/sim_bot.gd -- 3 4          # 3 runs per school at 4× speed
+godot --headless --script tools/tests/sim_bot.gd -- 3 4 heal,renew,shield   # fixed spellbook
+```
+
