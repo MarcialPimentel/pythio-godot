@@ -92,8 +92,14 @@ func _toggle_god() -> void:
 
 func _build() -> void:
 	_panel = PanelContainer.new()
-	_panel.position = Vector2(20, 120)
+	_panel.position = Vector2(20, 180)
 	_panel.custom_minimum_size = Vector2(380, 0)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.05, 0.04, 0.04, 0.94)
+	bg.border_color = Color(0.95, 0.8, 0.3, 0.6)
+	bg.set_border_width_all(1)
+	bg.set_content_margin_all(14)
+	_panel.add_theme_stylebox_override("panel", bg)
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
 
