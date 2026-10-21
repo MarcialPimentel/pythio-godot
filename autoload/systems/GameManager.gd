@@ -41,7 +41,7 @@ func end_round(success: bool) -> void:
 		return
 	
 	current_round += 1
-	if current_round > DifficultySystem.total_rounds:
+	if not DifficultySystem.is_endless() and current_round > DifficultySystem.total_rounds:
 		last_run_won = true
 		game_over.emit(DifficultySystem.total_rounds, score)
 		save_high_score()

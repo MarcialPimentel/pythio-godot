@@ -10,7 +10,7 @@ header("Cache-Control: no-store");
 const DATA_FILE = __DIR__ . "/leaderboard_godot.json";
 const KEEP = 100;          // entries stored
 const SHOW = 10;           // entries returned
-const MAX_ROUND = 5;       // rounds in a run (MVP)
+const MAX_ROUND = 1000;    // endless runs; sanity cap only
 const MIN_SECONDS_BETWEEN_POSTS = 10;
 
 function respond($code, $payload) { http_response_code($code); echo json_encode($payload); exit; }

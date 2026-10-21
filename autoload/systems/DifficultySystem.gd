@@ -2,15 +2,16 @@
 
 extends Node
 
-@export var total_rounds: int = 5
+## Rounds in a run. 0 = endless (keep going until a fighter dies).
+@export var total_rounds: int = 0
+## The Crimson Baron shows up on every Nth round (5 → rounds 5, 10, 15 …).
+@export var boss_every: int = 5
 
 @export_group("Round Scaling")
-# From the original design: round 1 is short, later rounds 20s growing to a 30s cap.
-@export var first_round_time: float = 10.0
-@export var round_time_base: float = 20.0       # rounds 2+
-@export var round_time_growth: float = 1.0      # added every `round_time_growth_every` rounds
-@export var round_time_growth_every: int = 3
-@export var round_time_max: float = 30.0
+# Endless pacing (owner, 2026-10-21): rounds stay short and frantic, under 30s.
+@export var first_round_time: float = 15.0
+@export var round_time_growth: float = 1.0      # seconds added each round
+@export var round_time_max: float = 25.0
 
 @export_group("Mana")
 @export var max_mana_base: float = 100.0
@@ -28,10 +29,17 @@ extends Node
 @export var armor_dps_multipliers: Dictionary = {"LIGHT": 1.6, "MEDIUM": 1.2, "HEAVY": 0.8}
 
 func get_round_time(round: int) -> float:
-	if round <= 1:
-		return first_round_time
-	var growth := floorf(float(round - 1) / maxi(1, round_time_growth_every)) * round_time_growth
-	return minf(round_time_max, round_time_base + growth)
+	return minf(round_time_max, first_round_time + round_time_growth * maxi(0, round - 1))
+
+func is_endless() -> bool:
+	return total_rounds <= 0
+
+func is_boss_round(round: int) -> bool:
+	return boss_every > 0 and round % boss_every == 0
+
+## 1 for the Baron's first appearance, 2 for his second, …
+func boss_appearance(round: int) -> int:
+	return maxi(1, round / maxi(1, boss_every))
 
 func get_max_mana(round: int) -> float:
 	return max_mana_base + (round - 1) * max_mana_growth
