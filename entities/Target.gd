@@ -17,6 +17,7 @@ extends Control
 const ART_DIR := "res://assets/art/"
 const FLOAT_HEAL := Color(0.45, 0.95, 0.35)
 const FLOAT_SHIELD := Color(0.45, 0.7, 1.0)
+const FLOAT_DANGER := Color(0.95, 0.22, 0.16)
 
 @onready var health_comp: HealthComponent = $HealthComponent
 @onready var sprite: TextureRect = $Sprite
@@ -64,6 +65,8 @@ func _ready() -> void:
 	health_comp.shield_changed.connect(func(_s): _refresh_bars())
 	health_comp.died.connect(_on_died)
 	EffectSystem.effect_applied.connect(_on_effect_applied)
+	EventBus.burst_warned.connect(_on_burst_warned)
+	EventBus.burst_landed.connect(_on_burst_landed)
 
 	hp_bar.max_value = health_comp.max_health
 	shield_bar.max_value = health_comp.max_health
@@ -153,6 +156,24 @@ func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: S
 			_spawn_fx("vfx/shield/shield_impact_2.png", Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.5), 0.5, Color.WHITE)
 		"hot":
 			_float_text("Renewing", FLOAT_HEAL)
+
+
+func _on_burst_warned(target, damage: float, _delay: float) -> void:
+	if target != self:
+		return
+	incoming_label.text = "! INCOMING %d" % roundi(damage)
+
+
+func _on_burst_landed(target, absorbed: float, dealt: float) -> void:
+	if target != self:
+		return
+	var mid := Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.5)
+	if absorbed > 0.0:
+		_float_text("Absorbed %d" % roundi(absorbed), FLOAT_SHIELD)
+		_spawn_fx("vfx/shield/shield_impact_2.png", mid, 0.5, Color.WHITE)
+	if dealt > 0.0:
+		_float_text("-%d" % roundi(dealt), FLOAT_DANGER)
+		_spawn_fx("vfx/danger/blood_burst_1.png", mid, 0.6, Color.WHITE)
 
 
 func _float_text(text: String, color: Color) -> void:
