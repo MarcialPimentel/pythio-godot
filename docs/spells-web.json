@@ -1,0 +1,254 @@
+{
+  "lesserHeal": {
+    "id": "lesserHeal",
+    "name": "Lesser Heal",
+    "enabled": true,
+    "castTime": 1.5,
+    "manaCost": 15,
+    "effect": { "type": "heal", "amount": 20 },
+    "inputBinding": { "button": 0, "modifier": null }
+  },
+  "heal": {
+    "id": "heal",
+    "name": "Heal",
+    "enabled": false,
+    "castTime": 2.5,
+    "manaCost": 20,
+    "effect": { "type": "heal", "amount": 30 },
+    "inputBinding": { "button": 0, "modifier": null }
+  },
+  "flashHeal": {
+    "id": "flashHeal",
+    "name": "Flash Heal",
+    "enabled": false,
+    "castTime": 1,
+    "manaCost": 20,
+    "effect": { "type": "heal", "amount": 40 },
+    "inputBinding": { "button": 2, "modifier": null }
+  },
+  "renew": {
+    "id": "renew",
+    "name": "Renew",
+    "enabled": false,
+    "castTime": 1.5,
+    "manaCost": 20,
+    "effect": { "type": "hot", "amount": 5, "duration": 10 },
+    "inputBinding": { "button": 0, "modifier": "shift" }
+  },
+  "greaterHeal": {
+    "id": "greaterHeal",
+    "name": "Greater Heal",
+    "enabled": false,
+    "castTime": 3,
+    "manaCost": 30,
+    "effect": { "type": "heal", "amount": 50 },
+    "inputBinding": { "button": 0, "modifier": null }
+  },
+  "chainHeal": {
+    "id": "chainHeal",
+    "name": "Chain Heal",
+    "enabled": false,
+    "castTime": 2,
+    "manaCost": 35,
+    "effect": { "type": "chainHeal", "amount": 30, "secondaryAmount": 15 },
+    "inputBinding": { "button": 0, "modifier": "ctrl" }
+  },
+  "shield": {
+    "id": "shield",
+    "name": "Shield",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 20,
+    "effect": { "type": "shield", "amount": 20, "duration": 5 },
+    "inputBinding": { "button": 0, "modifier": "alt" }
+  },
+  "rejuvenation": {
+    "id": "rejuvenation",
+    "name": "Rejuvenation",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 25,
+    "effect": { "type": "hot", "amount": 10, "duration": 10 },
+    "inputBinding": { "button": 0, "modifier": "shift" }
+  },
+  "divineProtection": {
+    "id": "divineProtection",
+    "name": "Divine Protection",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 25,
+    "effect": { "type": "damageReduction", "amount": 0.5, "duration": 5 },
+    "inputBinding": { "button": 1, "modifier": "alt" }
+  },
+  "harmonize": {
+    "id": "harmonize",
+    "name": "Harmonize",
+    "enabled": false,
+    "castTime": 2,
+    "manaCost": 35,
+    "effect": { "type": "spreadHeal", "amount": 0.5 },
+    "inputBinding": { "button": 0, "modifier": "ctrl" }
+  },
+  "mendWounds": {
+    "id": "mendWounds",
+    "name": "Mend Wounds",
+    "enabled": false,
+    "castTime": 1.5,
+    "manaCost": 20,
+    "effect": { "type": "heal", "amount": 25, "hotAmount": 5, "hotDuration": 5, "cleanse": true },
+    "inputBinding": { "button": 1, "modifier": "shift" }
+  },
+  "guardianWard": {
+    "id": "guardianWard",
+    "name": "Guardian Ward",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 20,
+    "effect": { "type": "shield", "amount": 20, "duration": 6, "healOnEnd": 10 },
+    "inputBinding": { "button": 1, "modifier": "alt" }
+  },
+  "purify": {
+    "id": "purify",
+    "name": "Purify",
+    "enabled": false,
+    "castTime": 1,
+    "manaCost": 20,
+    "effect": { "type": "cleanse", "preventDuration": 3 },
+    "inputBinding": { "button": 1, "modifier": "ctrl" }
+  },
+  "lifebloom": {
+    "id": "lifebloom",
+    "name": "Lifebloom",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 10,
+    "effect": { "type": "delayedHeal", "amount": 50, "delay": 10 },
+    "inputBinding": { "button": 1, "modifier": "shift" }
+  },
+  "divineChannel": {
+    "id": "divineChannel",
+    "name": "Divine Channel",
+    "enabled": false,
+    "castTime": 5,
+    "manaCost": 0,
+    "effect": { "type": "manaGain", "amount": 100, "duration": 5 },
+    "inputBinding": { "button": 1, "modifier": "ctrl" }
+  },
+  "decoy": {
+    "id": "decoy",
+    "name": "Decoy",
+    "enabled": false,
+    "castTime": 1,
+    "manaCost": 30,
+    "effect": { "type": "spawnClone", "duration": 5 },
+    "inputBinding": { "button": 1, "modifier": "alt" }
+  },
+  "bindingHeal": {
+    "id": "bindingHeal",
+    "name": "Binding Heal",
+    "enabled": false,
+    "castTime": 2,
+    "manaCost": 25,
+    "effect": { "type": "heal", "amount": 30, "secondaryTarget": "lowestHealth", "secondaryAmount": 15 },
+    "inputBinding": { "button": 0, "modifier": null }
+  },
+  "healingPlague": {
+    "id": "healingPlague",
+    "name": "Healing Plague",
+    "enabled": false,
+    "castTime": 2.5,
+    "manaCost": 30,
+    "effect": { "type": "hotSpread", "amount": 15, "duration": 8, "spreadTargets": 2 },
+    "inputBinding": { "button": 0, "modifier": "shift" }
+  },
+  "timeStop": {
+    "id": "timeStop",
+    "name": "Time Stop",
+    "enabled": false,
+    "castTime": 3,
+    "manaCost": 40,
+    "effect": { "type": "damagePrevention", "duration": 2 },
+    "inputBinding": { "button": 0, "modifier": "ctrl" }
+  },
+  "shadowStrike": {
+    "id": "shadowStrike",
+    "name": "Shadow Strike",
+    "enabled": false,
+    "castTime": 1.5,
+    "manaCost": 25,
+    "effect": { "type": "healBasedOnMissing", "percentage": 0.3 },
+    "inputBinding": { "button": 0, "modifier": "alt" }
+  },
+  "seraphicBlessing": {
+    "id": "seraphicBlessing",
+    "name": "Seraphic Blessing",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 0,
+    "effect": { "type": "passive", "healBoost": 0.1 },
+    "inputBinding": null
+  },
+  "vitalBond": {
+    "id": "vitalBond",
+    "name": "Vital Bond",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 20,
+    "effect": { "type": "healRandom", "amount": 15 },
+    "inputBinding": { "button": 1, "modifier": null }
+  },
+  "echoHealing": {
+    "id": "echoHealing",
+    "name": "Echo Healing",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 15,
+    "effect": { "type": "echoHeal", "percentage": 0.5, "delay": 3 },
+    "inputBinding": { "button": 1, "modifier": "shift" }
+  },
+  "guardianAngel": {
+    "id": "guardianAngel",
+    "name": "Guardian Angel",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 35,
+    "effect": { "type": "preventDeath", "duration": 5 },
+    "inputBinding": { "button": 1, "modifier": "alt" }
+  },
+  "overgrowth": {
+    "id": "overgrowth",
+    "name": "Overgrowth",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 20,
+    "effect": { "type": "extendHot", "duration": 5 },
+    "inputBinding": { "button": 1, "modifier": "ctrl" }
+  },
+  "manaConduit": {
+    "id": "manaConduit",
+    "name": "Mana Conduit",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 0,
+    "effect": { "type": "manaPerCast", "amount": 20, "casts": 5 },
+    "inputBinding": null
+  },
+  "soulbond": {
+    "id": "soulbond",
+    "name": "Soulbond",
+    "enabled": false,
+    "castTime": 0,
+    "manaCost": 25,
+    "effect": { "type": "linkHeal", "percentage": 0.5 },
+    "inputBinding": { "button": 1, "modifier": null }
+  },
+  "healingSpirit": {
+    "id": "healingSpirit",
+    "name": "Healing Spirit",
+    "enabled": false,
+    "castTime": 2,
+    "manaCost": 40,
+    "effect": { "type": "spawnHealer", "amount": 5, "duration": 10 },
+    "inputBinding": { "button": 1, "modifier": "shift" }
+  }
+}
