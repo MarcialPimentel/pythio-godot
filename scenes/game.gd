@@ -95,6 +95,7 @@ func _ready() -> void:
 	GameManager.show_spell_pick.connect(_show_spell_pick)
 	DraftSystem.build_complete.connect(func(): _say("build_complete", 5.0))
 	EventBus.combo_fired.connect(_on_combo_fired)
+	EffectSystem.effect_applied.connect(func(kind, _t, _v, _c): if kind == "mana": _flash_mana())
 	TargetSystem.loss_condition.connect(_on_loss)
 	SpellSystem.spell_cast_started.connect(_on_cast_start)
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
@@ -157,6 +158,13 @@ func _process(delta: float) -> void:
 		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
 		cast_label.text = "Casting %s  %.1fs" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
 	_update_spell_ui()
+
+
+## Mana came back (Divine Channel, Mana Conduit): a quick electric-blue pulse on the bar.
+func _flash_mana() -> void:
+	var tw := create_tween()
+	mana_bar.modulate = Color(0.6, 0.85, 1.6)
+	tw.tween_property(mana_bar, "modulate", Color.WHITE, 0.4)
 
 
 func _on_combo_fired(_target, _label: String) -> void:

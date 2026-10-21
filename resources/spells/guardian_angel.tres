@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_rsc0v"]
+[ext_resource type="Script" path="res://resources/spells/effects/SaveFromDeathEffect.gd" id="2_myigr"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_u67m7"]
+
+[sub_resource type="Resource" id="Resource_o2ys6"]
+script = ExtResource("2_myigr")
+duration = 6.0
+heal_amount = 30.0
+
+[resource]
+script = ExtResource("3_u67m7")
+id = "guardian_angel"
+display_name = "Guardian Angel"
+school = "MENDING"
+tags = Array[String]([])
+mana_cost = 25.0
+cast_time = 0.0
+cooldown = 25.0
+effects = Array[ExtResource("1_rsc0v")]([SubResource("Resource_o2ys6")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = "Not today."
