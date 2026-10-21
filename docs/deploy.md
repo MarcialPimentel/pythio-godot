@@ -6,12 +6,12 @@ downloadable web build (under the PR's **Checks → Web build & deploy → Artif
 can try a change before merging it.
 
 ## Where it goes
-The old JavaScript version lives in `public_html/games/pythio/` and keeps working.
-The Godot version goes into its **own folder** so the two never overwrite each other.
-Suggested: `public_html/games/pythio-godot/` → **https://marz.gg/games/pythio-godot/**
+The game lives in `public_html/games/pythio/` → **https://marz.gg/games/pythio/**.
+The original JavaScript version was moved to `public_html/games/pythio-classic/` so it
+stays playable (with its own old leaderboard) at https://marz.gg/games/pythio-classic/.
 
-When you're happy with it, you can point your WordPress page (or the old URL) at the new
-folder. Nothing is deleted from the old one.
+Leaderboard scores live in `leaderboard_godot.json` next to the game. The deploy never
+touches that file, so scores survive every update.
 
 ## One-time setup (about 10 minutes)
 
@@ -35,11 +35,11 @@ job can use them.
 | `FTP_SERVER` | the Host from step 1.4 (e.g. `ftp.marz.gg` or your domain) |
 | `FTP_USERNAME` | the FTP account's username (e.g. `deploy@marz.gg`) |
 | `FTP_PASSWORD` | its password |
-| `FTP_SERVER_DIR` | `pythio-godot/` (relative to the FTP account's folder; keep the trailing `/`) |
+| `FTP_SERVER_DIR` | `pythio/` (relative to the FTP account's folder; keep the trailing `/`) |
 
 ### 3. Run it
 Repo **Actions → Web build & deploy → Run workflow** (on `master`), or just merge the
-next PR. After a few minutes, open https://marz.gg/games/pythio-godot/.
+next PR. After a few minutes, open https://marz.gg/games/pythio/.
 
 ## If something goes wrong
 - **Upload step skipped:** the secrets aren't set (or are misspelt).
@@ -52,5 +52,5 @@ next PR. After a few minutes, open https://marz.gg/games/pythio-godot/.
 ## Embedding in WordPress
 Add a **Custom HTML** block to the page:
 ```html
-<iframe src="https://marz.gg/games/pythio-godot/" style="width:100%;aspect-ratio:16/9;border:0" allow="fullscreen" allowfullscreen></iframe>
+<iframe src="https://marz.gg/games/pythio/" style="width:100%;aspect-ratio:16/9;border:0" allow="fullscreen" allowfullscreen></iframe>
 ```
