@@ -14,7 +14,7 @@ func apply(spell: SpellData, target: Node) -> void:
 		return
 	hc.shield_changed.emit(hc.shield_amount)
 	hc.statuses_changed.emit()
-	EffectSystem.combo(target, "Surge")
+	EffectSystem.combo(target, spell.display_name if spell else "Surge")
 	EffectSystem.heal(target, total * ratio, spell, spell.tags)
 
 func describe() -> String:

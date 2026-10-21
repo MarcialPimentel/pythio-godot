@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_es3pp"]
+[ext_resource type="Script" path="res://resources/spells/effects/ConsumeShieldsEffect.gd" id="2_w34qc"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_o5bn3"]
+
+[sub_resource type="Resource" id="Resource_d7186"]
+script = ExtResource("2_w34qc")
+ratio = 1.5
+
+[resource]
+script = ExtResource("3_o5bn3")
+id = "spirit_surge"
+display_name = "Spirit Surge"
+school = "WARD"
+tags = Array[String](["DIRECT"])
+mana_cost = 10.0
+cast_time = 0.0
+cooldown = 4.0
+effects = Array[ExtResource("1_es3pp")]([SubResource("Resource_d7186")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String](["SHIELD"])
+reacts_to_tags = Array[String](["SHIELD"])
+offer_weight = 1.0
+flavor = "Waste not."

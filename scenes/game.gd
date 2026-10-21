@@ -64,6 +64,8 @@ const QUIPS := {
 	"victory": ["Contract fulfilled. Nobody died. Mostly.", "Pay up. I take coin, not thanks."],
 	"spec": ["Every healer has a habit. Pick yours.", "Choose how you'll keep them breathing."],
 	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
+	"combo": ["Now that's teamwork.", "Two spells, one invoice.", "Elegant. Expensive, but elegant.",
+		"Put that on the bill.", "That's how it's done."],
 	"build_complete": ["That's the whole kit. Now let's see how far it goes.", "No more tricks. Just you and the bleeding."],
 }
 
@@ -80,6 +82,9 @@ var _last_run := {"score": 0, "round": 1, "won": false}
 var card_panel: Control
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
 var _card_mode := ""
+## Pythio comments on combos, but not every single one.
+const COMBO_QUIP_GAP := 8.0
+var _last_combo_quip := -100.0
 var _card_options: Array = []
 
 
@@ -89,6 +94,7 @@ func _ready() -> void:
 	GameManager.show_spec_choice.connect(_show_spec_choice)
 	GameManager.show_spell_pick.connect(_show_spell_pick)
 	DraftSystem.build_complete.connect(func(): _say("build_complete", 5.0))
+	EventBus.combo_fired.connect(_on_combo_fired)
 	TargetSystem.loss_condition.connect(_on_loss)
 	SpellSystem.spell_cast_started.connect(_on_cast_start)
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
@@ -151,6 +157,14 @@ func _process(delta: float) -> void:
 		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
 		cast_label.text = "Casting %s  %.1fs" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
 	_update_spell_ui()
+
+
+func _on_combo_fired(_target, _label: String) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _last_combo_quip < COMBO_QUIP_GAP:
+		return
+	_last_combo_quip = now
+	_say("combo", 2.5)
 
 
 # ── Specialization and spell picks ─────────────────────

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_girl6"]
+[ext_resource type="Script" path="res://resources/spells/effects/ExtendHotsEffect.gd" id="2_ninmx"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_8hmq7"]
+
+[sub_resource type="Resource" id="Resource_0jk6p"]
+script = ExtResource("2_ninmx")
+seconds = 5.0
+
+[resource]
+script = ExtResource("3_8hmq7")
+id = "overgrowth"
+display_name = "Overgrowth"
+school = "BLOOM"
+tags = Array[String]([])
+mana_cost = 10.0
+cast_time = 0.0
+cooldown = 6.0
+effects = Array[ExtResource("1_girl6")]([SubResource("Resource_0jk6p")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String](["HOT"])
+reacts_to_tags = Array[String](["HOT"])
+offer_weight = 1.0
+flavor = "Let it grow."

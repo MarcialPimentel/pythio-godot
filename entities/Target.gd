@@ -18,6 +18,7 @@ const ART_DIR := "res://assets/art/"
 const FLOAT_HEAL := Color(0.45, 0.95, 0.35)
 const FLOAT_SHIELD := Color(0.45, 0.7, 1.0)
 const FLOAT_DANGER := Color(0.95, 0.22, 0.16)
+const FLOAT_COMBO := Color(1.0, 0.82, 0.3)   # gold = combos
 
 @onready var health_comp: HealthComponent = $HealthComponent
 @onready var sprite: TextureRect = $Sprite
@@ -69,6 +70,7 @@ func _ready() -> void:
 	EffectSystem.effect_applied.connect(_on_effect_applied)
 	EventBus.burst_warned.connect(_on_burst_warned)
 	EventBus.burst_landed.connect(_on_burst_landed)
+	EventBus.combo_fired.connect(_on_combo_fired)
 
 	hp_bar.max_value = health_comp.max_health
 	shield_bar.max_value = health_comp.max_health
@@ -168,6 +170,17 @@ func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: S
 		"delayed":
 			if value > 0.0:
 				_float_text("Blooms soon", FLOAT_HEAL, 0.8)
+
+
+## A synergy fired on this fighter: gold flash, gold burst and the combo's name.
+func _on_combo_fired(target, label: String) -> void:
+	if target != self:
+		return
+	_float_text(label, FLOAT_COMBO, 1.15)
+	_spawn_fx("vfx/heal/heal_burst_6.png", Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.55), 0.7, FLOAT_COMBO)
+	var tw := create_tween()
+	sprite.self_modulate = Color(1.8, 1.5, 0.7)
+	tw.tween_property(sprite, "self_modulate", Color.WHITE, 0.5)
 
 
 func _on_burst_warned(target, damage: float, _delay: float) -> void:

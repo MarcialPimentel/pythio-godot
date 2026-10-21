@@ -94,7 +94,7 @@ func shield_ended(target: Node, status, broken: bool, remaining: float) -> void:
 
 
 func death_prevented(target: Node, save: SaveStatus) -> void:
-	combo(target, "Saved")
+	combo(target, "Saved!")
 	heal(target, save.heal_amount, save.spell, [], {"no_echo": true})
 
 

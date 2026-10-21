@@ -75,7 +75,7 @@ func _process(d):
 			var angel := make("angel", [], [eff("SaveFromDeathEffect", {"duration": 5.0, "heal_amount": 30.0})])
 			ES.cast(angel, T[2]); T[2].health_comp.current_health = 10.0
 			T[2].health_comp.take_damage(500.0)
-			P("guardian angel vs 500 dmg: dead=%s hp=%.0f (31) combo=%s" % [T[2].health_comp.is_dead, hp(T[2]), combos.has("Saved")])
+			P("guardian angel vs 500 dmg: dead=%s hp=%.0f (31) combo=%s" % [T[2].health_comp.is_dead, hp(T[2]), combos.has("Saved!")])
 			var bloom := make("bloom", ["DELAYED"], [eff("DelayedHealEffect", {"amount": 25.0, "delay": 1.0})])
 			setall(10.0); ES.cast(bloom, T[0]); wait = 1.2; step = 5; return false
 		5:
