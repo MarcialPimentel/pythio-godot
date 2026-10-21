@@ -150,8 +150,46 @@ func make_offers() -> Array[SpellData]:
 		out.append(pick)
 		pool.erase(pick)
 		home.erase(pick)
+	_ensure_a_synergy(out, pool, off_school_offers)
 	out.shuffle()
 	return out
+
+
+# ── Synergies (for hints on cards and "at least one offer combos") ──
+
+## How `spell` connects to your spellbook:
+## "with" = spells you own that it reacts to; "from" = spells you own that react to it.
+func synergy(spell: SpellData) -> Dictionary:
+	var with: Array[SpellData] = []
+	var from: Array[SpellData] = []
+	var tags: Array[String] = []
+	for own in SpellSystem.spells:
+		if own.family() == spell.family():
+			continue
+		for t in spell.reacts_to_tags:
+			if own.tags.has(t) and not with.has(own):
+				with.append(own)
+				if not tags.has(t): tags.append(t)
+		for t in own.reacts_to_tags:
+			if spell.tags.has(t) and not from.has(own):
+				from.append(own)
+				if not tags.has(t): tags.append(t)
+	return {"with": with, "from": from, "tags": tags}
+
+
+func has_synergy(spell: SpellData) -> bool:
+	var s := synergy(spell)
+	return not s.with.is_empty() or not s.from.is_empty()
+
+
+## If no offer combos with your spellbook but one could, swap one in (never the off-school slot).
+func _ensure_a_synergy(out: Array[SpellData], pool: Array[SpellData], protected: int) -> void:
+	if out.is_empty() or out.any(has_synergy):
+		return
+	var options := pool.filter(func(s): return not out.has(s) and has_synergy(s))
+	if options.is_empty():
+		return
+	out[out.size() - 1 if out.size() > protected else 0] = options[rng.randi() % options.size()]
 
 
 func _weight_for(s: SpellData, upgrades: Array) -> float:

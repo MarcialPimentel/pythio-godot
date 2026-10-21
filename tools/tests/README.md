@@ -14,6 +14,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_picks.gd` | school pick, pick schedule, offer rules (no owned/duplicate spells, one other-school card), rank-ups replace in place, cap → rank-ups only → build complete once, the real school → round → pick → contracts flow |
 | `test_combos.gd` | real casts of Renew → Overgrowth, Echo Healing → Heal, Shield → Spirit Surge; gold combo text, Pythio's quip, combo spells only offered once you own the tag they react to |
 | `test_passives.gd` | Seraphic Blessing, Aura of Mending, Vital Bond (incl. no chaining), Mana Conduit; Binding Heal, Healing Plague, Guardian Angel, Time Stop, Divine Channel with real casts |
+| `test_synergy.gd` | "Combos with your …" hints on pick cards, at least one offer combos with your spellbook when possible, build summary above the spell bar |
 | `screenshots.gd` | saves real screenshots of start, contract choice, boss, game over |
 
 ```bash
@@ -24,6 +25,7 @@ godot --headless --script tools/tests/test_effects.gd
 godot --headless --script tools/tests/test_picks.gd
 godot --headless --script tools/tests/test_combos.gd
 godot --headless --script tools/tests/test_passives.gd
+godot --headless --script tools/tests/test_synergy.gd
 godot --headless --script tools/tests/test_debug_panel.gd
 timeout 180 godot --headless --script tools/tests/test_full_run.gd   # fast-forwarded; quits on its own after Play Again
 # screenshots need a (virtual) display:

@@ -80,6 +80,7 @@ var _low_mana_warned := false
 var _quip_tween: Tween
 var _last_run := {"score": 0, "round": 1, "won": false}
 var card_panel: Control
+var _build_label: RichTextLabel
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
 var _card_mode := ""
 ## Pythio comments on combos, but not every single one.
@@ -115,6 +116,18 @@ func _ready() -> void:
 	Leaderboard.fetch_top()
 
 	_add_build_label()
+	_build_label = RichTextLabel.new()
+	_build_label.bbcode_enabled = true
+	_build_label.fit_content = true
+	_build_label.scroll_active = false
+	_build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_build_label.add_theme_font_size_override("normal_font_size", 18)
+	_build_label.add_theme_font_size_override("bold_font_size", 18)
+	_build_label.position = Vector2(560, 812)
+	_build_label.size = Vector2(800, 30)
+	game_ui.add_child(_build_label)
+	SpellSystem.spellbook_changed.connect(_update_build_summary)
+	DraftSystem.spec_chosen.connect(func(_s): _update_build_summary())
 	card_panel = preload("res://ui/CardChoicePanel.gd").new()
 	game_ui.add_child(card_panel)
 	card_panel.chosen.connect(_on_card_chosen)
@@ -196,7 +209,7 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	party_choice_panel.visible = false
 	party_area.visible = false
 	contract_info.visible = false
-	round_label.text = "Round %d cleared" % round_cleared
+	round_label.text = ("Round %d cleared" % round_cleared) if round_cleared > 0 else "Bonus pick"
 	timer_label.text = "Pick a spell"
 	_card_mode = "spell"
 	_card_options = offers.duplicate()
@@ -268,8 +281,46 @@ func spell_card(spell: SpellData) -> Dictionary:
 		"stats": spell.stats_line(),
 		"tags": spell.tags,
 		"body_bb": spell.description_bb(),
+		"hint_bb": synergy_hint_bb(spell),
 		"flavor": spell.flavor,
 	}
+
+
+## Gold "★ Combos with your Renew" lines for a pick card (empty if it doesn't connect).
+func synergy_hint_bb(spell: SpellData) -> String:
+	var syn := DraftSystem.synergy(spell)
+	var gold := SpellTags.COMBO_COLOR.to_html(false)
+	var tag_words := ", ".join(syn.tags.map(func(t): return SpellTags.label(t)))
+	var lines: Array[String] = []
+	if not syn.with.is_empty():
+		lines.append("★ Combos with your [b]%s[/b]" % ", ".join(syn.with.map(func(s): return s.display_name)))
+	if not syn.from.is_empty():
+		lines.append("★ Your [b]%s[/b] combos with this" % ", ".join(syn.from.map(func(s): return s.display_name)))
+	if lines.is_empty():
+		return ""
+	return "[color=#%s]%s[/color]\n[color=#%s][i]via %s[/i][/color]" % [gold, "\n".join(lines), Color(gold, 0.7).to_html(false), tag_words]
+
+
+## "BLOOM · Heal-over-Time ×2 · Shield ×1 · 3/5" above the spell bar.
+func _update_build_summary() -> void:
+	if not _build_label:
+		return
+	var school := DraftSystem.school()
+	if school == "":
+		_build_label.text = ""
+		return
+	var counts := {}
+	for s in SpellSystem.spells:
+		for t in s.tags:
+			counts[t] = counts.get(t, 0) + 1
+	var parts: Array[String] = []
+	var sc: Color = SpellTags.SCHOOL_COLORS.get(school, Color.WHITE)
+	parts.append("[color=#%s][b]%s[/b][/color]" % [sc.to_html(false), SpellTags.SCHOOL_LABELS.get(school, "").to_upper()])
+	for t in SpellTags.ALL:
+		if counts.has(t):
+			parts.append("%s ×%d" % [SpellTags.bb(t), counts[t]])
+	parts.append("[color=#a9a39a]%d / %d spells[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap])
+	_build_label.text = "[center]%s[/center]" % "   ·   ".join(parts)
 
 
 # ── Rounds & contracts ─────────────────────────────────
@@ -451,8 +502,9 @@ func _create_spell_buttons() -> void:
 func spell_icon(spell: SpellData) -> Texture2D:
 	var rel: String = SPELL_ICONS.get(spell.id, "")
 	if rel == "":
+		var look: Array = spell.tags + spell.reacts_to_tags   # passives: the tag they react to
 		for tag in ["SHIELD", "HOT", "DIRECT", "DELAYED"]:
-			if spell.tags.has(tag):
+			if look.has(tag):
 				rel = TAG_ICONS[tag]
 				break
 	if rel == "" and spell.icon:
@@ -474,6 +526,8 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	var icon := TextureRect.new()
 	icon.name = "Icon"
 	icon.texture = spell_icon(spell)
+	if spell.is_passive():
+		icon.modulate = Color(1.0, 0.85, 0.45)   # gold-tinted: always on, no key
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
