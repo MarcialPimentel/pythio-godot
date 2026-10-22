@@ -39,6 +39,19 @@ build-crafting of a roguelite. You are Pythio, a battlefield healer for hire. Wo
 fighters take damage non-stop, rounds keep coming, and any death ends the run. Every run
 should play differently because of the spells you picked and how they combine.
 
+**The two reasons to play again [Decided 2026-10-22].** The core of the game is the spells
+you get and how they combine. A run should serve both of these players:
+- **"How far can I get with the spells I got?"** You ride the luck of the offers and adapt.
+- **"I want to master a build I like."** You steer toward a build and keep refining it.
+
+That means **a big pool of spells** (lots to discover, runs that differ) and **enough steering**
+(school, tag-weighted offers, swaps) that a favourite build can be found again. The tag
+system has to make a new spell easy to add: numbers and effects, not new code.
+
+**What each layer is for [Decided 2026-10-22]:**
+- **Combos are the bread and butter:** small, frequent, every few seconds.
+- **Keystones are the big moments** that make a build pop off: rare, after beating the Baron.
+
 **Pillars [Decided].** Check every change against these four.
 
 1. **Triage pressure.** You can never fully keep up, so you must prioritize.
@@ -52,7 +65,7 @@ should play differently because of the spells you picked and how they combine.
 - **Fast, efficient, big: pick two.** No spell is better than another on every axis.
   Slow casts are the mana-efficient ones; instant or big heals cost more per point healed.
 - **Every spell needs a threat that asks for it.** Shields ↔ warned bursts;
-  heals-over-time and Chain Heal ↔ party-wide damage; Cleanse ↔ damage over time (Phase D);
+  heals-over-time and Chain Heal ↔ party-wide damage; Cleanse ↔ debuffs (Phase F);
   Guardian Angel ↔ execution moments. Spells and damage patterns are designed together.
 - **Every spell is good on its own and better with friends.** That's how "no bad pick" holds up.
 - **High APM comes from many short decisions, not long casts.** Most spells are instant
@@ -78,9 +91,9 @@ should play differently because of the spells you picked and how they combine.
 | Blood red | Danger: bursts, warnings, wounds |
 
 - **Gold means combos only [Decided 2026-10-22].** Today the mana bar is also gold. It will
-  move to another colour in Phase F (see Planned features).
+  move to another colour in Phase G (see Planned features).
 - **Fonts:** Pirata One (titles), Oswald (UI), Special Elite (Pythio's speech), DejaVu
-  (symbols). Files: `assets/fonts/`. The Phase G pass may change these.
+  (symbols). Files: `assets/fonts/`. The Phase H pass may change these.
 - **Art:** stand-ins cut from a concept sheet. The style guide, file names and prompt pack
   are in `docs/art.md`.
 
@@ -144,7 +157,7 @@ How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSys
 **Two kinds of slot [Decided].**
 - **5 spells you cast,** on keys Q, W, E, R, T.
 - **3 passive slots** in a gold tray next to the spell bar. Passives work on their own.
-  Keystones will share these slots (Phase E), so a keystone costs you a passive.
+  (Phase D: 4 spells on Q–R; keystones get their own slots in Phase E.)
 
 **Ranks, not duplicates [Decided].** Lesser/normal/greater versions are one spell with ranks.
 A rank-up is a pick option and replaces the lower rank in the same slot, so "go deeper or
@@ -165,9 +178,20 @@ you can take it.
 | Weight: own school / any school / rank-up | 3 / 1.5 / 2 | same |
 | A spell's own offer weight | 1 (each spell) | `resources/spells/<spell>.tres` (`offer_weight`) |
 
-> ⚠ **Pacing concern (open question 1):** a build needs 7 picks to fill its slots (up to 11
-> with rank-ups), so it completes around rounds 30–50. A typical run today ends around
-> rounds 6–8, after only 2 picks.
+**Changing in Phase D [Decided 2026-10-22]** (the table above is today's game until then):
+- **Picks every other round:** after rounds 1, 3, 5, 7 … A typical run (first deaths around
+  rounds 6–8) sees about 4 picks instead of 2. More decisions sooner, and faster testing
+  while we find the fun.
+- **4 spells you cast, on keys Q–R** (was 5). Enough for the fast / efficient / big triangle
+  plus a combo spell; every slot matters more.
+- **Keystones get their own slots** (up to 3), no longer shared with passives (section 9).
+- **No guaranteed cleanse in a pick:** Cleanse becomes a basic ability (section 7).
+- **[Proposed] When the spell bar is full,** a pick can **swap** one of your spells for the
+  new one, **upgrade** a rank, or **Skip** for a small reward (say, +max mana). Picks stay
+  live all run, so "build complete" becomes "build settled" rather than "no more choices".
+  Marz is open either way; the alternative is today's rule (rank-ups, then build complete).
+- **[Proposed] Offers lean toward tags you own,** not just your school, so a big pool
+  doesn't dilute your combo pieces.
 
 ## 5. Spells and tags, and how combos work
 
@@ -182,7 +206,7 @@ new spell automatically combines with everything that shares its tag.
 | **Shield** | Absorbs damage before health | Shield (I–II), Guardian Ward |
 | **Delayed** | Heals later | Lifebloom |
 | **Multi-target** | Also heals other fighters | Binding Heal, Chain Heal, Healing Plague |
-| **Cleanse** | Removes a debuff | Planned for Phase D (Cleanse, Purify) |
+| **Cleanse** | Removes a debuff | Planned for Phase F (the basic Cleanse ability, and spells that react to it) |
 
 Tag names and colours live in `resources/spells/SpellTags.gd`.
 
@@ -268,6 +292,13 @@ A panic button on its own resource, separate from mana [Decided].
 - Owner note (after Phase C): fine for now; maybe later a universal spell, or a shop
   consumable if a shop arrives.
 
+**Cleanse is its own plate [Decided 2026-10-22, coming in Phase F].** Healing and cleansing
+stay separate identities. Every school gets **Cleanse** as a basic ability with its own key
+and its own charges or cooldown, and it only removes debuffs (no heal). The bandage stays a
+healing panic button. Later decisions: whether to keep the bandage, and whether passives
+can improve Cleanse or the bandage. **[Proposed]** Cleanse on **F** (next to Q–R), with the
+bandage staying on Space.
+
 | Tunable | Value | File |
 |---|---|---|
 | Healing per bandage | 40 | `autoload/systems/BandageSystem.gd` (`heal_total`) |
@@ -325,7 +356,9 @@ the hit lands 1.5s later. Shields absorb it first [Decided: bursts always land a
 
 ## 9. The Crimson Baron
 
-**[Decided]** The Baron returns on every 5th round (5, 10, 15 …), tougher each time. He's
+**[Decided]** The Baron returns on every 5th round (5, 10, 15 …), tougher each time.
+**Beating him earns a keystone** (Phase E): after rounds 5, 10 and 15, up to 3. The boss
+kill is the power spike. He's
 your *patient*, not an enemy: he arrives badly hurt, with two guards (ordinary heavy
 fighters), so the fight is still triage, not one big health bar. He has his own Next-party
 card ("The Crimson Baron sends for you"). Random bursts never target him; his hits come
@@ -408,26 +441,46 @@ input model) is parked.
 
 The roadmap has the details and issue numbers. Phases A, B and C are done and live.
 
-**Phase D: Debuffs and cleanses [Decided]**
+Phases were reordered on 2026-10-22 so more spells and keystones come first: they're
+the fun we're trying to find.
+
+**Phase D: Faster builds and more spells [Decided 2026-10-22]**
+- **Passives as data:** one generic tag trigger ("when [event] happens to something tagged
+  [X], optionally on a fighter below Y% health, do [Z]"). Most passives and keystones become
+  numbers in a `.tres` file, not new code. This is what lets the pool grow big.
+- **Picks every other round,** 4 spell keys (Q–R), and a re-check of the difficulty curve.
+- **Full bar: swap, upgrade or skip** [Proposed, see section 4].
+- **Offers weighted toward the tags you own** [Proposed].
+- **Debug: take any spell,** so Marz can test builds without waiting for offers.
+- **Spell batch 2:** more spells and passives from the tag system, including payoffs for
+  Delayed and Multi-target and a tag for Ward's defensive spells. Every tag gets at least
+  2 spells that have it and 2 that react to it. Marz reviews the list first.
+
+**Phase E: Keystones [Decided 2026-10-22]**
+- **Beat the Baron, pick a keystone** (1 of 3): after rounds 5, 10, 15, capped at 3.
+- **Their own 3 slots,** so you don't give up a passive for one.
+- **Each keystone bends a tag or flips a battlefield rule,** so the build pops off.
+  [Proposed] examples: "Heal-over-Time ticks twice as fast but lasts half as long";
+  "When a Shield breaks, the party heals for what it absorbed"; "Every 4th Direct heal is
+  free and lands twice"; the mirrored rules (Bulwark, Second Wind, Overflow) as keystone versions.
+
+**Phase F: Debuffs and cleanse [Decided]**
 - From round 6, debuffs that each need a different answer:
   - **Poison:** stacking damage over time → Cleanse.
-  - **Hex:** −50% healing taken → Purify.
+  - **Hex:** −50% healing taken → Cleanse (or a stronger cleanse: Purify could return as
+    an upgrade).
   - **Bleed:** ends when the fighter is healed above ~80%, or bandaged.
   - Maybe **Doom** later.
-- **Cleanse and Purify** (ranks of one spell) with a new **Cleanse** tag. The round-5 pick
-  always offers a cleanse, so a run can't be lost to bad luck.
+- **Cleanse as a basic ability** every school has (section 7), with a new **Cleanse** tag
+  so spells and passives can react to it.
 - Debuffs use the same rule system as passives (a debuff is a buff with the sign flipped).
 
-**Phase E: Keystones [Decided]**
-- Every 10 rounds, a rule-changing pick (1 of 3), built from the mirrored battlefield
-  rules. Keystones take a passive slot, so a keystone costs you a passive. Capped.
-
-**Phase F: Readability and feel [Decided]**
+**Phase G: Readability and feel [Decided]**
 - Basic sound: casts, combos, bursts, death.
 - Swap in high-res art as it's made (`docs/art.md`).
 - Mana bar off gold, so gold only ever means combos (decided 2026-10-22).
 
-**Phase G: Words, names and flair [Decided, owner-led]**
+**Phase H: Words, names and flair [Decided, owner-led]**
 - Marz goes through every on-screen line: fonts, spell names, descriptions, flavour.
   Claude exports every line into one editable list, then applies the edits in one PR.
 
@@ -442,34 +495,31 @@ Parked on purpose [Decided]. Don't build these without Marz's OK.
   only when there's something real to choose between.
 - **Gold and a shop.** Bandages could become a shop item.
 - **Click-casting** with mouse button + modifier bindings.
+- **Ranks 1–3 for every spell, and spell rarity** (#71, Marz's idea 2026-10-22): late in a
+  run you might swap a rank-2 common for a rank-1 rare. Revisit after Phase D.
+  [Proposed] If we do it, rarity should mean a more *unusual* effect, not just bigger
+  numbers, or "rare" turns into "strictly better" and breaks the pick-two rule.
 - Better scoring, difficulty modes, achievements.
 - Spells from the original list not in the game: Harmonize, Tranquility, Fountain of Light,
   Aegis of Light, Revitalize, Shadow Strike (rename first: the name doesn't match the effect).
 
 ## 14. Open questions for Marz
 
-1. **Pick pacing.** A typical run sees 2 picks, and a complete build arrives around rounds
-   30–50. Build-crafting (the roguelite half of the pitch) barely gets to show up. Phase D's
-   guaranteed cleanse at the round-5 pick would make one of those two picks forced.
-   **[Proposed]** Pick one, or mix:
-   - picks every 3 rounds (after 1, 3, 6, 9 …);
-   - a bonus pick for beating the Baron;
-   - make Cleanse a basic ability every school has (like bandages), so the round-5 pick
-     stays free.
-   Decide after the Phase D playtest.
-2. **Keystones and spell picks at round 10, 20 …** Both land on the same rounds. Do you get
-   two picks in a row, or does the keystone replace the spell pick? And when all 3 passive
-   slots are full, does taking a keystone mean dropping a passive? **[Proposed]** Two picks
-   in a row (the keystone after the spell). A keystone with full slots asks which passive
-   to drop. Losing a passive should hurt; that's the point.
-3. **The long game.** Damage, health and mana all grow in straight lines forever, and the
+1. **Full spell bar:** swap / upgrade / skip, or rank-ups then build complete? (Section 4.)
+   **[Proposed]** swap / upgrade / skip. Settle after the Phase D playtest.
+2. **Cleanse key and the bandage's future.** Cleanse on F and the bandage on Space? Do we
+   keep the bandage once Cleanse exists? Should passives be able to improve either?
+3. **Passive slots.** Stay at 3 now that keystones have their own slots, or drop to 2 so
+   each passive pick weighs more? **[Proposed]** Keep 3 until the Phase D playtest.
+4. **The long game.** Damage, health and mana all grow in straight lines forever, and the
    party caps at 8 by round 9. Past round ~15, what makes round 25 feel different from
    round 15, other than bigger numbers? **[Proposed]** "Escalating chaos" should come from
    new kinds of threat (debuffs, then mixed patterns and battlefield events) more than from
-   bigger numbers. Revisit after Phase D.
-4. **Tags with no payoff.** Delayed and Multi-target have nothing that reacts to them, and
-   Ward's defensive spells have no tag (section 5). Add payoffs now, or wait for Phase G or a
-   later spell batch?
+   bigger numbers. Revisit after Phase F.
+
+**Settled 2026-10-22:** pick pacing (every other round); keystone timing (after each Baron,
+own slots); tags with no payoff (handled in spell batch 2); 4 spell keys; Cleanse separate
+from the bandage.
 
 ## Known differences between docs and code (2026-10-22)
 
@@ -479,7 +529,7 @@ Listed so nobody "fixes" the wrong side.
 - **Contracts:** `design-direction.md` says contracts show reward and threat. Phase C
   replaced them with one Next party screen and parked the choice (#55). **Next party is right.**
 - **Gold:** `art.md` said gold = mana. **Gold = combos only** (decided 2026-10-22). The
-  mana bar changes colour in Phase F.
+  mana bar changes colour in Phase G.
 - **Leftover code (does nothing, safe to clean up):** an old points score (round × 100)
   and a "Contract fulfilled, all rounds survived" ending that endless mode never reaches
   (`GameManager.gd`, `scenes/game.gd`); contracts' hidden gold, risk and burst-threat
@@ -490,3 +540,4 @@ Listed so nobody "fixes" the wrong side.
 | Date | Who | Change |
 |---|---|---|
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
+| 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |

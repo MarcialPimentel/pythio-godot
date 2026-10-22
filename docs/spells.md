@@ -45,7 +45,7 @@ the same PR.
 | Second Wind | Any school | — | passive | — | — | Cancels Exhaustion: running your mana dry restores 30 mana instead (once every 20s). | — |
 
 ### Not in the game yet
-Cleanse / Purify (Phase D) · Keystones (Phase E) · Harmonize, Decoy,
+Cleanse (Phase F) · Keystones (Phase E) · Harmonize, Decoy,
 Healing Spirit, Soulbond, Hallowed Ground (pets / positioning, parked) · Shadow Strike
 (name doesn't match the effect; rename first) · Vital Bond and Lifebloom follow the reworked
 versions above, not the original wording below.

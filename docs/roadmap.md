@@ -1,6 +1,6 @@
 # Pythio: roadmap
 
-_Last updated: 2026-10-22. Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-22 (direction update). Owner: Marz. Claude works through this list one pull request at a time._
 
 > **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
 > `docs/game-design.md`, which wins over every other design doc.
@@ -50,10 +50,17 @@ _Last updated: 2026-10-22. Owner: Marz. Claude works through this list one pull 
   decisions that came with it: one Next party screen (contract choice stays parked, #55);
   gold means combos only, so the mana bar changes colour in Phase F (#63); pick pacing is an
   open question to settle after the Phase D playtest (game-design.md, open questions).
-- **Next up:** Phase D (debuffs and cleanses, #23, #53). Before building it, read open
-  question 1 in `docs/game-design.md` (the round-5 cleanse vs. only 2 picks per run).
+- **✅ Merged 2026-10-22:** the game design doc (#64).
+- **Direction update 2026-10-22 (owner):** more decisions sooner. Picks every other round,
+  4 spell keys (Q–R), keystones after each Baron (own 3 slots) as the "build pops off"
+  moment, combos as the bread and butter, Cleanse as its own basic ability (separate from
+  the bandage), and a big spell pool made easy to grow through tags. Phases reordered:
+  **D faster builds and more spells → E keystones → F debuffs and cleanse → G readability →
+  H words.** Details: `docs/game-design.md` (sections 1, 4, 7, 9, 12).
+- **Next up:** Phase D, starting with #65 (passives as data), then #66 (picks every other
+  round, 4 keys).
 - **Known rough spots:** stand-in art (new spells reuse 4 icons) · no sound · early rounds
-  may now be on the easy side (watch it as Phase D adds debuffs from round 6).
+  may now be on the easy side (re-check when picks speed up in Phase D, and when debuffs arrive in Phase F).
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
@@ -102,22 +109,34 @@ One bullet ≈ one pull request.
   a new board for the new scoring; earlier boards stay browsable by build (◀ ▶ arrows).
 - ✅ #30 **Crimson Baron fight** with telegraphed phases.
 
-### Phase D: Debuffs and cleanses
-- ⬜ #23 **Debuffs from round 6:** Poison (stacking DoT → Cleanse), Hex (−50% healing taken
-  → Purify), Bleed (ends when healed above ~80% or bandaged); maybe Doom later.
-- ⬜ #53 **Cleanse and Purify** with a new Cleanse tag; the round-5 pick always offers a cleanse.
+### Phase D: Faster builds and more spells (decided 2026-10-22)
+- ⬜ #65 **Passives as data:** one generic tag trigger, so most passives and keystones are
+  numbers in a `.tres` file. Existing passives rebuilt on it, same numbers.
+- ⬜ #66 **Picks every other round** (after 1, 3, 5, 7 …) and **4 spell keys (Q–R)**;
+  re-check the difficulty curve with the bot.
+- ⬜ #67 **Full spell bar: swap, upgrade or skip** (proposed; owner open to either way).
+- ⬜ #68 **Offers weighted toward the tags you own.**
+- ⬜ #69 **Debug: take any spell** (F1).
+- ⬜ #70 **Spell batch 2:** more spells and passives from tags, incl. payoffs for Delayed and
+  Multi-target; owner reviews the list first.
 
 ### Phase E: Keystones
-- ⬜ #37 **Keystones every 10 rounds,** 1 of 3, built from the mirrored battlefield rules;
-  they share the 3 passive slots.
+- ⬜ #37 **Keystones after each Baron** (rounds 5, 10, 15; max 3), 1 of 3, in their own 3
+  slots; each bends a tag or flips a battlefield rule.
 
-### Phase F: Readability and feel
+### Phase F: Debuffs and cleanse
+- ⬜ #23 **Debuffs from round 6:** Poison (stacking DoT), Hex (−50% healing taken), Bleed
+  (ends when healed above ~80% or bandaged); maybe Doom later.
+- ⬜ #53 **Cleanse, a basic ability every school has:** own key and charges, removes
+  debuffs only; new Cleanse tag. The bandage stays separate.
+
+### Phase G: Readability and feel
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 - ⬜ #33 **Basic sound:** casts, combos, bursts, death.
 - ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
 - ⬜ #63 **Mana bar off gold,** so gold only ever means combos (owner, 2026-10-22).
 
-### Phase G: Words, names and flair (owner-led)
+### Phase H: Words, names and flair (owner-led)
 - ⬜ #61 **Fonts, spell names, descriptions and flavour:** the owner goes through all
   on-screen text and adds flair; Claude exports every line into one editable list, then
   applies the edits in one PR.
@@ -128,7 +147,7 @@ Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 #54 raid mode (10–25 fighters with compact raid frames) · #55 contract choice with reward
 and threat previews ·
 click-casting with mouse button + modifier bindings (the original web game's input model) ·
-gold and a shop (bandages could become a shop consumable, or a universal spell) · better scoring · difficulty modes · achievements.
+#71 ranks 1–3 for every spell and spell rarity · gold and a shop (bandages could become a shop consumable, or a universal spell) · better scoring · difficulty modes · achievements.
 
 ## Decisions and open questions
 Recorded in `docs/game-design.md`: owner decisions are marked **[Decided]** in each
