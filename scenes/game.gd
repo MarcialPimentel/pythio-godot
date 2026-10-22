@@ -82,6 +82,7 @@ var _last_run := {"score": 0, "round": 1, "won": false}
 var card_panel: Control
 var _build_label: RichTextLabel
 var _passive_tray: HBoxContainer
+var _bandage_label: RichTextLabel
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
 var _card_mode := ""
 ## Pythio comments on combos, but not every single one.
@@ -129,6 +130,7 @@ func _ready() -> void:
 	game_ui.add_child(_build_label)
 	SpellSystem.spellbook_changed.connect(_update_build_summary)
 	_make_passive_tray()
+	_make_bandage_counter()
 	SpellSystem.spellbook_changed.connect(_refresh_passive_tray)
 	EventBus.passive_triggered.connect(_pulse_passive)
 	DraftSystem.spec_chosen.connect(func(_s): _update_build_summary())
@@ -170,7 +172,9 @@ func _process(delta: float) -> void:
 
 	GameManager.regen_mana(delta)
 	_update_mana_bar()
-	if SpellSystem.is_casting and SpellSystem.current_spell:
+	if BandageSystem.is_channeling():
+		cast_bar.value = BandageSystem.progress() * 100.0
+	elif SpellSystem.is_casting and SpellSystem.current_spell:
 		cast_bar.value = SpellSystem.cast_progress() * 100.0
 		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
 		cast_label.text = "Casting %s  %.1fs" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
@@ -305,6 +309,48 @@ func synergy_hint_bb(spell: SpellData) -> String:
 	if lines.is_empty():
 		return ""
 	return "[color=#%s]%s[/color]\n[color=#%s][i]via %s[/i][/color]" % [gold, "\n".join(lines), Color(gold, 0.7).to_html(false), tag_words]
+
+
+# ── Bandages: counter by the mana bar, cast bar while channelling ──
+
+func _make_bandage_counter() -> void:
+	_bandage_label = RichTextLabel.new()
+	_bandage_label.bbcode_enabled = true
+	_bandage_label.fit_content = true
+	_bandage_label.scroll_active = false
+	_bandage_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	_bandage_label.tooltip_text = "Bandages: hover a fighter and press Space to channel %d healing over %ss.\nYou can't cast while bandaging. +1 bandage every %d rounds (max %d)." % [
+		int(BandageSystem.heal_total), str(BandageSystem.channel_time), BandageSystem.gain_every_rounds, BandageSystem.max_charges]
+	_bandage_label.add_theme_font_size_override("normal_font_size", 20)
+	_bandage_label.add_theme_font_size_override("bold_font_size", 20)
+	_bandage_label.position = Vector2(1420, 1008)
+	_bandage_label.size = Vector2(300, 34)
+	game_ui.add_child(_bandage_label)
+	BandageSystem.charges_changed.connect(func(_c, _m): _update_bandages())
+	BandageSystem.channel_started.connect(_on_bandage_start)
+	BandageSystem.channel_ended.connect(func(_t, _done): cast_bar.visible = SpellSystem.is_casting)
+	BandageSystem.bandage_failed.connect(_on_bandage_failed)
+	_update_bandages()
+
+
+func _update_bandages() -> void:
+	var full := "■".repeat(BandageSystem.charges)
+	var empty := "□".repeat(maxi(0, BandageSystem.max_charges - BandageSystem.charges))
+	_bandage_label.text = "[b]BANDAGES[/b]  [color=#7df25a]%s[/color][color=#5a554e]%s[/color]  [color=#a9a39a]Space[/color]" % [full, empty]
+
+
+func _on_bandage_start(target: Node, _duration: float) -> void:
+	_set_pose("cast_heal", BandageSystem.channel_time + 0.3)
+	cast_bar.visible = true
+	cast_bar.value = 0
+	cast_label.text = "Bandaging %s" % target.display_name
+
+
+func _on_bandage_failed(reason: String) -> void:
+	if reason == "no_charges":
+		var tw := create_tween()
+		_bandage_label.modulate = Color(1.0, 0.3, 0.3)
+		tw.tween_property(_bandage_label, "modulate", Color.WHITE, 0.4)
 
 
 # ── Passive tray: 3 gold slots next to the spell bar ───

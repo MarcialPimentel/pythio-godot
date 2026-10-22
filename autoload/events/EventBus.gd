@@ -14,6 +14,8 @@ signal game_over(score: int)
 signal spell_cast_requested(spell: SpellData, target: Node)
 signal spell_cast_completed(spell: SpellData, target: Node, success: bool)
 signal round_begun(round: int)  # emitted when round actually starts after spawn
+## A round was survived (round_ended fires for losses too).
+signal round_cleared(round: int)
 # ── Spells and effects (EffectSystem announces these; combos, passives and UI listen) ──
 signal spell_cast(spell: SpellData, target: Node)
 ## A heal landed: `amount` = health restored, `overheal` = the wasted part.

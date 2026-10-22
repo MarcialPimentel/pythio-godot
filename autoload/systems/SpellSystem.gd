@@ -36,6 +36,8 @@ var is_casting: bool = false
 var current_spell: SpellData = null
 var current_target: Node = null
 var cast_elapsed: float = 0.0
+## Something else has your hands (a bandage channel): no casting until it ends.
+var external_busy: bool = false
 
 # Targeting
 var hovered_target: Node = null          # fighter under the mouse
@@ -200,7 +202,7 @@ func _on_target_hovered(target: Node) -> void:
 # ── Casting ─────────────────────────────────────────────
 
 func can_cast(spell: SpellData) -> bool:
-	return not spell.is_passive() and GameManager.in_round and not is_casting \
+	return not spell.is_passive() and GameManager.in_round and not is_casting and not external_busy \
 		and not is_on_cooldown(spell.id) and GameManager.mana >= spell.mana_cost
 
 
@@ -209,7 +211,7 @@ func request_cast(spell: SpellData, target: Node) -> bool:
 		return false
 	if not GameManager.in_round:
 		spell_cast_failed.emit(spell, "not_in_round"); return false
-	if is_casting:
+	if is_casting or external_busy:
 		spell_cast_failed.emit(spell, "busy"); return false
 	if is_on_cooldown(spell.id):
 		spell_cast_failed.emit(spell, "cooldown"); return false

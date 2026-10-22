@@ -48,6 +48,7 @@ func end_round(success: bool) -> void:
 	
 	if success:
 		score += current_round * 100  # later tie to gold
+		EventBus.round_cleared.emit(current_round)
 	else:
 		last_run_won = false
 		game_over.emit(current_round, score)
