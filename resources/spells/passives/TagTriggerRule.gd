@@ -114,9 +114,14 @@ func on_mana_empty() -> void:
 func would_combo(spell: SpellData, target: Node) -> bool:
 	if not spell or not _health_ok(target) or not _tags_ok(spell.tags):
 		return false
+	# Glow means "press it now for a bonus": only for conditions that aren't always true.
 	if event == "CAST":
-		return below_health > 0.0 or not tags.is_empty()
+		if below_health > 0.0:
+			return true
+		return every_nth > 1 and (_count + 1) % every_nth == 0 and _now() >= _ready_at
 	if event == "HEAL_BOOST" or event == "HEALED":
+		if spell.tags.has(SpellTags.DELAYED):
+			return false   # a Delayed heal lands later; the fighter's health may have changed by then
 		return below_health > 0.0 and spell.effects.any(func(e): return e and e.would_heal(spell, target))
 	return false
 

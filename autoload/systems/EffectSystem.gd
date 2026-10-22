@@ -83,15 +83,11 @@ func would_combo(spell: SpellData, target: Node) -> bool:
 	for e in spell.effects:
 		if e and e.would_combo(spell, target):
 			return true
-	var heals := spell.effects.any(func(e): return e and e.would_heal(spell, target))
-	if not heals:
-		return false
-	if spell.tags.has(SpellTags.DIRECT) and hc.has_status("ECHO"):
-		return true
 	for rule in active_rules():
 		if rule.would_combo(spell, target):
 			return true
-	return false
+	var heals := spell.effects.any(func(e): return e and e.would_heal(spell, target))
+	return heals and spell.tags.has(SpellTags.DIRECT) and hc.has_status("ECHO")
 
 
 ## A cast just spent mana: if nothing is affordable now, the pool has run dry.

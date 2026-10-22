@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_spelle"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="2_spelld"]
+[ext_resource type="Script" path="res://resources/spells/effects/DelayedHealEffect.gd" id="3_delaye"]
+
+[sub_resource type="Resource" id="Resource_e0"]
+script = ExtResource("3_delaye")
+amount = 40.0
+delay = 3.0
+
+[resource]
+script = ExtResource("2_spelld")
+id = "promise_of_light"
+display_name = "Promise of Light"
+school = "MENDING"
+tags = Array[String](["DELAYED"])
+mana_cost = 14.0
+cast_time = 0.0
+cooldown = 0.0
+effects = Array[ExtResource("1_spelle")]([SubResource("Resource_e0")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = "Help is on the way. Three seconds out."
