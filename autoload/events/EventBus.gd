@@ -34,7 +34,9 @@ signal rule_triggered(kind: String, target: Node)
 signal passive_triggered(spell: SpellData)
 
 ## A burst is telegraphed on a fighter; it lands in `delay` seconds for `damage`.
-signal burst_warned(target: Node, damage: float, delay: float)
+signal burst_warned(target: Node, damage: float, delay: float, label: String)
+## The Crimson Baron fight moved to a new phase (1, 2, 3): banner title and a hint.
+signal boss_phase(phase: int, title: String, hint: String)
 ## A burst landed: `absorbed` went into the shield, `dealt` hit health.
 signal burst_landed(target: Node, absorbed: float, dealt: float)
 

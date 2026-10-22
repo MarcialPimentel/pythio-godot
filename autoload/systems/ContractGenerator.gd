@@ -119,6 +119,15 @@ func generate_boss_contract(round_num: int) -> ContractData:
 	boss_unit.is_boss_unit = true
 	
 	boss.unit_templates = [boss_unit]
+	# His guards: ordinary fighters, so the fight is still triage, not one big health bar.
+	var hp_mult := 1.0 + hp_growth_per_round * (round_num - 1)
+	for i in BossDirector.guards:
+		var g := UnitTemplate.new()
+		g.display_name = "Baron's Guard"
+		g.character = "knight"
+		g.armor_type = "HEAVY"
+		g.base_max_health = roundi(armor_base_hp.get("HEAVY", 100) * hp_mult)
+		boss.unit_templates.append(g)
 	boss.risk_level = 5
 	
 	return boss

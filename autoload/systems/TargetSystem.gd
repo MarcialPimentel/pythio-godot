@@ -99,7 +99,10 @@ func update_all(delta: float) -> void:
 	var base_dps = DifficultySystem.get_base_dps(GameManager.current_round)
 	for target in targets:
 		var dps_mult = DifficultySystem.armor_dps_multipliers.get(target.armor_type, 1.0)
-		target.health_comp.take_damage(base_dps * dps_mult * delta)
+		var dps: float = base_dps * dps_mult
+		if target.is_boss:
+			dps = BossDirector.boss_dps(target)
+		target.health_comp.take_damage(dps * delta)
 		target.health_comp.tick_effects(delta)
 
 
@@ -107,15 +110,21 @@ func update_all(delta: float) -> void:
 
 func _warn_burst() -> void:
 	var busy := pending_bursts.map(func(b): return b.target)
-	var candidates := targets.filter(func(t): return not t.health_comp.is_dead and not busy.has(t))
+	# The Baron's own hits come from BossDirector; random bursts go to everyone else.
+	var candidates := targets.filter(func(t): return not t.health_comp.is_dead and not busy.has(t) and not t.is_boss)
 	if candidates.is_empty():
 		return
 	var target = candidates[randi() % candidates.size()]
 	var damage := DifficultySystem.get_burst_damage(GameManager.current_round, target.armor_type, target.is_boss)
-	var delay := DifficultySystem.burst_telegraph_time
+	telegraph(target, damage, DifficultySystem.burst_telegraph_time, "INCOMING")
+
+
+## Warn that `target` will take a hit of `damage` in `delay` seconds (red ring + label),
+## then land it. Used by random bursts and by the Baron's assassins and execution.
+func telegraph(target: Node, damage: float, delay: float, label: String = "INCOMING") -> void:
 	pending_bursts.append({"target": target, "time_left": delay, "damage": damage})
-	target.pending_burst_time = delay
-	EventBus.burst_warned.emit(target, damage, delay)
+	target.pending_burst_time = maxf(target.pending_burst_time, delay)
+	EventBus.burst_warned.emit(target, damage, delay, label)
 
 
 func _resolve_bursts(delta: float) -> void:

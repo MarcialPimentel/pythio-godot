@@ -93,7 +93,7 @@ func _setup_sprite() -> void:
 	shield_bubble.size = Vector2(maxf(w, h * 0.75) * 1.15, h * 1.08)
 	shield_bubble.position = Vector2((size.x - shield_bubble.size.x) / 2.0, _feet_y - shield_bubble.size.y + 10)
 	if is_boss:
-		status_icons.position.y = _feet_y - h - 40
+		status_icons.position.y = _feet_y - h - 80   # icons above the warning text
 		incoming_label.position.y = _feet_y - h - 40
 
 
@@ -195,10 +195,10 @@ func _on_combo_fired(target, label: String) -> void:
 	tw.tween_property(sprite, "self_modulate", Color.WHITE, 0.5)
 
 
-func _on_burst_warned(target, damage: float, _delay: float) -> void:
+func _on_burst_warned(target, damage: float, _delay: float, label: String) -> void:
 	if target != self:
 		return
-	incoming_label.text = "! INCOMING %d" % roundi(damage)
+	incoming_label.text = "! %s %d" % [label, roundi(damage)]
 
 
 func _on_burst_landed(target, absorbed: float, dealt: float) -> void:

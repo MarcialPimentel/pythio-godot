@@ -16,7 +16,7 @@ func _process(_d):
 	if f == 3:
 		GM = root.get_node("GameManager"); DS = root.get_node("DifficultySystem"); TS = root.get_node("TargetSystem"); EB = root.get_node("EventBus")
 		DS.base_dps = 0.0; DS.dps_growth = 0.0; DS.burst_interval = 1.0
-		EB.burst_warned.connect(func(t, dmg, delay): warned.append([t, dmg, delay, now(), t.incoming_label.text]))
+		EB.burst_warned.connect(func(t, dmg, delay, _l): warned.append([t, dmg, delay, now(), t.incoming_label.text]))
 		EB.burst_landed.connect(func(t, a, d): landed.append([t, a, d, now(), t.health_comp.current_health]))
 		game._on_start_pressed()
 	if f > 3 and phase == 0 and game.party_choice_panel.visible and not GM.in_round:

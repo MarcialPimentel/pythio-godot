@@ -84,6 +84,8 @@ var _build_label: RichTextLabel
 var _passive_tray: HBoxContainer
 var _bandage_label: RichTextLabel
 var _rules_box: VBoxContainer
+var _banner: VBoxContainer
+var _banner_tween: Tween
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
 var _card_mode := ""
 ## Pythio comments on combos, but not every single one.
@@ -133,6 +135,8 @@ func _ready() -> void:
 	_make_passive_tray()
 	_make_bandage_counter()
 	_make_rules_panel()
+	_make_banner()
+	EventBus.boss_phase.connect(_on_boss_phase)
 	SpellSystem.spellbook_changed.connect(_refresh_rules_panel)
 	EventBus.rule_triggered.connect(func(kind, _t): if kind == "exhausted": _flash_exhausted())
 	SpellSystem.spellbook_changed.connect(_refresh_passive_tray)
@@ -313,6 +317,48 @@ func synergy_hint_bb(spell: SpellData) -> String:
 	if lines.is_empty():
 		return ""
 	return "[color=#%s]%s[/color]\n[color=#%s][i]via %s[/i][/color]" % [gold, "\n".join(lines), Color(gold, 0.7).to_html(false), tag_words]
+
+
+# ── Boss phase banner (blood red = danger) ─────────────
+
+func _make_banner() -> void:
+	_banner = VBoxContainer.new()
+	_banner.position = Vector2(360, 672)   # between the fighters and the spell bar
+	_banner.custom_minimum_size = Vector2(1200, 0)
+	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_banner.visible = false
+	var title := Label.new()
+	title.name = "Title"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", load("res://assets/fonts/pirata-one-latin-400-normal.woff2"))
+	title.add_theme_font_size_override("font_size", 64)
+	title.add_theme_color_override("font_color", Color(0.95, 0.22, 0.16))
+	title.add_theme_constant_override("outline_size", 10)
+	title.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	_banner.add_child(title)
+	var hint := Label.new()
+	hint.name = "Hint"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 24)
+	hint.add_theme_constant_override("outline_size", 6)
+	hint.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	_banner.add_child(hint)
+	game_ui.add_child(_banner)
+
+
+func _on_boss_phase(phase: int, title: String, hint: String) -> void:
+	_banner.get_node("Title").text = "%s · %s" % ["I".repeat(phase) if phase < 4 else str(phase), title]
+	_banner.get_node("Hint").text = hint
+	_banner.visible = true
+	_banner.modulate.a = 1.0
+	if _banner_tween:
+		_banner_tween.kill()
+	_banner_tween = create_tween()
+	_banner_tween.tween_interval(2.6)
+	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.6)
+	_banner_tween.tween_callback(func(): _banner.visible = false)
+	if phase == 3:
+		_say("boss", 3.0)
 
 
 # ── Battlefield rules: always on screen, top right ─────
