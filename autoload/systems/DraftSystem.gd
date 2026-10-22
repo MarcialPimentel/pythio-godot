@@ -270,6 +270,27 @@ func swap(old: SpellData, spell: SpellData) -> void:
 	spell_taken.emit(spell)
 
 
+## Debug (F1): put any spell in your build right now. A rank replaces its lower rank; with a
+## full row it replaces the last slot. Marks the run as debug (no leaderboard).
+func debug_take(spell: SpellData) -> void:
+	GameManager.debug_used = true
+	if needs_swap(spell):
+		var row: Array = SpellSystem.passives if spell.is_passive() else SpellSystem.spells
+		SpellSystem.replace_spell(row[row.size() - 1], spell)
+	else:
+		SpellSystem.add_spell(spell)
+	spell_taken.emit(spell)
+
+
+## Debug (F1): back to just your school's starter spell.
+func debug_reset_build() -> void:
+	GameManager.debug_used = true
+	var book: Array[SpellData] = []
+	if current_spec and current_spec.starter:
+		book.append(current_spec.starter)
+	SpellSystem.set_spellbook(book)
+
+
 ## Passes on a pick: a little extra max mana instead.
 func skip() -> void:
 	GameManager.add_bonus_max_mana(skip_bonus_max_mana)

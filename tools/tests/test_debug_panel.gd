@@ -6,6 +6,7 @@ func _initialize():
 	game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child.call_deferred(game)
 func P(s): print("TEST: ", s)
+func DraftSystemNode(): return root.get_node("DraftSystem")
 func press(key: Key):
 	var e := InputEventKey.new(); e.keycode = key; e.pressed = true
 	root.push_input(e)
@@ -33,6 +34,16 @@ func _process(_d):
 			game.party_choice_panel._on_left_chosen(); step = 3; wait = 3
 		3:
 			GM.mana = 10.0; dbg._add_mana(); P("+50 mana: %d" % GM.mana)
+			# Take any spell (#69)
+			var SSn = root.get_node("SpellSystem")
+			P("take-any list: %d entries, first='%s'" % [dbg._spell_pick.item_count, dbg._spell_pick.get_item_text(0)])
+			for id in ["lifebloom", "overgrowth", "renew", "spirit_surge", "bulwark"]:
+				dbg._spell_pick.select(dbg._spell_ids.find(id)); dbg._take_spell()
+			P("RESULT took Lifebloom, Overgrowth, Renew, Spirit Surge (bar full → replaced the last slot), Bulwark: spells=%s passives=%s" % [SSn.spells.map(func(x): return x.id), SSn.passives.map(func(x): return x.id)])
+			dbg._spell_pick.select(dbg._spell_ids.find("rejuvenation")); dbg._take_spell()
+			P("took Rejuvenation (Renew already swapped out, bar full → replaces the last slot): %s" % [SSn.spells.map(func(x): return x.id)])
+			DraftSystemNode().debug_reset_build()
+			P("reset build: %s" % [SSn.spells.map(func(x): return x.id)])
 			dbg._toggle_god(); dbg._target = TS.targets[0]
 			for i in 20: dbg._hit_target()
 			var hc = TS.targets[0].health_comp

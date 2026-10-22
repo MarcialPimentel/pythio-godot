@@ -9,7 +9,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_fighters.gd` | armor roll mix, HP by armor, damage by armor, death ends the run, Play Again |
 | `test_full_run.gd` | endless: round lengths, Baron every 5th round, mana top-up, rounds 1–12, death ends the run, Play Again |
 | `test_bursts.gd` | bursts land after their warning for the right damage, shields absorb them, nothing lands between rounds |
-| `test_debug_panel.gd` | F1 toggles the panel; jump to round, +mana, god mode, hit/heal, skip round; debug runs can't be posted; Play Again starts clean |
+| `test_debug_panel.gd` | F1 toggles the panel; jump to round, +mana, take any spell and reset the build (#69), god mode, hit/heal, skip round; debug runs can't be posted; Play Again starts clean |
 | `test_effects.gd` | every effect and status (heal, neighbours, most injured, heal-over-time, shields incl. heal-on-end, protection, death save, delayed heal, Overgrowth, Echo, Spirit Surge, mana), passive hooks, tag text |
 | `test_picks.gd` | school pick, pick schedule (after rounds 1, 3, 5 …), offer rules (no owned/duplicate spells, one other-school card), rank-ups replace in place, cap → rank-ups only → build complete once, the real school → round → pick → contracts flow |
 | `test_swap.gd` | full spell bar (#67): new spells still offered, "Replace which spell?" screen with Back, the new spell takes the old one's slot and key, rank-ups skip the swap screen, Skip gives +10 max mana that lasts the run, build complete still fires once |
