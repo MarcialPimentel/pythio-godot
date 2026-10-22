@@ -28,17 +28,21 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
   Q–T bar; the two contracts are a non-choice; wants spells to flash when a combo is ready;
   new ideas: bandages, battlefield rules that mirror passives, debuffs needing cleanses,
   effective healing on the leaderboard, raid-size parties later.
-- **Phase C built 2026-10-21 (one PR for the whole phase, awaiting owner review):** fairer
+- **✅ Phase C done 2026-10-21 (PR #57, live, owner playtested):** fairer
   difficulty curve (bot's first deaths ~rounds 6–7, was 3–5) · passive tray (5 spells +
   3 passives) · one "next party" screen · combo-ready glow on spell buttons · bandages
   (Space) · battlefield rules with mirrored passives (Bulwark, Second Wind, Overflow) ·
   effective healing, run summary and a new rounds-then-healing leaderboard (older boards
-  browsable by build with ◀ ▶) · the Crimson
-  Baron fight in three telegraphed phases.
-- **Next up:** owner playtests Phase C → Phase D (debuffs and cleanses, #23, #53).
-- **Waiting on owner:** Phase C review and playtest.
-- **Known rough spots:** stand-in art (new spells reuse 4 icons) · no sound · the old
-  leaderboard file (`leaderboard_godot.json`) is left on the server but no longer read.
+  browsable by build with ◀ ▶, #58 fixed the arrows on the web) · the Crimson Baron
+  fight in three telegraphed phases.
+- **Owner feedback on Phase C (2026-10-21):** likes the gold flash when a passive fires;
+  reaching the Baron is fairly easy and it gets harder from there; bandages are fine for
+  now (maybe a universal spell later, or a consumable if a shop arrives); asked for an
+  Escape menu (#60), "Add a passive" wording on the pick screen (#59), and a later phase
+  for fonts, names and flavour text (Phase G, #61).
+- **Next up:** owner reviews #59 and #60 → Phase D (debuffs and cleanses, #23, #53).
+- **Known rough spots:** stand-in art (new spells reuse 4 icons) · no sound · early rounds
+  may now be on the easy side (watch it as Phase D adds debuffs from round 6).
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
@@ -104,23 +108,23 @@ One bullet ≈ one pull request.
 - ✅ #27 **Remaining spells by school,** including passives and prerequisites.
 - ✅ #28 **Synergy hints on pick cards** and a build summary above the spell bar.
 
-### Phase C: New spells, mechanics and changes (from Phase B playtest)  — 🔶 built, in review (one PR)
-- 🔶 #31 **Difficulty curve:** one more fighter every 2 rounds (cap 8), softer damage
+### Phase C: New spells, mechanics and changes (from Phase B playtest)  — ✅ done 2026-10-21 (PR #57)
+- ✅ #31 **Difficulty curve:** one more fighter every 2 rounds (cap 8), softer damage
   growth; a new player's first deaths around rounds 6–8.
-- 🔶 #49 **Passive tray:** 3 gold slots next to the spell bar (shared with keystones later);
+- ✅ #49 **Passive tray:** 3 gold slots next to the spell bar (shared with keystones later);
   Q–T only for spells you cast.
-- 🔶 #29 **One "next party" screen** instead of two near-identical contracts; the Baron
+- ✅ #29 **One "next party" screen** instead of two near-identical contracts; the Baron
   keeps his own card.
-- 🔶 #50 **Combo-ready glow:** a spell button glows gold when casting it on the hovered
+- ✅ #50 **Combo-ready glow:** a spell button glows gold when casting it on the hovered
   fighter would fire a combo.
-- 🔶 #51 **Bandages:** Space on a hovered fighter channels ~40 healing over ~2.5s; 3 charges
+- ✅ #51 **Bandages:** Space on a hovered fighter channels ~40 healing over ~2.5s; 3 charges
   max, +1 every 2 rounds.
-- 🔶 #52 **Battlefield rules and mirrored passives:** diminishing shields ↔ Bulwark,
+- ✅ #52 **Battlefield rules and mirrored passives:** diminishing shields ↔ Bulwark,
   exhaustion at 0 mana ↔ Second Wind, soft saturation on overheal ↔ Overflow.
-- 🔶 #32 **Effective healing, run summary and leaderboard:** rank by rounds then effective
+- ✅ #32 **Effective healing, run summary and leaderboard:** rank by rounds then effective
   healing; game-over stats (effective healing, overheal %, mitigated, spells, combos);
   a new board for the new scoring; earlier boards stay browsable by build (◀ ▶ arrows).
-- 🔶 #30 **Crimson Baron fight** with telegraphed phases.
+- ✅ #30 **Crimson Baron fight** with telegraphed phases.
 
 ### Phase D: Debuffs and cleanses
 - ⬜ #23 **Debuffs from round 6:** Poison (stacking DoT → Cleanse), Hex (−50% healing taken
@@ -136,13 +140,18 @@ Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 - ⬜ #33 **Basic sound:** casts, combos, bursts, death.
 - ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
 
+### Phase G: Words, names and flair (owner-led)
+- ⬜ #61 **Fonts, spell names, descriptions and flavour:** the owner goes through all
+  on-screen text and adds flair; Claude exports every line into one editable list, then
+  applies the edits in one PR.
+
 ## Backlog (parked on purpose)
 #38 duo spells · #39 rerolls for spell picks · #40 skill tree / meta-progression ·
 #41 pet and positional spells (Decoy, Healing Spirit, Soulbond, Hallowed Ground) ·
 #54 raid mode (10–25 fighters with compact raid frames) · #55 contract choice with reward
 and threat previews ·
 click-casting with mouse button + modifier bindings (the original web game's input model) ·
-gold and a shop · better scoring · difficulty modes · achievements.
+gold and a shop (bandages could become a shop consumable, or a universal spell) · better scoring · difficulty modes · achievements.
 
 ## Open decisions (owner)
 - Decided 2026-10-21: endless rounds; rounds under 30s; 3 specializations; ranks replace
