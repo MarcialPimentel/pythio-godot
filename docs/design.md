@@ -2,8 +2,8 @@
 
 > Copied from the wiki of the original web version (github.com/MarcialPimentel/Pythio/wiki).
 > It describes the **web game** (endless rounds, 27 spells, talents every 5 rounds).
-> The Godot version deliberately differs in places: see "Current direction" in `CLAUDE.md`,
-> which wins wherever the two disagree. Use this document for intent, spell ideas,
+> The Godot version deliberately differs in places: `docs/game-design.md` describes the
+> game as it is now and wins wherever the two disagree. Use this document for intent, spell ideas,
 > synergy ideas and reference numbers.
 
 ---

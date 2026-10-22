@@ -1,6 +1,9 @@
 # Pythio: roadmap
 
-_Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-22. Owner: Marz. Claude works through this list one pull request at a time._
+
+> **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
+> `docs/game-design.md`, which wins over every other design doc.
 
 ## ▶ Where we are (read this first in a new session)
 - **Live:** https://marz.gg/games/pythio/ (deploys automatically when a PR merges into
@@ -40,7 +43,15 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
   now (maybe a universal spell later, or a consumable if a shop arrives); asked for an
   Escape menu (#60), "Add a passive" wording on the pick screen (#59), and a later phase
   for fonts, names and flavour text (Phase G, #61).
-- **Next up:** owner reviews #59 and #60 → Phase D (debuffs and cleanses, #23, #53).
+- **✅ Merged 2026-10-22:** "Add a passive" wording on the pick screen (#59), Escape menu (#60),
+  Phase G added to the roadmap (#62).
+- **Game design doc (2026-10-22):** `docs/game-design.md` is now the single source of truth
+  for what Pythio is; CLAUDE.md, `design-direction.md` and `spells.md` point to it. Owner
+  decisions that came with it: one Next party screen (contract choice stays parked, #55);
+  gold means combos only, so the mana bar changes colour in Phase F (#63); pick pacing is an
+  open question to settle after the Phase D playtest (game-design.md, open questions).
+- **Next up:** Phase D (debuffs and cleanses, #23, #53). Before building it, read open
+  question 1 in `docs/game-design.md` (the round-5 cleanse vs. only 2 picks per run).
 - **Known rough spots:** stand-in art (new spells reuse 4 icons) · no sound · early rounds
   may now be on the easy side (watch it as Phase D adds debuffs from round 6).
 
@@ -49,45 +60,10 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
 "Closes #N", so merging it ticks the issue off and fills the phase's progress bar.
 This file is the plan; GitHub shows the progress.
 
-## The game in one paragraph
-Real-time, high-APM "plate spinning" healing in the style of WoW healer raid frames,
-combined with roguelite build-crafting. Rounds never stop until a fighter dies. You pick
-a school at the start, add a spell every 5 rounds, and the spells you combine (through
-plain-language tags) decide how you play. Every run should tempt you to try a different
-combination next time.
-
-## How builds work (the design spine)
-- **Specialization (run start):** pick 1 of 3 schools, each with its starter spell:
-  **Mending** (Heal, direct heals), **Bloom** (Renew, heals over time),
-  **Ward** (Shield, shields and damage reduction).
-- **Spell picks:** after round 1, then after every 5th round, pick 1 of 3. Offers favour
-  your school and always include one off-school card (splashing is where creative builds
-  come from), and at least one combos with what you own when possible.
-- **Two kinds of slot:** 5 spells you cast (keys Q–T) and **3 passive slots** (a tray next
-  to the spell bar, shared with keystones). The build is complete when both are full and
-  no rank-ups are left; then the run is about how far it goes.
-- **Ranks, not duplicate spells:** Lesser Heal / Heal / Greater Heal are one spell with
-  ranks (Heal I → II → III); likewise Renew → Rejuvenation, Cleanse → Purify. A rank-up
-  appears as a pick option, so "go deeper or go wider?" is a real choice.
-- **Battlefield rules and their mirrors:** the battlefield has rules that reward careful
-  play (diminishing shields, mana exhaustion, soft saturation on overheal). Passives and
-  keystones can flip a rule in your favour (Bulwark, Second Wind, Overflow). Debuffs and
-  buffs are the same kind of thing with the sign flipped.
-- **Bandages:** a panic button on its own resource — Space on a hovered fighter channels a
-  heal; up to 3 charges, +1 every 2 rounds.
-- **Keystones (Phase E):** every 10 rounds, a rule-changing pick that takes a passive slot.
-- **Score:** rounds survived, then effective healing (health restored without overheal +
-  damage absorbed or prevented).
-- **Synergies through plain-language tags** (Balatro-style): spell text names tags like
-  **Direct**, **Heal-over-Time**, **Shield**, **Cleanse**, **Delayed**, **Multi-target**,
-  and combo spells react to any spell with that tag ("Extends your **Heal-over-Time**
-  effects by 5s"). A new spell automatically combines with everything sharing its tag.
-  When a combo fires: golden flash and a dry Pythio quip.
-- **Balance rule:** fast, efficient, big — pick two. Fast spells cost more mana per HP;
-  slow spells are the efficient ones. No spell is better than another on every axis.
-- **Every spell needs a threat that asks for it:** shields ↔ telegraphed spikes,
-  HoTs/Chain Heal ↔ party-wide damage, Cleanse ↔ damage over time, Guardian Angel ↔
-  execute moments. Spells and damage patterns are designed together.
+## The game and how builds work
+Described in **`docs/game-design.md`** (pitch, pillars, loop, schools and picks, tags and
+combos, rules and mirrors, bandages, scaling, the Baron, scoring, controls). Not repeated
+here so the two can't drift apart.
 
 ## Phases
 Each phase ends with a **playtest checkpoint**: Marz plays a few runs and gives feedback.
@@ -139,6 +115,7 @@ One bullet ≈ one pull request.
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 - ⬜ #33 **Basic sound:** casts, combos, bursts, death.
 - ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
+- ⬜ #63 **Mana bar off gold,** so gold only ever means combos (owner, 2026-10-22).
 
 ### Phase G: Words, names and flair (owner-led)
 - ⬜ #61 **Fonts, spell names, descriptions and flavour:** the owner goes through all
@@ -153,13 +130,7 @@ and threat previews ·
 click-casting with mouse button + modifier bindings (the original web game's input model) ·
 gold and a shop (bandages could become a shop consumable, or a universal spell) · better scoring · difficulty modes · achievements.
 
-## Open decisions (owner)
-- Decided 2026-10-21: endless rounds; rounds under 30s; 3 specializations; ranks replace
-  duplicate spells; a spell every 5 rounds, capped; keystones every 10, capped;
-  contracts repurposed; plain-language tags; duo spells, rerolls and skill tree parked;
-  gold/shop post-core.
-- Decided 2026-10-21 (after Phase B playtest): passives get their own 3 slots, shared with
-  keystones; bandages on Space while hovering; the soft overheal rule (next heal weaker);
-  debuffs and cleanses come after Phase C; leaderboard ranks by rounds, then effective
-  healing, on a new board (older boards stay browsable by build); one "next party" screen instead of two contracts; raid mode
-  is a backlog idea.
+## Decisions and open questions
+Recorded in `docs/game-design.md`: owner decisions are marked **[Decided]** in each
+section, and the open questions are in "Open questions for Marz". The reasoning behind the
+2026-10-21 decisions is in `docs/design-direction.md`.

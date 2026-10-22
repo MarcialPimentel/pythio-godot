@@ -1,26 +1,17 @@
-# Pythio: expanded spell list (owner's ideas)
+# Pythio: spell catalog
 
-> The original web game's spell data (exact numbers, input bindings) is in `docs/spells-web.json`.
-> The 2026-10-21 review of these spells (balance, ranks, schools) is in `docs/design-direction.md`.
-> Spell ideas from the owner, for inspiration. Numbers here are the intended baseline.
-> See `docs/roadmap.md` for which spells are in the MVP and how they map to the synergy system.
+> **The spell catalog:** every spell in the game with its real numbers, then the owner's
+> original spell ideas. How spells, tags, picks, passives and rules work is in
+> **`docs/game-design.md`** (sections 4–6), which wins over this file.
+> The original web game's spell data is in `docs/spells-web.json`; the 2026-10-21 balance
+> review is in `docs/design-direction.md`.
 
-## Spells in the game now (Phase C, 2026-10-21)
+## Spells in the game now (after Phase C, 2026-10-22)
 
 The game's real numbers, generated from `resources/spells/*.tres` (edit those files to change a
-spell; the card text is built from them). **Rule: fast, efficient, big — pick two.** Slow casts
-are the mana-efficient ones; instant or big heals cost more per point healed. "HP per mana"
-counts every point of healing/absorb a cast can do (shields count what they absorb).
-
-- **Schools:** you start with Mending (Heal), Bloom (Renew) or Ward (Shield).
-- **Picks:** after round 1, then every 5 rounds, choose 1 of 3. Up to 5 spells you cast
-  (keys Q–T) and 3 passives (their own tray). Ranks replace in place: Heal → Heal II → Heal III,
-  Renew → Rejuvenation, Shield → Shield II.
-- **Combo spells and passives** react to tags and are only offered once you own that tag.
-- **Battlefield rules** everyone plays by (Diminishing shields, Exhaustion, Saturation) are
-  in `resources/rules/`; Bulwark, Second Wind and Overflow are the passives that cancel them.
-- **Bandages** (Space on a hovered fighter) aren't a spell: 40 healing channelled over 2.5s,
-  3 charges, +1 every 2 rounds (`BandageSystem`).
+spell; the card text is built from them). "HP per mana" counts every point of healing/absorb
+a cast can do (shields count what they absorb). When a spell changes, update its row here in
+the same PR.
 
 | Spell | School | Tags | Mana | Cast | Cooldown | What it does | HP per mana |
 |---|---|---|---|---|---|---|---|
@@ -54,7 +45,7 @@ counts every point of healing/absorb a cast can do (shields count what they abso
 | Second Wind | Any school | — | passive | — | — | Cancels Exhaustion: running your mana dry restores 30 mana instead (once every 20s). | — |
 
 ### Not in the game yet
-Keystones (Phase D) · Cleanse / Purify (need damage-over-time, Phase C) · Harmonize, Decoy,
+Cleanse / Purify (Phase D) · Keystones (Phase E) · Harmonize, Decoy,
 Healing Spirit, Soulbond, Hallowed Ground (pets / positioning, parked) · Shadow Strike
 (name doesn't match the effect; rename first) · Vital Bond and Lifebloom follow the reworked
 versions above, not the original wording below.

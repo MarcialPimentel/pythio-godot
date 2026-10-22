@@ -1,7 +1,11 @@
 # Pythio: design direction (2026-10-21)
 
+> **Frozen record.** This is the 2026-10-21 design review: the owner's decisions *and the
+> reasoning behind them*. It isn't updated any more. **What the game is today lives in
+> `docs/game-design.md`, which wins wherever the two disagree.** Points that have since
+> changed are marked *(superseded)* below.
+
 The owner's decisions from the 2026-10-21 design review, and the reasoning behind them.
-These win over `docs/design.md` (the original web game) where they disagree.
 
 ## The feel we're after
 Real-time "plate spinning" healing like WoW healer raid frames: many short decisions,
@@ -21,7 +25,8 @@ casts are deliberate gambles (Divine Channel: stop healing for 5s to get mana ba
 - **Keystones every 10 rounds,** rule-changing, capped.
 - **Contracts are repurposed** to show what you'll get (reward) and what you'll face
   (threat) — the choice is "the fight my build handles, or the harder one with the reward
-  I need."
+  I need." *(Superseded: Phase C replaced contracts with one Next party screen; the
+  reward/threat choice is parked as #55.)*
 
 ## Synergies
 - **Plain-language tags** like Balatro: spell text names tags (**Direct**,
@@ -30,7 +35,8 @@ casts are deliberate gambles (Divine Channel: stop healing for 5s to get mana ba
 - Every spell is good on its own and better with friends — that's how "no bad choice"
   holds up.
 - Combos must be readable at a glance during play (gold glow on the fighter's frame when a
-  combo is ready; gold flash and a quip when it fires).
+  combo is ready; gold flash and a quip when it fires). *(Superseded: the spell button
+  glows instead, WoW proc-style; see the Phase C notes below.)*
 
 ## Spells: what the 2026-10-21 review found
 Efficiency of the original spell list (`spells.json` from the web game):
