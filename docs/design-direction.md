@@ -74,3 +74,39 @@ patterns) are data too.
 
 ## Parked on purpose
 Duo spells · rerolls · skill tree / meta-progression · pets and positional spells.
+
+## After the Phase B playtest (2026-10-21, evening)
+Owner feedback: pleased overall; hard (round 4 so far — fine, but first deaths should come
+after the build starts to click); passives should leave the spell bar; two near-identical
+contracts are a false choice; spells should flash when a combo is ready.
+
+- **Difficulty curve:** a new player's first deaths around rounds 6–8, so they see at least
+  two picks and a combo. Main lever: one more fighter every 2 rounds instead of every round.
+- **Slots:** 5 spells you cast (Q–T) + **3 passive slots** in a separate tray, shared with
+  keystones. A keystone costs you a passive — that keeps "build complete" meaningful.
+- **One "next party" screen** instead of two contracts (a non-choice erodes trust in every
+  other choice). Real contract choices come back when there's something to choose (backlog).
+- **Combo-ready glow:** the readability answer for a high-APM game — the spell to press
+  glows (WoW proc-glow style), worked out from tags.
+- **Bandages:** a panic button on a separate resource from mana — Space on a hovered
+  fighter, channelled, 3 charges max, +1 every 2 rounds.
+- **Battlefield rules ↔ mirrored passives.** Penalties and rewards are the same kind of
+  rule with the sign flipped, built on the passive-rule system:
+
+  | Rule (everyone) | Mirror (a passive or keystone flips it) |
+  |---|---|
+  | Diminishing shields: a 2nd shield on a fighter absorbs less | Bulwark: shields stack fully |
+  | Exhaustion: hitting 0 mana slows regen for a few seconds | Second Wind: hitting 0 mana restores some |
+  | Saturation (soft): overhealing makes the next heal on that fighter weaker briefly | Overflow: overheal becomes a small shield |
+
+  The overheal rule is deliberately soft: a hard "can't be healed" would punish HoTs,
+  Chain Heal and Aura of Mending and fight Mana Conduit.
+- **Score:** rounds survived, then **effective healing** (health restored without overheal +
+  damage absorbed by shields + damage prevented). Effective healing can't exceed the damage
+  taken, so it mostly tracks survival — it's the tie-break; the run summary shows the
+  skill stats (overheal %, mitigated). The leaderboard starts fresh.
+- **Later (Phase D):** debuffs from round 6, each with a different answer — Poison →
+  Cleanse, Hex (−50% healing) → Purify, Bleed → heal above ~80% or bandage. The round-5
+  pick always offers a cleanse, so a run can't be lost to bad luck.
+- **Backlog:** raid mode (10–25 fighters, compact raid frames, groups).
+
