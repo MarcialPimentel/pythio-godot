@@ -11,5 +11,8 @@ func apply(spell: SpellData, target: Node) -> void:
 	if not hots.is_empty():
 		EffectSystem.combo(target, "%s +%ss" % [spell.display_name if spell else "Heal-over-Time", n(seconds)])
 
+func would_combo(_spell: SpellData, target: Node) -> bool:
+	return target.health_comp.has_status("HOT")
+
 func describe() -> String:
 	return "Extends every {HOT} effect on the fighter by %ss." % n(seconds)

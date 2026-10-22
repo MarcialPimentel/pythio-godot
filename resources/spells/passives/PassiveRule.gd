@@ -34,6 +34,10 @@ func on_hot_tick(_target: Node, _amount: float, _status) -> void:
 func on_shield_ended(_target: Node, _status, _broken: bool, _remaining: float) -> void:
 	pass
 
+## True if casting `spell` on `target` right now would make this passive fire (glow).
+func would_combo(_spell: SpellData, _target: Node) -> bool:
+	return false
+
 ## The card text, with {TAG} markers.
 func describe() -> String:
 	return ""

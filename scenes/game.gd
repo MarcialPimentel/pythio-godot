@@ -710,6 +710,22 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(icon)
 
+	# Gold frame that pulses when casting this on the hovered fighter would fire a combo.
+	var glow := Panel.new()
+	glow.name = "Glow"
+	var gs := StyleBoxFlat.new()
+	gs.bg_color = Color(1.0, 0.82, 0.3, 0.12)
+	gs.border_color = Color(1.0, 0.82, 0.3)
+	gs.set_border_width_all(4)
+	gs.set_corner_radius_all(6)
+	gs.shadow_color = Color(1.0, 0.75, 0.2, 0.55)
+	gs.shadow_size = 10
+	glow.add_theme_stylebox_override("panel", gs)
+	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glow.visible = false
+	btn.add_child(glow)
+
 	var cd := ColorRect.new()
 	cd.name = "Cooldown"
 	cd.color = Color(0, 0, 0, 0.65)
@@ -766,6 +782,13 @@ func _update_spell_ui() -> void:
 			continue
 		var castable := SpellSystem.can_cast(spell)
 		btn.disabled = not castable
+		var glow := btn.get_node_or_null("Glow")
+		if glow:
+			var t = SpellSystem.hovered_target
+			var ready := castable and is_instance_valid(t) and EffectSystem.would_combo(spell, t)
+			glow.visible = ready
+			if ready:
+				glow.modulate.a = 0.65 + 0.35 * sin(Time.get_ticks_msec() / 1000.0 * 8.0)
 		var cd := SpellSystem.cooldown_remaining(spell.id)
 		btn.get_node("Cooldown").visible = cd > 0.0
 		btn.get_node("CdText").text = "%d" % ceili(cd) if cd > 0.0 else ""

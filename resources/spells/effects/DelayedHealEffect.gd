@@ -9,5 +9,8 @@ func apply(spell: SpellData, target: Node) -> void:
 	EffectSystem.add_status(target, DelayedHealStatus.new(amount, delay), spell)
 	EffectSystem.effect_applied.emit("delayed", target, amount, "")
 
+func would_heal(_spell: SpellData, _target: Node) -> bool:
+	return true
+
 func describe() -> String:
 	return "After %ss, heals %s." % [n(delay), n(amount)]

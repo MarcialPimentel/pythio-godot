@@ -17,5 +17,11 @@ func apply(spell: SpellData, target: Node) -> void:
 	EffectSystem.combo(target, spell.display_name if spell else "Surge")
 	EffectSystem.heal(target, total * ratio, spell, spell.tags)
 
+func would_combo(_spell: SpellData, target: Node) -> bool:
+	return target.health_comp.shield_amount > 0.0
+
+func would_heal(spell: SpellData, target: Node) -> bool:
+	return would_combo(spell, target)
+
 func describe() -> String:
 	return "Consumes the {SHIELD} effects on this fighter and heals for %d%% of what they had left." % roundi(ratio * 100.0)

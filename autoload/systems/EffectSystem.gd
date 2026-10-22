@@ -65,6 +65,25 @@ func shield_amount(target: Node, amount: float, spell: SpellData) -> float:
 	return amount
 
 
+## Would casting `spell` on `target` right now fire a combo? (Spell buttons glow gold.)
+func would_combo(spell: SpellData, target: Node) -> bool:
+	var hc := _hc(target)
+	if not spell or not hc or hc.is_dead or spell.is_passive():
+		return false
+	for e in spell.effects:
+		if e and e.would_combo(spell, target):
+			return true
+	var heals := spell.effects.any(func(e): return e and e.would_heal(spell, target))
+	if not heals:
+		return false
+	if spell.tags.has(SpellTags.DIRECT) and hc.has_status("ECHO"):
+		return true
+	for rule in active_rules():
+		if rule.would_combo(spell, target):
+			return true
+	return false
+
+
 ## A cast just spent mana: if nothing is affordable now, the pool has run dry.
 func mana_spent() -> void:
 	var cheapest := INF
