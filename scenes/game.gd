@@ -247,17 +247,28 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	party_area.visible = false
 	contract_info.visible = false
 	round_label.text = ("Round %d cleared" % round_cleared) if round_cleared > 0 else "Bonus pick"
-	timer_label.text = "Pick a spell"
 	_card_mode = "spell"
 	_card_options = offers.duplicate()
+	var title := pick_title(_card_options)
+	timer_label.text = title.replace("Add", "Pick")
 	var cards: Array = []
 	for spell in _card_options:
 		cards.append(spell_card(spell))
 	var sub := "Spells %d / %d · Passives %d / %d" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
 		SpellSystem.passives.size(), DraftSystem.passive_cap]
 	sub += " — full: only rank-ups from here." if DraftSystem.is_full() else " — next pick after round %d." % _next_pick_round(round_cleared)
-	card_panel.show_cards("Add a spell", sub, cards)
+	card_panel.show_cards(title, sub, cards)
 	_say("pick", 4.0)
+
+
+## "Add a spell", "Add a passive" or "Add a spell or passive", depending on what's offered.
+static func pick_title(offers: Array) -> String:
+	var passives := offers.filter(func(s): return s.is_passive()).size()
+	if passives == 0:
+		return "Add a spell"
+	if passives == offers.size():
+		return "Add a passive"
+	return "Add a spell or passive"
 
 
 func _next_pick_round(after: int) -> int:
