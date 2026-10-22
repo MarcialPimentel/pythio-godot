@@ -1,58 +1,23 @@
 # Pythio — notes for Claude
 
-## What the game is
-You are a battlefield healer under extreme pressure. Real-time triage / plate-spinning:
-several wounded fighters take continuous damage while a round timer ticks down, and you
-keep every one of them alive with heals, shields and HoTs, a limited mana pool, and
-reactions to telegraphed burst hits. Any death ends the run. Score = rounds survived;
-the game is leaderboard-oriented and replayable. Ported from the web version at
-https://marz.gg/games/pythio/.
+## The game and its design: read `docs/game-design.md` first
+Pythio is real-time, high-APM "plate spinning" healing in the style of WoW raid frames,
+combined with roguelite build-crafting through tag-based spell synergies. Endless rounds;
+any death ends the run.
 
-**Loop (endless):** pick a specialization (Mending / Bloom / Ward) → choose a contract →
-round runs (damage, bursts, mana regen) → survive the timer to advance → … forever, until a
-fighter dies. The Crimson Baron returns every 5th round. After round 1 and then every 5 rounds
-you pick a new spell (5 spells on Q–T + 3 passive slots); later, a keystone every 10 rounds
-(takes a passive slot). Bandages (Space on a hovered fighter) are a panic button with a few
-charges. Score = rounds survived, then effective healing.
-
-## Current direction (owner's decisions — these win over docs/design.md)
-Decided 2026-10-21; full reasoning in `docs/design-direction.md`.
-- **The pitch:** World of Warcraft–style healing (raid frames, high-APM plate spinning,
-  mana as the long game, reading incoming damage) combined with the **spell synergies and
-  build-crafting of a roguelite**. Each run should play differently because of your choices.
-- **Endless rounds.** The 5-round run was a pilot. Rounds stay under 30s.
-- **Spell synergies are a core feature.** They work through **plain-language tags**
-  (Balatro-style): spell text names tags like **Heal-over-Time**, and the same tags decide
-  what interacts. No fixed spell pairs. When choosing between work items, favor the ones
-  that make combos and synergies matter.
-- **Builds:** a specialization at the start, then a new spell every 5 rounds (1 of 3,
-  favoring your school, one off-school card), capped so the build reaches a "complete"
-  point. Duplicate spells are ranks of one spell (Heal I/II/III); rank-ups are pick options.
-- **Balance rule:** fast, efficient, big — pick two.
-- **Battlefield rules ↔ mirrored passives:** penalties for sloppy play (diminishing
-  shields, mana exhaustion, soft saturation on overheal) are rules; passives and keystones
-  can flip them (Bulwark, Second Wind, Overflow). Debuffs and buffs share one rule system.
-- **Parked:** duo spells, rerolls, skill tree / meta-progression, pet and positional spells.
-- **What to work on next:** follow `docs/roadmap.md` (phases, one bullet ≈ one PR, each
-  bullet is a GitHub issue). Spell ideas and baseline numbers: `docs/spells.md`.
-- The original web game's design document is in `docs/design.md`. Use it for intent and
-  ideas only.
-
-**Design pillars** — check every change against these:
-1. Triage pressure — you can never fully keep up; you must prioritize.
-2. Meaningful choices — which spell, which target, when to combo, when to save mana.
-3. Escalating chaos — rounds get harder and more chaotic.
-4. Readable feedback — health bars, telegraphs, mana costs and spell responses stay
-   clear even when things are intense.
-
-**Tone & look:** darkly humorous noir; dry, understated quips from Pythio. Dark,
-high-contrast UI. Accent colors carry meaning: emerald green = heals, electric blue =
-shields, golden yellow = combos / powerful effects, blood red = danger / bursts.
-
-**Combos:** spells react to **tags**, not to fixed partners: Overgrowth extends any
-Heal-over-Time, Echo Healing repeats any Direct heal, Spirit Surge cashes in any Shield,
-passives (Aura of Mending, Vital Bond…) react to tag events. When one fires: gold text,
-gold flash, sometimes a Pythio quip.
+- **`docs/game-design.md` is the single source of truth for what the game is.** Read it
+  before making any design decision, and check every change against its **pillars**
+  (triage pressure, meaningful choices, escalating chaos, readable feedback). It wins over
+  every other design doc. Items marked **[Decided]** are the owner's; **[Proposed]** are
+  Claude's suggestions awaiting his call. When you change how the game works, update the
+  matching section (and its tunables table) in the same PR and add a changelog line.
+- **`docs/roadmap.md` is the work plan:** what to build next, one bullet ≈ one PR ≈ one
+  GitHub issue. Favour work that makes combos and synergies matter.
+- `docs/spells.md` is the spell catalog with real numbers. `docs/design-direction.md` is
+  the frozen record of the 2026-10-21 design review (the *why*). `docs/design.md` is the
+  original web game's doc: ideas only.
+- Act as a game design veteran: push back when something weakens a pillar and suggest a
+  better option. The owner makes the final call.
 
 ## Tech
 - Godot **4.3**, GDScript, GL Compatibility renderer.
@@ -109,13 +74,13 @@ game launching and playable. Before opening a PR:
   phase**, with one commit per roadmap issue, and the PR closes all of them.
 - The owner approves in chat by saying **"merge #N"**; Claude merges only the PR named.
   Merging to `master` deploys to https://marz.gg/games/pythio/ automatically.
-- Start a new session by reading `docs/roadmap.md` → "Where we are". Keep that section
-  current at the end of each batch of work.
+- Start a new session by reading `docs/roadmap.md` → "Where we are", then
+  `docs/game-design.md`. Keep "Where we are" current at the end of each batch of work.
 - Testing without a screen: `godot --headless --script <test>.gd` drives the game; real
   screenshots via `xvfb-run godot --rendering-driver opengl3 --script <shot>.gd`.
 
 ## Working rules
-- One feature or fix per pull request, on its own branch. Never push to `main`.
+- One feature or fix per pull request, on its own branch. Never push to `master` directly.
 - Keep file names' capitalization consistent with how they're referenced (the game must
   run on Windows, Mac and Linux).
 - Prefer EventBus signals over systems calling each other directly.
