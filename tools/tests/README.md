@@ -16,6 +16,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_passives.gd` | Seraphic Blessing, Aura of Mending, Vital Bond (incl. no chaining), Mana Conduit; Binding Heal, Healing Plague, Guardian Angel, Time Stop, Divine Channel with real casts |
 | `test_synergy.gd` | "Combos with your …" hints on pick cards, at least one offer combos with your spellbook when possible, build summary above the spell bar |
 | `test_bandages.gd` | Space on a hovered fighter channels 40 healing over 2.5s, no casting meanwhile, Space between rounds doesn't spend one, death cancels, +1 charge every 2 rounds (max 3) |
+| `test_rules.gd` | battlefield rules and mirrors: Diminishing shields ↔ Bulwark, Exhaustion ↔ Second Wind, Saturation ↔ Overflow (HoT ticks never saturate), rules panel shows what's cancelled |
 | `screenshots.gd` | saves real screenshots of start, contract choice, boss, game over |
 
 ```bash
@@ -28,6 +29,7 @@ godot --headless --script tools/tests/test_combos.gd
 godot --headless --script tools/tests/test_passives.gd
 godot --headless --script tools/tests/test_synergy.gd
 godot --headless --script tools/tests/test_bandages.gd
+godot --headless --script tools/tests/test_rules.gd
 godot --headless --script tools/tests/test_debug_panel.gd
 timeout 180 godot --headless --script tools/tests/test_full_run.gd   # fast-forwarded; quits on its own after Play Again
 # screenshots need a (virtual) display:

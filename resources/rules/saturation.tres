@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SaturationRule" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/passives/SaturationRule.gd" id="1_fi4hj"]
+
+[resource]
+script = ExtResource("1_fi4hj")
+overheal_threshold = 8.0
+weaker_by = 0.3
+seconds = 3.0
+rule_id = "saturation"
+rule_name = "Saturation"
+negates = PackedStringArray()

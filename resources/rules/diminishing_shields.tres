@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DiminishingShieldsRule" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/passives/DiminishingShieldsRule.gd" id="1_s1ysc"]
+
+[resource]
+script = ExtResource("1_s1ysc")
+factor = 0.5
+rule_id = "diminishing_shields"
+rule_name = "Diminishing shields"
+negates = PackedStringArray()

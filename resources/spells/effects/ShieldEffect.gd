@@ -8,8 +8,9 @@ extends SpellEffect
 @export var heal_on_end: float = 0.0
 
 func apply(spell: SpellData, target: Node) -> void:
-	EffectSystem.add_status(target, ShieldStatus.new(amount, duration, heal_on_end), spell)
-	EffectSystem.effect_applied.emit("shield", target, amount, "")
+	var final := EffectSystem.shield_amount(target, amount, spell)
+	EffectSystem.add_status(target, ShieldStatus.new(final, duration, heal_on_end), spell)
+	EffectSystem.effect_applied.emit("shield", target, final, "")
 
 func describe() -> String:
 	var s := "Absorbs the next %s damage for %ss." % [n(amount), n(duration)]

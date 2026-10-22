@@ -20,6 +20,9 @@ var regen_rate: float = 4.0
 var last_run_won: bool = false
 ## Set when the F1 debug panel changes anything; such runs can't be posted online.
 var debug_used: bool = false
+## Exhaustion (battlefield rule): mana refills slower while this counts down.
+var exhausted_time: float = 0.0
+var exhausted_regen_factor: float = 1.0
 var god_mode: bool = false
 
 func _ready() -> void:
@@ -33,6 +36,7 @@ func new_game() -> void:
 	max_mana = DifficultySystem.max_mana_base
 	regen_rate = DifficultySystem.regen_rate_base
 	in_round = false
+	exhausted_time = 0.0
 	round_time = DifficultySystem.get_round_time(current_round)
 	DraftSystem.reset()
 	show_spec_choice.emit()
@@ -79,11 +83,24 @@ func _after_round(round_cleared: int) -> void:
 func spend_mana(cost: float) -> bool:
 	if mana >= cost:
 		mana -= cost
+		if cost > 0.0:
+			EffectSystem.mana_spent()
 		return true
 	return false
 
 func regen_mana(delta: float) -> void:
-	mana = minf(max_mana, mana + regen_rate * delta)
+	var rate := regen_rate
+	if exhausted_time > 0.0:
+		exhausted_time -= delta
+		rate *= exhausted_regen_factor
+	mana = minf(max_mana, mana + rate * delta)
+
+
+## Exhaustion: mana refills at `factor` speed for `seconds`.
+func exhaust(seconds: float, factor: float) -> void:
+	exhausted_time = maxf(exhausted_time, seconds)
+	exhausted_regen_factor = factor
+	EventBus.rule_triggered.emit("exhausted", null)
 
 func save_high_score() -> void:
 	if debug_used:

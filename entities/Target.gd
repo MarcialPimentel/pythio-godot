@@ -45,6 +45,7 @@ var _icon_shield: TextureRect
 var _icon_danger: TextureRect
 var _icon_protect: TextureRect
 var _icon_delayed: TextureRect
+var _icon_saturated: TextureRect
 
 
 func _ready() -> void:
@@ -71,6 +72,7 @@ func _ready() -> void:
 	EventBus.burst_warned.connect(_on_burst_warned)
 	EventBus.burst_landed.connect(_on_burst_landed)
 	EventBus.combo_fired.connect(_on_combo_fired)
+	EventBus.rule_triggered.connect(_on_rule_triggered)
 
 	hp_bar.max_value = health_comp.max_health
 	shield_bar.max_value = health_comp.max_health
@@ -101,6 +103,7 @@ func _setup_status_icons() -> void:
 	_icon_danger = _make_status_icon("ui/icons/status_debuff_1.png")
 	_icon_protect = _make_status_icon("ui/icons/status_buff_4.png")
 	_icon_delayed = _make_status_icon("ui/icons/status_buff_2.png")
+	_icon_saturated = _make_status_icon("ui/icons/status_debuff_2.png")
 
 
 func _make_status_icon(path: String) -> TextureRect:
@@ -170,6 +173,15 @@ func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: S
 		"delayed":
 			if value > 0.0:
 				_float_text("Blooms soon", FLOAT_HEAL, 0.8)
+
+
+## A battlefield rule bit this fighter: a muted grey word so you learn why.
+func _on_rule_triggered(kind: String, target) -> void:
+	if target != self:
+		return
+	match kind:
+		"diminished": _float_text("Diminished", Color(0.62, 0.66, 0.75), 0.75, 30.0)
+		"saturated": _float_text("Saturated", Color(0.72, 0.68, 0.62), 0.75, 30.0)
 
 
 ## A synergy fired on this fighter: gold flash, gold burst and the combo's name.
@@ -264,6 +276,7 @@ func _process(delta: float) -> void:
 		shield_bubble.modulate.a = 0.75 + 0.2 * sin(t * 3.0)
 	_icon_protect.visible = not dead and (health_comp.has_status("PROTECT") or health_comp.has_status("SAVE"))
 	_icon_delayed.visible = not dead and (health_comp.has_status("DELAYED") or health_comp.has_status("ECHO"))
+	_icon_saturated.visible = not dead and health_comp.has_status("SATURATED")
 	if has_hot:
 		var longest: Status = null
 		for s in health_comp.get_statuses("HOT"):

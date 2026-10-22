@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_0i8e1"]
+[ext_resource type="Script" path="res://resources/spells/passives/SecondWindRule.gd" id="2_w052a"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_8autf"]
+
+[sub_resource type="Resource" id="Resource_c1fpo"]
+script = ExtResource("2_w052a")
+mana = 30.0
+cooldown = 20.0
+rule_id = ""
+rule_name = ""
+negates = PackedStringArray("exhaustion")
+
+[resource]
+script = ExtResource("3_8autf")
+id = "second_wind"
+display_name = "Second Wind"
+school = "ANY"
+tags = Array[String]([])
+mana_cost = 0.0
+cast_time = 0.0
+cooldown = 0.0
+effects = Array[ExtResource("1_0i8e1")]([])
+passive = SubResource("Resource_c1fpo")
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = "Empty is just a feeling."

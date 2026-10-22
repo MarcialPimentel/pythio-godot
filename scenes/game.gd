@@ -83,6 +83,7 @@ var card_panel: Control
 var _build_label: RichTextLabel
 var _passive_tray: HBoxContainer
 var _bandage_label: RichTextLabel
+var _rules_box: VBoxContainer
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
 var _card_mode := ""
 ## Pythio comments on combos, but not every single one.
@@ -131,6 +132,9 @@ func _ready() -> void:
 	SpellSystem.spellbook_changed.connect(_update_build_summary)
 	_make_passive_tray()
 	_make_bandage_counter()
+	_make_rules_panel()
+	SpellSystem.spellbook_changed.connect(_refresh_rules_panel)
+	EventBus.rule_triggered.connect(func(kind, _t): if kind == "exhausted": _flash_exhausted())
 	SpellSystem.spellbook_changed.connect(_refresh_passive_tray)
 	EventBus.passive_triggered.connect(_pulse_passive)
 	DraftSystem.spec_chosen.connect(func(_s): _update_build_summary())
@@ -311,6 +315,52 @@ func synergy_hint_bb(spell: SpellData) -> String:
 	return "[color=#%s]%s[/color]\n[color=#%s][i]via %s[/i][/color]" % [gold, "\n".join(lines), Color(gold, 0.7).to_html(false), tag_words]
 
 
+# ── Battlefield rules: always on screen, top right ─────
+
+func _make_rules_panel() -> void:
+	_rules_box = VBoxContainer.new()
+	_rules_box.position = Vector2(1530, 28)
+	_rules_box.custom_minimum_size = Vector2(370, 0)
+	_rules_box.add_theme_constant_override("separation", 2)
+	game_ui.add_child(_rules_box)
+	_refresh_rules_panel()
+
+
+func _refresh_rules_panel() -> void:
+	if not _rules_box:
+		return
+	for c in _rules_box.get_children():
+		_rules_box.remove_child(c)
+		c.queue_free()
+	var title := _slot_label("RulesTitle", "BATTLEFIELD RULES", 15, Color(0.95, 0.35, 0.3, 0.85), Vector2.ZERO, HORIZONTAL_ALIGNMENT_RIGHT)
+	title.custom_minimum_size = Vector2(370, 20)
+	title.mouse_filter = Control.MOUSE_FILTER_PASS
+	title.tooltip_text = "Rules everyone plays by. Some passives cancel a rule (shown in gold)."
+	_rules_box.add_child(title)
+	for rule in EffectSystem.battlefield_rules:
+		var line := RichTextLabel.new()
+		line.bbcode_enabled = true
+		line.fit_content = true
+		line.scroll_active = false
+		line.custom_minimum_size = Vector2(370, 0)
+		line.add_theme_font_size_override("normal_font_size", 17)
+		line.add_theme_font_size_override("bold_font_size", 17)
+		var by := EffectSystem.cancelled_by(rule.rule_id)
+		if by:
+			line.text = "[right][color=#6f6a63][s]%s[/s][/color]  [color=#ffd24d]→ %s[/color][/right]" % [rule.rule_name, by.display_name]
+			line.tooltip_text = "%s is cancelled by your %s:\n%s" % [rule.rule_name, by.display_name, by.description_plain()]
+		else:
+			line.text = "[right][color=#d9d2c5]%s[/color][/right]" % rule.rule_name
+			line.tooltip_text = "%s: %s" % [rule.rule_name, SpellTags.fill_plain(rule.describe())]
+		_rules_box.add_child(line)
+
+
+func _flash_exhausted() -> void:
+	var tw := create_tween()
+	mana_bar.modulate = Color(0.55, 0.55, 0.6)
+	tw.tween_property(mana_bar, "modulate", Color.WHITE, 0.6)
+
+
 # ── Bandages: counter by the mana bar, cast bar while channelling ──
 
 func _make_bandage_counter() -> void:
@@ -376,6 +426,7 @@ func _refresh_passive_tray() -> void:
 	if not _passive_tray:
 		return
 	for c in _passive_tray.get_children():
+		_passive_tray.remove_child(c)
 		c.queue_free()
 	for i in SpellSystem.PASSIVE_SLOTS:
 		var slot := Panel.new()
@@ -569,6 +620,8 @@ func _update_mana_bar() -> void:
 	mana_bar.max_value = GameManager.max_mana
 	mana_bar.value = GameManager.mana
 	mana_label.text = "%d / %d" % [int(GameManager.mana), int(GameManager.max_mana)]
+	if GameManager.exhausted_time > 0.0 and GameManager.in_round:
+		mana_label.text += "   EXHAUSTED %.0fs" % ceilf(GameManager.exhausted_time)
 	var frac := GameManager.mana / maxf(1.0, GameManager.max_mana)
 	var orb := clampi(int(ceil(frac * 4.0)), 1, 4)
 	var tex = load(ART + "ui/bars/mana_orb_%d.png" % orb)

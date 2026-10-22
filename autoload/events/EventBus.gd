@@ -26,6 +26,8 @@ signal shield_absorbed(target: Node, amount: float)
 signal shield_ended(target: Node, status, broken: bool, remaining: float)
 ## A synergy fired on a fighter (gold flash + label, e.g. "Echo").
 signal combo_fired(target: Node, label: String)
+## A battlefield rule bit: "diminished" (shield), "saturated" (fighter), "exhausted" (mana).
+signal rule_triggered(kind: String, target: Node)
 ## A passive just took effect (the tray slot pulses).
 signal passive_triggered(spell: SpellData)
 
