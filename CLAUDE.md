@@ -39,9 +39,11 @@ any death ends the run.
   (`resources/spells/passives/PassiveRule.gd`) and announces events on `EventBus`
   (healed, hot_ticked, shield_absorbed, shield_ended, combo_fired …).
 - Add a spell = a new `.tres` in `resources/spells/` built from existing effects; a new
-  mechanic = a new effect/status/passive class. Ranks share `rank_family`.
-- `DraftSystem` owns the school pick, the pick schedule, offers, the caps (5 spells + 3
-  passives) and rank-ups.
+  passive = a `.tres` whose `passive` is a `TagTriggerRule` (when event + tags → do action
+  to who; see `docs/game-design.md` section 6). A new *kind* of effect or trigger event is
+  code. Ranks share `rank_family`.
+- `DraftSystem` owns the school pick, the pick schedule, offers (school and tag weighting),
+  the caps (4 spells + 3 passives), rank-ups, swaps and Skip.
 - **Battlefield rules** are `PassiveRule`s in `resources/rules/`, active for everyone unless a
   passive you own lists their `rule_id` in `negates`. `EffectSystem.active_rules()` = rules
   in force + your passives. Effects and passives can answer `would_combo()` (spell glow).

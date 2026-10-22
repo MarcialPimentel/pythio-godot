@@ -57,8 +57,15 @@ _Last updated: 2026-10-22 (direction update). Owner: Marz. Claude works through 
   the bandage), and a big spell pool made easy to grow through tags. Phases reordered:
   **D faster builds and more spells → E keystones → F debuffs and cleanse → G readability →
   H words.** Details: `docs/game-design.md` (sections 1, 4, 7, 9, 12).
-- **Next up:** Phase D, starting with #65 (passives as data), then #66 (picks every other
-  round, 4 keys).
+- **✅ Phase D built 2026-10-22 (one PR, one commit per issue #65–#70), waiting for the owner's
+  playtest:** passives are data (generic tag trigger) · picks after rounds 1, 3, 5, 7 … ·
+  4 spell keys (Q–R) · full bar: swap, upgrade or Skip (+10 max mana) · offers lean toward
+  your tags · F1 "take any spell" · spell batch 2: Protection tag, Promise of Light, Hasten,
+  Tranquility, Aegis of Light, Ripening, Lingering Light, Rising Tide, Sanctuary, Watchful
+  Eye (37 entries). Bot check: first deaths still around rounds 6–8 (a little later for Bloom).
+  The leaderboard board didn't change (scoring is the same: rounds, then effective healing).
+- **Next up:** owner playtests Phase D and answers the open questions in
+  `docs/game-design.md` (section 14) → Phase E (keystones after each Baron, #37).
 - **Known rough spots:** stand-in art (new spells reuse 4 icons) · no sound · early rounds
   may now be on the easy side (re-check when picks speed up in Phase D, and when debuffs arrive in Phase F).
 
@@ -109,16 +116,16 @@ One bullet ≈ one pull request.
   a new board for the new scoring; earlier boards stay browsable by build (◀ ▶ arrows).
 - ✅ #30 **Crimson Baron fight** with telegraphed phases.
 
-### Phase D: Faster builds and more spells (decided 2026-10-22)
-- ⬜ #65 **Passives as data:** one generic tag trigger, so most passives and keystones are
+### Phase D: Faster builds and more spells — ✅ built 2026-10-22 (awaiting playtest)
+- ✅ #65 **Passives as data:** one generic tag trigger, so most passives and keystones are
   numbers in a `.tres` file. Existing passives rebuilt on it, same numbers.
-- ⬜ #66 **Picks every other round** (after 1, 3, 5, 7 …) and **4 spell keys (Q–R)**;
+- ✅ #66 **Picks every other round** (after 1, 3, 5, 7 …) and **4 spell keys (Q–R)**;
   re-check the difficulty curve with the bot.
-- ⬜ #67 **Full spell bar: swap, upgrade or skip** (proposed; owner open to either way).
-- ⬜ #68 **Offers weighted toward the tags you own.**
-- ⬜ #69 **Debug: take any spell** (F1).
-- ⬜ #70 **Spell batch 2:** more spells and passives from tags, incl. payoffs for Delayed and
-  Multi-target; owner reviews the list first.
+- ✅ #67 **Full spell bar: swap, upgrade or skip** (proposed; owner open to either way).
+- ✅ #68 **Offers weighted toward the tags you own.**
+- ✅ #69 **Debug: take any spell** (F1).
+- ✅ #70 **Spell batch 2:** more spells and passives from tags, incl. payoffs for Delayed and
+  Multi-target; owner reviews them in the Phase D playtest (he asked for the whole phase built).
 
 ### Phase E: Keystones
 - ⬜ #37 **Keystones after each Baron** (rounds 5, 10, 15; max 3), 1 of 3, in their own 3
