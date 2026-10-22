@@ -109,6 +109,8 @@ func take_damage(amount: float) -> Dictionary:
 	for p in get_statuses("PROTECT"):
 		incoming *= 1.0 - (p as ProtectStatus).reduction
 	result.prevented = amount - incoming
+	if result.prevented > 0.0:
+		EventBus.damage_prevented.emit(fighter(), result.prevented)
 
 	if incoming > 0.0:
 		for s in get_statuses("SHIELD"):

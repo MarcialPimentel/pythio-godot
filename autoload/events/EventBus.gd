@@ -22,6 +22,8 @@ signal spell_cast(spell: SpellData, target: Node)
 signal healed(target: Node, amount: float, overheal: float, spell: SpellData, tags: Array)
 signal hot_ticked(target: Node, amount: float, status)
 signal shield_absorbed(target: Node, amount: float)
+## Damage that protection (Divine Protection, Time Stop) stopped.
+signal damage_prevented(target: Node, amount: float)
 ## A shield ended: `broken` = used up by damage, otherwise it faded.
 signal shield_ended(target: Node, status, broken: bool, remaining: float)
 ## A synergy fired on a fighter (gold flash + label, e.g. "Echo").

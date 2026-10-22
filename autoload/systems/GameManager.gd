@@ -13,7 +13,8 @@ var current_round: int = 1
 var round_time: float
 var in_round: bool = false
 var score: int = 0
-var high_score: int = 0
+var best_rounds: int = 0
+var best_healing: int = 0
 var mana: float = 100.0
 var max_mana: float = 100.0
 var regen_rate: float = 4.0
@@ -55,15 +56,15 @@ func end_round(success: bool) -> void:
 		EventBus.round_cleared.emit(current_round)
 	else:
 		last_run_won = false
-		game_over.emit(current_round, score)
 		save_high_score()
+		game_over.emit(current_round, score)
 		return
 	
 	current_round += 1
 	if not DifficultySystem.is_endless() and current_round > DifficultySystem.total_rounds:
 		last_run_won = true
-		game_over.emit(DifficultySystem.total_rounds, score)
 		save_high_score()
+		game_over.emit(DifficultySystem.total_rounds, score)
 	else:
 		round_time = DifficultySystem.get_round_time(current_round)
 		max_mana = DifficultySystem.get_max_mana(current_round)
@@ -102,19 +103,36 @@ func exhaust(seconds: float, factor: float) -> void:
 	exhausted_regen_factor = factor
 	EventBus.rule_triggered.emit("exhausted", null)
 
+## Best run on this device: most rounds survived, then most effective healing.
 func save_high_score() -> void:
 	if debug_used:
 		return
-	if score > high_score:
-		high_score = score
+	var r := rounds_survived()
+	var h := RunStats.effective_healing()
+	if r > best_rounds or (r == best_rounds and h > best_healing):
+		best_rounds = r
+		best_healing = h
 		var config = ConfigFile.new()
-		config.set_value("scores", "high", high_score)
+		config.set_value("best", "rounds", best_rounds)
+		config.set_value("best", "healing", best_healing)
 		config.save("user://highscore.cfg")
 
 func load_high_score() -> void:
 	var config = ConfigFile.new()
 	if config.load("user://highscore.cfg") == OK:
-		high_score = config.get_value("scores", "high", 0)
+		best_rounds = config.get_value("best", "rounds", 0)
+		best_healing = config.get_value("best", "healing", 0)
+
+
+## Rounds fully survived in the current/last run.
+func rounds_survived() -> int:
+	return maxi(0, current_round - 1)
+
+
+func best_text() -> String:
+	if best_rounds <= 0 and best_healing <= 0:
+		return "Best: no runs yet"
+	return "Best: %d rounds · %s healing" % [best_rounds, RunStats.fmt(best_healing)]
 
 
 # ── Debug panel helpers (F1) ───────────────────────────

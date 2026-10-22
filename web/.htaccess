@@ -14,6 +14,6 @@ AddType application/octet-stream .pck
 </IfModule>
 
 # Don't let anyone download the raw leaderboard data file.
-<Files "leaderboard_godot.json">
+<FilesMatch "^leaderboard_godot.*\.json$">
   Require all denied
-</Files>
+</FilesMatch>

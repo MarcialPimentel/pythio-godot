@@ -126,8 +126,8 @@ func _ready() -> void:
 	_build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_label.add_theme_font_size_override("normal_font_size", 18)
 	_build_label.add_theme_font_size_override("bold_font_size", 18)
-	_build_label.position = Vector2(560, 812)
-	_build_label.size = Vector2(800, 30)
+	_build_label.position = Vector2(460, 812)
+	_build_label.size = Vector2(1000, 30)
 	game_ui.add_child(_build_label)
 	SpellSystem.spellbook_changed.connect(_update_build_summary)
 	_make_passive_tray()
@@ -152,7 +152,7 @@ func _ready() -> void:
 	quip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	quip_label.size = Vector2(quip_bubble.size.x - 84, quip_bubble.size.y - 60)
 
-	score_label.text = "High Score: %d" % GameManager.high_score
+	score_label.text = GameManager.best_text()
 	game_ui.visible = false
 	cast_bar.visible = false
 	party_choice_panel.visible = false
@@ -492,9 +492,9 @@ func _update_build_summary() -> void:
 	for t in SpellTags.ALL:
 		if counts.has(t):
 			parts.append("%s ×%d" % [SpellTags.bb(t), counts[t]])
-	parts.append("[color=#a9a39a]%d / %d spells · %d / %d passives[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
+	parts.append("[color=#a9a39a]%d/%d spells · %d/%d passives[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
 		SpellSystem.passives.size(), DraftSystem.passive_cap])
-	_build_label.text = "[center]%s[/center]" % "   ·   ".join(parts)
+	_build_label.text = "[center]%s[/center]" % "  ·  ".join(parts)
 
 
 # ── Rounds & contracts ─────────────────────────────────
@@ -845,6 +845,16 @@ func _on_start_pressed() -> void:
 	GameManager.new_game()
 
 
+## The game-over stats: rounds, effective healing and the skill numbers behind it.
+func run_summary() -> String:
+	var spells := ", ".join(SpellSystem.spells.map(func(s): return s.display_name))
+	var passives := ", ".join(SpellSystem.passives.map(func(s): return s.display_name))
+	return "Rounds survived: %d   ·   Effective healing: %s\nOverheal %d%%  ·  Mitigated %s  ·  Combos %d  ·  Bandages %d\n%s%s" % [
+		GameManager.rounds_survived(), RunStats.fmt(RunStats.effective_healing()),
+		RunStats.overheal_percent(), RunStats.fmt(RunStats.mitigated()), RunStats.combos, RunStats.bandages,
+		spells, ("  |  " + passives) if passives != "" else ""]
+
+
 func _on_game_over(round_reached: int, final_score: int) -> void:
 	party_choice_panel.visible = false
 	card_panel.close()
@@ -855,10 +865,10 @@ func _on_game_over(round_reached: int, final_score: int) -> void:
 		_set_pose("victory", 99.0)
 		_say("victory", 6.0)
 	else:
-		final_score_label.text = "%s didn't make it in round %d.\nRounds survived: %d.  Score: %d" % [fallen_name if fallen_name != "" else "Someone", round_reached, round_reached - 1, final_score]
-	score_label.text = "High Score: %d" % GameManager.high_score
+		final_score_label.text = "%s didn't make it in round %d.\n%s" % [fallen_name if fallen_name != "" else "Someone", round_reached, run_summary()]
+	score_label.text = GameManager.best_text()
 	# Leaderboard entry
-	_last_run = {"score": final_score, "round": maxi(1, round_reached), "won": GameManager.last_run_won}
+	_last_run = {"rounds": GameManager.rounds_survived(), "healing": RunStats.effective_healing()}
 	name_edit.text = Leaderboard.load_player_name()
 	submit_button.disabled = false
 	name_edit.editable = true
@@ -878,7 +888,7 @@ func _on_submit_pressed() -> void:
 	submit_button.disabled = true
 	name_edit.editable = false
 	submit_status.text = "Posting…"
-	Leaderboard.submit(player, _last_run.score, _last_run.round, _last_run.won)
+	Leaderboard.submit(player, _last_run.rounds, _last_run.healing)
 
 
 func _on_score_submitted(ok: bool, rank: int, entries: Array, message: String) -> void:
@@ -903,9 +913,8 @@ func _show_leaderboard(ok: bool, entries: Array) -> void:
 		var gold := Color(0.95, 0.78, 0.35) if i == 0 else Color(0.9, 0.87, 0.8)
 		_lb_cell("%d." % (i + 1), gold)
 		_lb_cell(str(e.get("name", "?")), gold, true)
-		_lb_cell(str(int(e.get("score", 0))), gold)
-		_lb_cell("WON" if e.get("won", false) else "R%d" % int(e.get("round", 0)),
-			Color(0.45, 0.9, 0.4) if e.get("won", false) else Color(0.6, 0.58, 0.55))
+		_lb_cell("R%d" % int(e.get("rounds", 0)), gold)
+		_lb_cell(RunStats.fmt(int(e.get("healing", 0))), Color(0.6, 0.58, 0.55))
 
 
 func _lb_cell(text: String, color: Color, expand := false) -> void:

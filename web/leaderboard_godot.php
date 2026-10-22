@@ -4,13 +4,19 @@
 //   POST leaderboard_godot.php?action=submit  (JSON)  -> adds ONE entry, returns top 10 + your rank
 // Unlike the old leaderboard.php, the game can't overwrite the whole list: the server
 // validates each entry, keeps the best scores itself, and limits how fast an address can post.
+// Ranking (2026-10-21): most rounds survived, then most effective healing (health restored
+// without overheal + damage absorbed or prevented). This board started fresh: the old
+// round-based scores stay in leaderboard_godot.json and are no longer read.
 header("Content-Type: application/json");
 header("Cache-Control: no-store");
 
-const DATA_FILE = __DIR__ . "/leaderboard_godot.json";
+const DATA_FILE = __DIR__ . "/leaderboard_godot_v2.json";
 const KEEP = 100;          // entries stored
 const SHOW = 10;           // entries returned
 const MAX_ROUND = 1000;    // endless runs; sanity cap only
+// Effective healing can't exceed the damage the party took; damage per round grows with the
+// round, so cap generously by round: 4000 per round plus 400 x rounds^2.
+function max_healing($rounds) { return 4000 * max(1, $rounds) + 400 * $rounds * $rounds; }
 const MIN_SECONDS_BETWEEN_POSTS = 10;
 
 function respond($code, $payload) { http_response_code($code); echo json_encode($payload); exit; }
@@ -23,15 +29,15 @@ function load_data() {
 
 function sort_entries(&$entries) {
     usort($entries, function ($a, $b) {
-        if ($a["score"] !== $b["score"]) return $b["score"] - $a["score"];
-        if ($a["round"] !== $b["round"]) return $b["round"] - $a["round"];
+        if ($a["rounds"] !== $b["rounds"]) return $b["rounds"] - $a["rounds"];
+        if ($a["healing"] !== $b["healing"]) return $b["healing"] - $a["healing"];
         return strcmp($a["date"], $b["date"]);   // earlier run wins ties
     });
 }
 
 function public_entries($entries) {
-    return array_map(fn($e) => ["name" => $e["name"], "score" => $e["score"], "round" => $e["round"],
-                                "won" => $e["won"], "date" => substr($e["date"], 0, 10)],
+    return array_map(fn($e) => ["name" => $e["name"], "rounds" => $e["rounds"], "healing" => $e["healing"],
+                                "date" => substr($e["date"], 0, 10)],
                      array_slice($entries, 0, SHOW));
 }
 
@@ -52,12 +58,9 @@ if ($action === "submit" && $_SERVER["REQUEST_METHOD"] === "POST") {
     $name = substr($name, 0, 16);
     if ($name === "") respond(400, ["status" => "error", "message" => "Enter a name"]);
 
-    $round = (int)($in["round"] ?? 0);
-    $score = (int)($in["score"] ?? -1);
-    $won = (bool)($in["won"] ?? false);
-    // Score is 100 x each round survived, so it can't exceed 100 * (1 + 2 + ... + round)
-    $max_score = 50 * $round * ($round + 1);
-    if ($round < 1 || $round > MAX_ROUND || $score < 0 || $score > $max_score)
+    $rounds = (int)($in["rounds"] ?? -1);
+    $healing = (int)($in["healing"] ?? -1);
+    if ($rounds < 0 || $rounds > MAX_ROUND || $healing < 0 || $healing > max_healing($rounds))
         respond(400, ["status" => "error", "message" => "Score out of range"]);
 
     $fp = fopen(DATA_FILE, "c+");
@@ -77,7 +80,7 @@ if ($action === "submit" && $_SERVER["REQUEST_METHOD"] === "POST") {
     }
     $d["recent"][$who] = $now;
 
-    $entry = ["name" => $name, "score" => $score, "round" => $round, "won" => $won, "date" => gmdate("c")];
+    $entry = ["name" => $name, "rounds" => $rounds, "healing" => $healing, "date" => gmdate("c")];
     $d["entries"][] = $entry;
     sort_entries($d["entries"]);
     $rank = array_search($entry, $d["entries"], true) + 1;

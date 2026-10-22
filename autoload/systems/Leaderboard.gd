@@ -39,7 +39,8 @@ func fetch_top() -> void:
 		req.queue_free()
 
 
-func submit(player_name: String, score: int, round_reached: int, won: bool) -> void:
+## Posts a run: rounds survived, then effective healing (the board ranks by both).
+func submit(player_name: String, rounds: int, healing: int) -> void:
 	save_player_name(player_name)
 	var req := _new_request()
 	req.request_completed.connect(func(result, code, _h, body):
@@ -50,7 +51,7 @@ func submit(player_name: String, score: int, round_reached: int, won: bool) -> v
 		var msg: String = "" if ok else (data.get("message", "Couldn't reach the leaderboard") if data else "Couldn't reach the leaderboard")
 		submitted.emit(ok, int(data.get("rank", 0)) if ok else 0, entries, msg)
 		req.queue_free())
-	var body := JSON.stringify({"name": player_name, "score": score, "round": round_reached, "won": won})
+	var body := JSON.stringify({"name": player_name, "rounds": rounds, "healing": healing})
 	var err := req.request(_endpoint + "?action=submit", ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
 	if err != OK:
 		submitted.emit(false, 0, entries, "Couldn't reach the leaderboard")
