@@ -1,16 +1,21 @@
 [gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_fgmnd"]
-[ext_resource type="Script" path="res://resources/spells/passives/VitalBondRule.gd" id="2_40g1q"]
-[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_6nb2w"]
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_spelle"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="2_spelld"]
+[ext_resource type="Script" path="res://resources/spells/passives/TagTriggerRule.gd" id="3_tagtri"]
 
-[sub_resource type="Resource" id="Resource_41t1l"]
-script = ExtResource("2_40g1q")
-shield_amount = 10.0
+[sub_resource type="Resource" id="Resource_p"]
+script = ExtResource("3_tagtri")
+event = "SHIELD_BROKEN"
+tags = Array[String](["SHIELD"])
+action = "SHIELD"
+who = "NEIGHBORS"
+amount = 10.0
 duration = 5.0
+combo_label = "Vital Bond"
 
 [resource]
-script = ExtResource("3_6nb2w")
+script = ExtResource("2_spelld")
 id = "vital_bond"
 display_name = "Vital Bond"
 school = "WARD"
@@ -18,8 +23,8 @@ tags = Array[String]([])
 mana_cost = 0.0
 cast_time = 0.0
 cooldown = 0.0
-effects = Array[ExtResource("1_fgmnd")]([])
-passive = SubResource("Resource_41t1l")
+effects = Array[ExtResource("1_spelle")]([])
+passive = SubResource("Resource_p")
 rank_family = ""
 rank = 1
 requires_tags = Array[String](["SHIELD"])

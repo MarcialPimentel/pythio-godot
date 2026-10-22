@@ -27,6 +27,16 @@ func _ready() -> void:
 					battlefield_rules.append(r)
 			f = dir.get_next()
 		battlefield_rules.sort_custom(func(a, b): return a.rule_name < b.rule_name)
+	GameManager.show_spec_choice.connect(_reset_rules)
+
+
+## A new run: passives forget their counters and cooldowns.
+func _reset_rules() -> void:
+	for rule in battlefield_rules:
+		rule.reset_state()
+	for s in SpellSystem.library:
+		if s.passive:
+			s.passive.reset_state()
 
 
 ## Rules in force: battlefield rules no passive cancels, then your passives.
@@ -99,6 +109,9 @@ func mana_spent() -> void:
 func cast(spell: SpellData, target: Node) -> void:
 	if not spell or not is_instance_valid(target):
 		return
+	# "When you cast…" triggers see the fighter as it was before the spell landed.
+	for rule in active_rules():
+		rule.on_cast(spell, target)
 	for e in spell.effects:
 		if e:
 			e.apply(spell, target)

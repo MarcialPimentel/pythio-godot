@@ -38,6 +38,14 @@ func on_shield_ended(_target: Node, _status, _broken: bool, _remaining: float) -
 func would_combo(_spell: SpellData, _target: Node) -> bool:
 	return false
 
+## After you finish casting `spell` on `target`.
+func on_cast(_spell: SpellData, _target: Node) -> void:
+	pass
+
+## Forget per-run counters and cooldowns (called when a new run starts).
+func reset_state() -> void:
+	pass
+
 ## The card text, with {TAG} markers.
 func describe() -> String:
 	return ""
