@@ -10,8 +10,10 @@ https://marz.gg/games/pythio/.
 
 **Loop (endless):** pick a specialization (Mending / Bloom / Ward) → choose a contract →
 round runs (damage, bursts, mana regen) → survive the timer to advance → … forever, until a
-fighter dies. The Crimson Baron returns every 5th round. Every 5 rounds you pick a new spell
-(capped); later, a keystone every 10 rounds (capped). Score = how far you got.
+fighter dies. The Crimson Baron returns every 5th round. After round 1 and then every 5 rounds
+you pick a new spell (5 spells on Q–T + 3 passive slots); later, a keystone every 10 rounds
+(takes a passive slot). Bandages (Space on a hovered fighter) are a panic button with a few
+charges. Score = rounds survived, then effective healing.
 
 ## Current direction (owner's decisions — these win over docs/design.md)
 Decided 2026-10-21; full reasoning in `docs/design-direction.md`.
@@ -27,6 +29,9 @@ Decided 2026-10-21; full reasoning in `docs/design-direction.md`.
   favoring your school, one off-school card), capped so the build reaches a "complete"
   point. Duplicate spells are ranks of one spell (Heal I/II/III); rank-ups are pick options.
 - **Balance rule:** fast, efficient, big — pick two.
+- **Battlefield rules ↔ mirrored passives:** penalties for sloppy play (diminishing
+  shields, mana exhaustion, soft saturation on overheal) are rules; passives and keystones
+  can flip them (Bulwark, Second Wind, Overflow). Debuffs and buffs share one rule system.
 - **Parked:** duo spells, rerolls, skill tree / meta-progression, pet and positional spells.
 - **What to work on next:** follow `docs/roadmap.md` (phases, one bullet ≈ one PR, each
   bullet is a GitHub issue). Spell ideas and baseline numbers: `docs/spells.md`.

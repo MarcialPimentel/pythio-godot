@@ -19,19 +19,22 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
   leaderboard · build number in the corner (#18, #44) · roadmap tracked on GitHub (#35).
 - **Deploys:** GitHub uploads to marz.gg/games/pythio/ (`FTP_SERVER_DIR` = `pythio/`,
   fixed 2026-10-21). The old `games/pythio-godot/` folder is unused and can be deleted.
-- **Phase B built 2026-10-21 (one PR for the whole phase, awaiting owner review):** pick a
-  school (Mending / Bloom / Ward) → spell picks after round 1 and every 5 rounds (cap 5,
-  rank-ups, build complete) → 25 spells incl. combo spells and passives → tag-based combos
-  with gold flash and quips → synergy hints on cards and a build summary. Spell table with
-  real numbers: `docs/spells.md`. Defaults chosen for the owner to review are listed in the PR.
-- **Next up:** owner reviews Phase B → Phase C (#23 damage patterns, #29 contracts, #30 Baron,
-  #31 tuning).
-- **Waiting on owner:** Phase B review and playtest.
-- **Known rough spots:** endless scaling is steep (one more fighter every round up to 8,
-  plus damage +0.7/s per fighter per round, plus max mana +8/round forever). A simple bot
-  (`tools/tests/sim_bot.gd`) reaches rounds 3–6 with any school; tuning is #31. Rounds 1–3
-  use a gentler damage ramp (60/75/90%) because runs now start with one spell. The Baron's
-  bursts are small next to his HP · stand-in art (new spells reuse 4 icons) · no sound.
+- **✅ Phase B done 2026-10-21 (Build 33, PR #48, owner playtested):** pick a school
+  (Mending / Bloom / Ward) → spell picks after round 1 and every 5 rounds (cap 5, rank-ups,
+  build complete) → 25 spells incl. combo spells and passives → tag-based combos with gold
+  flash and quips → synergy hints on cards and a build summary. Spell table: `docs/spells.md`.
+- **Owner feedback on Phase B (2026-10-21):** pleased overall; the game is hard (hasn't
+  passed round 4 — "not a bad thing"); likes passives and flavour but wants them off the
+  Q–T bar; the two contracts are a non-choice; wants spells to flash when a combo is ready;
+  new ideas: bandages, battlefield rules that mirror passives, debuffs needing cleanses,
+  effective healing on the leaderboard, raid-size parties later.
+- **Next up: Phase C** (all of it in one branch/PR, as for Phase B): #31 difficulty curve →
+  #49 passive tray → #29 single "next party" screen → #50 combo-ready glow → #51 bandages →
+  #52 battlefield rules + mirrored passives → #32 effective healing, run summary, leaderboard
+  → #30 Baron fight.
+- **Waiting on owner:** playtest of Phase C when it's built.
+- **Known rough spots:** endless scaling is steep (fixed in #31) · stand-in art (new spells
+  reuse 4 icons) · no sound · the Baron is a big health bar (#30).
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
@@ -49,14 +52,24 @@ combination next time.
 - **Specialization (run start):** pick 1 of 3 schools, each with its starter spell:
   **Mending** (Heal, direct heals), **Bloom** (Renew, heals over time),
   **Ward** (Shield, shields and damage reduction).
-- **Spell picks:** after every 5th round, pick 1 of 3. Offers favour your school and
-  always include one off-school card (splashing is where creative builds come from).
-  Spellbook cap: 5 spells (keys Q–T), so the build is complete at round 20.
-  Cadence, first-pick round and cap are settings, so playtests can try alternatives.
+- **Spell picks:** after round 1, then after every 5th round, pick 1 of 3. Offers favour
+  your school and always include one off-school card (splashing is where creative builds
+  come from), and at least one combos with what you own when possible.
+- **Two kinds of slot:** 5 spells you cast (keys Q–T) and **3 passive slots** (a tray next
+  to the spell bar, shared with keystones). The build is complete when both are full and
+  no rank-ups are left; then the run is about how far it goes.
 - **Ranks, not duplicate spells:** Lesser Heal / Heal / Greater Heal are one spell with
   ranks (Heal I → II → III); likewise Renew → Rejuvenation, Cleanse → Purify. A rank-up
   appears as a pick option, so "go deeper or go wider?" is a real choice.
-- **Keystones (Phase D):** every 10 rounds, a rule-changing pick, capped.
+- **Battlefield rules and their mirrors:** the battlefield has rules that reward careful
+  play (diminishing shields, mana exhaustion, soft saturation on overheal). Passives and
+  keystones can flip a rule in your favour (Bulwark, Second Wind, Overflow). Debuffs and
+  buffs are the same kind of thing with the sign flipped.
+- **Bandages:** a panic button on its own resource — Space on a hovered fighter channels a
+  heal; up to 3 charges, +1 every 2 rounds.
+- **Keystones (Phase E):** every 10 rounds, a rule-changing pick that takes a passive slot.
+- **Score:** rounds survived, then effective healing (health restored without overheal +
+  damage absorbed or prevented).
 - **Synergies through plain-language tags** (Balatro-style): spell text names tags like
   **Direct**, **Heal-over-Time**, **Shield**, **Cleanse**, **Delayed**, **Multi-target**,
   and combo spells react to any spell with that tag ("Extends your **Heal-over-Time**
@@ -78,39 +91,62 @@ One bullet ≈ one pull request.
 - ✅ #19 **Bursts actually hit** after their warning (so Shield has a job).
 - ✅ #20 **Debug panel (F1):** +50 mana, skip round, jump to round N, damage/heal a fighter, god mode.
 
-### Phase B: Picking spells and new spells (the core)  — 🔶 built, in review (one PR)
-- 🔶 #21 **Effect system with plain-language tags** (no visible change; the foundation).
-- 🔶 #24 **Pick a specialization** at the start of a run (Mending / Bloom / Ward).
-- 🔶 #25 **Pick a new spell** after round 1, then every 5 rounds; capped at 5, with rank-ups.
-- 🔶 #22 **First new-spell batch, rebalanced** (ranks collapsed; owner reviews numbers).
-- 🔶 #26 **Combo spells driven by tags:** Overgrowth, Echo Healing, Spirit Surge.
-- 🔶 #27 **Remaining spells by school,** including passives and prerequisites.
-- 🔶 #28 **Synergy hints on pick cards** and a build summary above the spell bar.
+### Phase B: Picking spells and new spells (the core)  — ✅ done 2026-10-21 (PR #48)
+- ✅ #21 **Effect system with plain-language tags** (the foundation).
+- ✅ #24 **Pick a specialization** at the start of a run (Mending / Bloom / Ward).
+- ✅ #25 **Spell picks** after round 1, then every 5 rounds; capped at 5, with rank-ups.
+- ✅ #22 **First spell batch, rebalanced** (ranks collapsed).
+- ✅ #26 **Combo spells driven by tags:** Overgrowth, Echo Healing, Spirit Surge.
+- ✅ #27 **Remaining spells by school,** including passives and prerequisites.
+- ✅ #28 **Synergy hints on pick cards** and a build summary above the spell bar.
 
-### Phase C: Damage worth reacting to
-- ⬜ #23 **Damage patterns by role:** damage over time, escalating DoTs, debuff icons.
-- ⬜ #29 **Contracts show a reward and a threat preview** (Hades-door style), so the choice matters.
+### Phase C: New spells, mechanics and changes (from Phase B playtest)
+- ⬜ #31 **Difficulty curve:** one more fighter every 2 rounds (cap 8), softer damage
+  growth; a new player's first deaths around rounds 6–8.
+- ⬜ #49 **Passive tray:** 3 gold slots next to the spell bar (shared with keystones later);
+  Q–T only for spells you cast.
+- ⬜ #29 **One "next party" screen** instead of two near-identical contracts; the Baron
+  keeps his own card.
+- ⬜ #50 **Combo-ready glow:** a spell button glows gold when casting it on the hovered
+  fighter would fire a combo.
+- ⬜ #51 **Bandages:** Space on a hovered fighter channels ~40 healing over ~2.5s; 3 charges
+  max, +1 every 2 rounds.
+- ⬜ #52 **Battlefield rules and mirrored passives:** diminishing shields ↔ Bulwark,
+  exhaustion at 0 mana ↔ Second Wind, soft saturation on overheal ↔ Overflow.
+- ⬜ #32 **Effective healing, run summary and leaderboard:** rank by rounds then effective
+  healing; game-over stats (effective healing, overheal %, mitigated, spells, combos);
+  a new board for the new scoring; earlier boards stay browsable by build (◀ ▶ arrows).
 - ⬜ #30 **Crimson Baron fight** with telegraphed phases.
-- ⬜ #31 **Tuning pass** for endless play (round lengths, scaling, mana, spell numbers).
 
-### Phase D: Keystones
-- ⬜ #37 **Keystones every 10 rounds,** 1 of 3, capped.
+### Phase D: Debuffs and cleanses
+- ⬜ #23 **Debuffs from round 6:** Poison (stacking DoT → Cleanse), Hex (−50% healing taken
+  → Purify), Bleed (ends when healed above ~80% or bandaged); maybe Doom later.
+- ⬜ #53 **Cleanse and Purify** with a new Cleanse tag; the round-5 pick always offers a cleanse.
 
-### Phase E: Readability and feel
+### Phase E: Keystones
+- ⬜ #37 **Keystones every 10 rounds,** 1 of 3, built from the mirrored battlefield rules;
+  they share the 3 passive slots.
+
+### Phase F: Readability and feel
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).
-- ⬜ #32 **Game-over run summary:** spells picked, healing done, combos fired.
 - ⬜ #33 **Basic sound:** casts, combos, bursts, death.
 - ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
 
 ## Backlog (parked on purpose)
 #38 duo spells · #39 rerolls for spell picks · #40 skill tree / meta-progression ·
 #41 pet and positional spells (Decoy, Healing Spirit, Soulbond, Hallowed Ground) ·
+#54 raid mode (10–25 fighters with compact raid frames) · #55 contract choice with reward
+and threat previews ·
 click-casting with mouse button + modifier bindings (the original web game's input model) ·
 gold and a shop · better scoring · difficulty modes · achievements.
 
 ## Open decisions (owner)
-1. Flash Heal and Shield numbers: settled in #22 (spell batch review).
 - Decided 2026-10-21: endless rounds; rounds under 30s; 3 specializations; ranks replace
   duplicate spells; a spell every 5 rounds, capped; keystones every 10, capped;
   contracts repurposed; plain-language tags; duo spells, rerolls and skill tree parked;
   gold/shop post-core.
+- Decided 2026-10-21 (after Phase B playtest): passives get their own 3 slots, shared with
+  keystones; bandages on Space while hovering; the soft overheal rule (next heal weaker);
+  debuffs and cleanses come after Phase C; leaderboard ranks by rounds, then effective
+  healing, on a new board (older boards stay browsable by build); one "next party" screen instead of two contracts; raid mode
+  is a backlog idea.
