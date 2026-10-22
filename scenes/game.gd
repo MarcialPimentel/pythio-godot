@@ -81,6 +81,11 @@ var _quip_tween: Tween
 var _last_run := {"score": 0, "round": 1, "won": false}
 var card_panel: Control
 var _build_label: RichTextLabel
+var _passive_tray: HBoxContainer
+var _bandage_label: RichTextLabel
+var _rules_box: VBoxContainer
+var _banner: VBoxContainer
+var _banner_tween: Tween
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
 var _card_mode := ""
 ## Pythio comments on combos, but not every single one.
@@ -113,6 +118,7 @@ func _ready() -> void:
 	name_edit.text_submitted.connect(func(_t): _on_submit_pressed())
 	Leaderboard.top_loaded.connect(_show_leaderboard)
 	Leaderboard.submitted.connect(_on_score_submitted)
+	_make_board_nav()
 	Leaderboard.fetch_top()
 
 	_add_build_label()
@@ -123,10 +129,19 @@ func _ready() -> void:
 	_build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_label.add_theme_font_size_override("normal_font_size", 18)
 	_build_label.add_theme_font_size_override("bold_font_size", 18)
-	_build_label.position = Vector2(560, 812)
-	_build_label.size = Vector2(800, 30)
+	_build_label.position = Vector2(460, 812)
+	_build_label.size = Vector2(1000, 30)
 	game_ui.add_child(_build_label)
 	SpellSystem.spellbook_changed.connect(_update_build_summary)
+	_make_passive_tray()
+	_make_bandage_counter()
+	_make_rules_panel()
+	_make_banner()
+	EventBus.boss_phase.connect(_on_boss_phase)
+	SpellSystem.spellbook_changed.connect(_refresh_rules_panel)
+	EventBus.rule_triggered.connect(func(kind, _t): if kind == "exhausted": _flash_exhausted())
+	SpellSystem.spellbook_changed.connect(_refresh_passive_tray)
+	EventBus.passive_triggered.connect(_pulse_passive)
 	DraftSystem.spec_chosen.connect(func(_s): _update_build_summary())
 	card_panel = preload("res://ui/CardChoicePanel.gd").new()
 	game_ui.add_child(card_panel)
@@ -142,7 +157,7 @@ func _ready() -> void:
 	quip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	quip_label.size = Vector2(quip_bubble.size.x - 84, quip_bubble.size.y - 60)
 
-	score_label.text = "High Score: %d" % GameManager.high_score
+	score_label.text = GameManager.best_text()
 	game_ui.visible = false
 	cast_bar.visible = false
 	party_choice_panel.visible = false
@@ -166,7 +181,9 @@ func _process(delta: float) -> void:
 
 	GameManager.regen_mana(delta)
 	_update_mana_bar()
-	if SpellSystem.is_casting and SpellSystem.current_spell:
+	if BandageSystem.is_channeling():
+		cast_bar.value = BandageSystem.progress() * 100.0
+	elif SpellSystem.is_casting and SpellSystem.current_spell:
 		cast_bar.value = SpellSystem.cast_progress() * 100.0
 		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
 		cast_label.text = "Casting %s  %.1fs" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
@@ -216,8 +233,8 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	var cards: Array = []
 	for spell in _card_options:
 		cards.append(spell_card(spell))
-	var used := SpellSystem.spells.size()
-	var sub := "Spellbook %d / %d" % [used, DraftSystem.spellbook_cap]
+	var sub := "Spells %d / %d · Passives %d / %d" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
+		SpellSystem.passives.size(), DraftSystem.passive_cap]
 	sub += " — full: only rank-ups from here." if DraftSystem.is_full() else " — next pick after round %d." % _next_pick_round(round_cleared)
 	card_panel.show_cards("Add a spell", sub, cards)
 	_say("pick", 4.0)
@@ -267,11 +284,13 @@ func spell_card(spell: SpellData) -> Dictionary:
 	var header: String = str(SpellTags.SCHOOL_LABELS.get(spell.school, "")).to_upper()
 	if owned > 0:
 		badge = "RANK UP"
-		var old := SpellSystem.spells.filter(func(s): return s.family() == spell.family())
+		var old := SpellSystem.all_owned().filter(func(s): return s.family() == spell.family())
 		if not old.is_empty():
 			header = "UPGRADES %s" % old[0].display_name.to_upper()
 	elif DraftSystem.school() != "" and spell.school != DraftSystem.school() and spell.school != "ANY":
 		badge = "OTHER SCHOOL"
+	elif spell.is_passive():
+		badge = "PASSIVE"
 	return {
 		"header": header, "header_color": school_color, "accent": school_color,
 		"badge": badge,
@@ -301,6 +320,207 @@ func synergy_hint_bb(spell: SpellData) -> String:
 	return "[color=#%s]%s[/color]\n[color=#%s][i]via %s[/i][/color]" % [gold, "\n".join(lines), Color(gold, 0.7).to_html(false), tag_words]
 
 
+# ── Boss phase banner (blood red = danger) ─────────────
+
+func _make_banner() -> void:
+	_banner = VBoxContainer.new()
+	_banner.position = Vector2(360, 672)   # between the fighters and the spell bar
+	_banner.custom_minimum_size = Vector2(1200, 0)
+	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_banner.visible = false
+	var title := Label.new()
+	title.name = "Title"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", load("res://assets/fonts/pirata-one-latin-400-normal.woff2"))
+	title.add_theme_font_size_override("font_size", 64)
+	title.add_theme_color_override("font_color", Color(0.95, 0.22, 0.16))
+	title.add_theme_constant_override("outline_size", 10)
+	title.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	_banner.add_child(title)
+	var hint := Label.new()
+	hint.name = "Hint"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 24)
+	hint.add_theme_constant_override("outline_size", 6)
+	hint.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	_banner.add_child(hint)
+	game_ui.add_child(_banner)
+
+
+func _on_boss_phase(phase: int, title: String, hint: String) -> void:
+	_banner.get_node("Title").text = "%s · %s" % ["I".repeat(phase) if phase < 4 else str(phase), title]
+	_banner.get_node("Hint").text = hint
+	_banner.visible = true
+	_banner.modulate.a = 1.0
+	if _banner_tween:
+		_banner_tween.kill()
+	_banner_tween = create_tween()
+	_banner_tween.tween_interval(2.6)
+	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.6)
+	_banner_tween.tween_callback(func(): _banner.visible = false)
+	if phase == 3:
+		_say("boss", 3.0)
+
+
+# ── Battlefield rules: always on screen, top right ─────
+
+func _make_rules_panel() -> void:
+	_rules_box = VBoxContainer.new()
+	_rules_box.position = Vector2(1530, 28)
+	_rules_box.custom_minimum_size = Vector2(370, 0)
+	_rules_box.add_theme_constant_override("separation", 2)
+	game_ui.add_child(_rules_box)
+	_refresh_rules_panel()
+
+
+func _refresh_rules_panel() -> void:
+	if not _rules_box:
+		return
+	for c in _rules_box.get_children():
+		_rules_box.remove_child(c)
+		c.queue_free()
+	var title := _slot_label("RulesTitle", "BATTLEFIELD RULES", 15, Color(0.95, 0.35, 0.3, 0.85), Vector2.ZERO, HORIZONTAL_ALIGNMENT_RIGHT)
+	title.custom_minimum_size = Vector2(370, 20)
+	title.mouse_filter = Control.MOUSE_FILTER_PASS
+	title.tooltip_text = "Rules everyone plays by. Some passives cancel a rule (shown in gold)."
+	_rules_box.add_child(title)
+	for rule in EffectSystem.battlefield_rules:
+		var line := RichTextLabel.new()
+		line.bbcode_enabled = true
+		line.fit_content = true
+		line.scroll_active = false
+		line.custom_minimum_size = Vector2(370, 0)
+		line.add_theme_font_size_override("normal_font_size", 17)
+		line.add_theme_font_size_override("bold_font_size", 17)
+		var by := EffectSystem.cancelled_by(rule.rule_id)
+		if by:
+			line.text = "[right][color=#6f6a63][s]%s[/s][/color]  [color=#ffd24d]→ %s[/color][/right]" % [rule.rule_name, by.display_name]
+			line.tooltip_text = "%s is cancelled by your %s:\n%s" % [rule.rule_name, by.display_name, by.description_plain()]
+		else:
+			line.text = "[right][color=#d9d2c5]%s[/color][/right]" % rule.rule_name
+			line.tooltip_text = "%s: %s" % [rule.rule_name, SpellTags.fill_plain(rule.describe())]
+		_rules_box.add_child(line)
+
+
+func _flash_exhausted() -> void:
+	var tw := create_tween()
+	mana_bar.modulate = Color(0.55, 0.55, 0.6)
+	tw.tween_property(mana_bar, "modulate", Color.WHITE, 0.6)
+
+
+# ── Bandages: counter by the mana bar, cast bar while channelling ──
+
+func _make_bandage_counter() -> void:
+	_bandage_label = RichTextLabel.new()
+	_bandage_label.bbcode_enabled = true
+	_bandage_label.fit_content = true
+	_bandage_label.scroll_active = false
+	_bandage_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	_bandage_label.tooltip_text = "Bandages: hover a fighter and press Space to channel %d healing over %ss.\nYou can't cast while bandaging. +1 bandage every %d rounds (max %d)." % [
+		int(BandageSystem.heal_total), str(BandageSystem.channel_time), BandageSystem.gain_every_rounds, BandageSystem.max_charges]
+	_bandage_label.add_theme_font_size_override("normal_font_size", 20)
+	_bandage_label.add_theme_font_size_override("bold_font_size", 20)
+	_bandage_label.position = Vector2(1420, 1008)
+	_bandage_label.size = Vector2(300, 34)
+	game_ui.add_child(_bandage_label)
+	BandageSystem.charges_changed.connect(func(_c, _m): _update_bandages())
+	BandageSystem.channel_started.connect(_on_bandage_start)
+	BandageSystem.channel_ended.connect(func(_t, _done): cast_bar.visible = SpellSystem.is_casting)
+	BandageSystem.bandage_failed.connect(_on_bandage_failed)
+	_update_bandages()
+
+
+func _update_bandages() -> void:
+	var full := "■".repeat(BandageSystem.charges)
+	var empty := "□".repeat(maxi(0, BandageSystem.max_charges - BandageSystem.charges))
+	_bandage_label.text = "[b]BANDAGES[/b]  [color=#7df25a]%s[/color][color=#5a554e]%s[/color]  [color=#a9a39a]Space[/color]" % [full, empty]
+
+
+func _on_bandage_start(target: Node, _duration: float) -> void:
+	_set_pose("cast_heal", BandageSystem.channel_time + 0.3)
+	cast_bar.visible = true
+	cast_bar.value = 0
+	cast_label.text = "Bandaging %s" % target.display_name
+
+
+func _on_bandage_failed(reason: String) -> void:
+	if reason == "no_charges":
+		var tw := create_tween()
+		_bandage_label.modulate = Color(1.0, 0.3, 0.3)
+		tw.tween_property(_bandage_label, "modulate", Color.WHITE, 0.4)
+
+
+# ── Passive tray: 3 gold slots next to the spell bar ───
+
+const TRAY_SLOT := Vector2(84, 84)
+
+func _make_passive_tray() -> void:
+	var box := VBoxContainer.new()
+	box.position = Vector2(1290, 846)
+	box.add_theme_constant_override("separation", 4)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := _slot_label("TrayTitle", "PASSIVES", 15, Color(1.0, 0.82, 0.3, 0.8), Vector2.ZERO, HORIZONTAL_ALIGNMENT_LEFT)
+	title.custom_minimum_size = Vector2(0, 20)
+	box.add_child(title)
+	_passive_tray = HBoxContainer.new()
+	_passive_tray.add_theme_constant_override("separation", 10)
+	box.add_child(_passive_tray)
+	game_ui.add_child(box)
+	_refresh_passive_tray()
+
+
+func _refresh_passive_tray() -> void:
+	if not _passive_tray:
+		return
+	for c in _passive_tray.get_children():
+		_passive_tray.remove_child(c)
+		c.queue_free()
+	for i in SpellSystem.PASSIVE_SLOTS:
+		var slot := Panel.new()
+		slot.custom_minimum_size = TRAY_SLOT
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.06, 0.05, 0.04, 0.9)
+		style.border_color = Color(1.0, 0.82, 0.3, 0.75 if i < SpellSystem.passives.size() else 0.25)
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(4)
+		slot.add_theme_stylebox_override("panel", style)
+		if i < SpellSystem.passives.size():
+			var spell: SpellData = SpellSystem.passives[i]
+			slot.name = "P_" + spell.id
+			slot.tooltip_text = "%s (passive)\n%s" % [spell.display_name, spell.description_plain()]
+			var icon := TextureRect.new()
+			icon.texture = spell_icon(spell)
+			icon.modulate = Color(1.0, 0.85, 0.45)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			icon.offset_left = 8; icon.offset_top = 6; icon.offset_right = -8; icon.offset_bottom = -18
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			slot.add_child(icon)
+			var name_lbl := _slot_label("Name", spell.display_name, 12, Color(1.0, 0.86, 0.55), Vector2(0, 64), HORIZONTAL_ALIGNMENT_CENTER)
+			name_lbl.size = Vector2(TRAY_SLOT.x, 18)
+			name_lbl.clip_text = true
+			slot.add_child(name_lbl)
+		else:
+			slot.tooltip_text = "Empty passive slot — passives you pick go here."
+		_passive_tray.add_child(slot)
+
+
+## A passive just did something: its tray slot flashes gold.
+func _pulse_passive(spell: SpellData) -> void:
+	if not _passive_tray:
+		return
+	var slot := _passive_tray.get_node_or_null("P_" + spell.id)
+	if not slot:
+		return
+	slot.pivot_offset = TRAY_SLOT / 2.0
+	var tw := create_tween().set_parallel()
+	slot.modulate = Color(1.8, 1.5, 0.7)
+	slot.scale = Vector2.ONE * 1.12
+	tw.tween_property(slot, "modulate", Color.WHITE, 0.45)
+	tw.tween_property(slot, "scale", Vector2.ONE, 0.45)
+
+
 ## "BLOOM · Heal-over-Time ×2 · Shield ×1 · 3/5" above the spell bar.
 func _update_build_summary() -> void:
 	if not _build_label:
@@ -310,7 +530,7 @@ func _update_build_summary() -> void:
 		_build_label.text = ""
 		return
 	var counts := {}
-	for s in SpellSystem.spells:
+	for s in SpellSystem.all_owned():
 		for t in s.tags:
 			counts[t] = counts.get(t, 0) + 1
 	var parts: Array[String] = []
@@ -319,8 +539,9 @@ func _update_build_summary() -> void:
 	for t in SpellTags.ALL:
 		if counts.has(t):
 			parts.append("%s ×%d" % [SpellTags.bb(t), counts[t]])
-	parts.append("[color=#a9a39a]%d / %d spells[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap])
-	_build_label.text = "[center]%s[/center]" % "   ·   ".join(parts)
+	parts.append("[color=#a9a39a]%d/%d spells · %d/%d passives[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
+		SpellSystem.passives.size(), DraftSystem.passive_cap])
+	_build_label.text = "[center]%s[/center]" % "  ·  ".join(parts)
 
 
 # ── Rounds & contracts ─────────────────────────────────
@@ -334,7 +555,7 @@ func _show_party_choice() -> void:
 	var contracts = contract_selector.get_contracts_for_round(GameManager.current_round)
 	party_choice_panel.setup_contracts(contracts)
 	round_label.text = "Round %d" % GameManager.current_round
-	timer_label.text = "Choose your contract"
+	timer_label.text = "Get ready"
 
 
 func _on_contract_chosen(chosen: ContractData) -> void:
@@ -343,7 +564,7 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	await _clear_party_container()
 
 	contract_name_label.text = chosen.contract_name.replace("  ", " ")
-	contract_risk_label.text = "RISK %d / 5" % chosen.risk_level
+	contract_risk_label.text = "PARTY OF %d" % chosen.unit_templates.size()
 	contract_info.visible = true
 	round_label.text = ("Round %d · The Crimson Baron" if chosen.is_boss else "Round %d") % GameManager.current_round
 	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
@@ -446,6 +667,8 @@ func _update_mana_bar() -> void:
 	mana_bar.max_value = GameManager.max_mana
 	mana_bar.value = GameManager.mana
 	mana_label.text = "%d / %d" % [int(GameManager.mana), int(GameManager.max_mana)]
+	if GameManager.exhausted_time > 0.0 and GameManager.in_round:
+		mana_label.text += "   EXHAUSTED %.0fs" % ceilf(GameManager.exhausted_time)
 	var frac := GameManager.mana / maxf(1.0, GameManager.max_mana)
 	var orb := clampi(int(ceil(frac * 4.0)), 1, 4)
 	var tex = load(ART + "ui/bars/mana_orb_%d.png" % orb)
@@ -534,6 +757,22 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(icon)
 
+	# Gold frame that pulses when casting this on the hovered fighter would fire a combo.
+	var glow := Panel.new()
+	glow.name = "Glow"
+	var gs := StyleBoxFlat.new()
+	gs.bg_color = Color(1.0, 0.82, 0.3, 0.12)
+	gs.border_color = Color(1.0, 0.82, 0.3)
+	gs.set_border_width_all(4)
+	gs.set_corner_radius_all(6)
+	gs.shadow_color = Color(1.0, 0.75, 0.2, 0.55)
+	gs.shadow_size = 10
+	glow.add_theme_stylebox_override("panel", gs)
+	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glow.visible = false
+	btn.add_child(glow)
+
 	var cd := ColorRect.new()
 	cd.name = "Cooldown"
 	cd.color = Color(0, 0, 0, 0.65)
@@ -590,6 +829,13 @@ func _update_spell_ui() -> void:
 			continue
 		var castable := SpellSystem.can_cast(spell)
 		btn.disabled = not castable
+		var glow := btn.get_node_or_null("Glow")
+		if glow:
+			var t = SpellSystem.hovered_target
+			var ready := castable and is_instance_valid(t) and EffectSystem.would_combo(spell, t)
+			glow.visible = ready
+			if ready:
+				glow.modulate.a = 0.65 + 0.35 * sin(Time.get_ticks_msec() / 1000.0 * 8.0)
 		var cd := SpellSystem.cooldown_remaining(spell.id)
 		btn.get_node("Cooldown").visible = cd > 0.0
 		btn.get_node("CdText").text = "%d" % ceili(cd) if cd > 0.0 else ""
@@ -646,6 +892,16 @@ func _on_start_pressed() -> void:
 	GameManager.new_game()
 
 
+## The game-over stats: rounds, effective healing and the skill numbers behind it.
+func run_summary() -> String:
+	var spells := ", ".join(SpellSystem.spells.map(func(s): return s.display_name))
+	var passives := ", ".join(SpellSystem.passives.map(func(s): return s.display_name))
+	return "Rounds survived: %d   ·   Effective healing: %s\nOverheal %d%%  ·  Mitigated %s  ·  Combos %d  ·  Bandages %d\n%s%s" % [
+		GameManager.rounds_survived(), RunStats.fmt(RunStats.effective_healing()),
+		RunStats.overheal_percent(), RunStats.fmt(RunStats.mitigated()), RunStats.combos, RunStats.bandages,
+		spells, ("  |  " + passives) if passives != "" else ""]
+
+
 func _on_game_over(round_reached: int, final_score: int) -> void:
 	party_choice_panel.visible = false
 	card_panel.close()
@@ -656,10 +912,10 @@ func _on_game_over(round_reached: int, final_score: int) -> void:
 		_set_pose("victory", 99.0)
 		_say("victory", 6.0)
 	else:
-		final_score_label.text = "%s didn't make it in round %d.\nRounds survived: %d.  Score: %d" % [fallen_name if fallen_name != "" else "Someone", round_reached, round_reached - 1, final_score]
-	score_label.text = "High Score: %d" % GameManager.high_score
+		final_score_label.text = "%s didn't make it in round %d.\n%s" % [fallen_name if fallen_name != "" else "Someone", round_reached, run_summary()]
+	score_label.text = GameManager.best_text()
 	# Leaderboard entry
-	_last_run = {"score": final_score, "round": maxi(1, round_reached), "won": GameManager.last_run_won}
+	_last_run = {"rounds": GameManager.rounds_survived(), "healing": RunStats.effective_healing()}
 	name_edit.text = Leaderboard.load_player_name()
 	submit_button.disabled = false
 	name_edit.editable = true
@@ -679,7 +935,7 @@ func _on_submit_pressed() -> void:
 	submit_button.disabled = true
 	name_edit.editable = false
 	submit_status.text = "Posting…"
-	Leaderboard.submit(player, _last_run.score, _last_run.round, _last_run.won)
+	Leaderboard.submit(player, _last_run.rounds, _last_run.healing)
 
 
 func _on_score_submitted(ok: bool, rank: int, entries: Array, message: String) -> void:
@@ -692,7 +948,54 @@ func _on_score_submitted(ok: bool, rank: int, entries: Array, message: String) -
 		name_edit.editable = true
 
 
+# ── Leaderboard boards: ◀ older · newer ▶ ──────────────
+
+var _board_nav: HBoxContainer
+
+func _make_board_nav() -> void:
+	var box := lb_grid.get_parent()
+	_board_nav = HBoxContainer.new()
+	_board_nav.alignment = BoxContainer.ALIGNMENT_CENTER
+	_board_nav.add_theme_constant_override("separation", 10)
+	var older := Button.new()
+	older.name = "Older"; older.text = "◀"; older.flat = true; older.focus_mode = Control.FOCUS_NONE
+	older.tooltip_text = "Older leaderboard"
+	older.pressed.connect(func(): _switch_board(1))
+	var title := Label.new()
+	title.name = "Title"
+	title.add_theme_font_size_override("font_size", 20)
+	title.custom_minimum_size = Vector2(220, 0)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var newer := Button.new()
+	newer.name = "Newer"; newer.text = "▶"; newer.flat = true; newer.focus_mode = Control.FOCUS_NONE
+	newer.tooltip_text = "Newer leaderboard"
+	newer.pressed.connect(func(): _switch_board(-1))
+	_board_nav.add_child(older); _board_nav.add_child(title); _board_nav.add_child(newer)
+	_board_nav.visible = false
+	box.add_child(_board_nav)
+	box.move_child(_board_nav, lb_grid.get_index())
+
+
+func _switch_board(step: int) -> void:
+	var id := Leaderboard.neighbour_board(step)
+	if id != "":
+		Leaderboard.fetch_top(id)
+
+
+func _update_board_nav() -> void:
+	if not _board_nav:
+		return
+	_board_nav.visible = Leaderboard.boards.size() > 1
+	var current := Leaderboard.boards.any(func(b): return b.get("id") == Leaderboard.board_id and b.get("current", false))
+	var title: Label = _board_nav.get_node("Title")
+	title.text = Leaderboard.board_title + ("" if current else "  (old)")
+	title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.3) if current else Color(0.7, 0.66, 0.6))
+	_board_nav.get_node("Older").disabled = Leaderboard.neighbour_board(1) == ""
+	_board_nav.get_node("Newer").disabled = Leaderboard.neighbour_board(-1) == ""
+
+
 func _show_leaderboard(ok: bool, entries: Array) -> void:
+	_update_board_nav()
 	for c in lb_grid.get_children():
 		c.queue_free()
 	if not ok:
@@ -704,9 +1007,13 @@ func _show_leaderboard(ok: bool, entries: Array) -> void:
 		var gold := Color(0.95, 0.78, 0.35) if i == 0 else Color(0.9, 0.87, 0.8)
 		_lb_cell("%d." % (i + 1), gold)
 		_lb_cell(str(e.get("name", "?")), gold, true)
-		_lb_cell(str(int(e.get("score", 0))), gold)
-		_lb_cell("WON" if e.get("won", false) else "R%d" % int(e.get("round", 0)),
-			Color(0.45, 0.9, 0.4) if e.get("won", false) else Color(0.6, 0.58, 0.55))
+		if Leaderboard.board_kind == "classic":   # old boards: original score, then round reached
+			_lb_cell(str(int(e.get("score", 0))), gold)
+			_lb_cell("WON" if e.get("won", false) else "R%d" % int(e.get("round", 0)),
+				Color(0.45, 0.9, 0.4) if e.get("won", false) else Color(0.6, 0.58, 0.55))
+		else:
+			_lb_cell("R%d" % int(e.get("rounds", 0)), gold)
+			_lb_cell(RunStats.fmt(int(e.get("healing", 0))), Color(0.6, 0.58, 0.55))
 
 
 func _lb_cell(text: String, color: Color, expand := false) -> void:

@@ -15,6 +15,9 @@ func apply(spell: SpellData, target: Node) -> void:
 		EffectSystem.add_status(t, HotStatus.new(per_second, duration), spell)
 		EffectSystem.effect_applied.emit("hot", t, per_second * duration, "")
 
+func would_heal(_spell: SpellData, _target: Node) -> bool:
+	return true
+
 func describe() -> String:
 	var s := "Heals %s over %ss (%s each second)." % [n(per_second * duration), n(duration), n(per_second)]
 	if include_neighbors:

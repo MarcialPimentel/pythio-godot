@@ -14,19 +14,29 @@ signal game_over(score: int)
 signal spell_cast_requested(spell: SpellData, target: Node)
 signal spell_cast_completed(spell: SpellData, target: Node, success: bool)
 signal round_begun(round: int)  # emitted when round actually starts after spawn
+## A round was survived (round_ended fires for losses too).
+signal round_cleared(round: int)
 # ── Spells and effects (EffectSystem announces these; combos, passives and UI listen) ──
 signal spell_cast(spell: SpellData, target: Node)
 ## A heal landed: `amount` = health restored, `overheal` = the wasted part.
 signal healed(target: Node, amount: float, overheal: float, spell: SpellData, tags: Array)
 signal hot_ticked(target: Node, amount: float, status)
 signal shield_absorbed(target: Node, amount: float)
+## Damage that protection (Divine Protection, Time Stop) stopped.
+signal damage_prevented(target: Node, amount: float)
 ## A shield ended: `broken` = used up by damage, otherwise it faded.
 signal shield_ended(target: Node, status, broken: bool, remaining: float)
 ## A synergy fired on a fighter (gold flash + label, e.g. "Echo").
 signal combo_fired(target: Node, label: String)
+## A battlefield rule bit: "diminished" (shield), "saturated" (fighter), "exhausted" (mana).
+signal rule_triggered(kind: String, target: Node)
+## A passive just took effect (the tray slot pulses).
+signal passive_triggered(spell: SpellData)
 
 ## A burst is telegraphed on a fighter; it lands in `delay` seconds for `damage`.
-signal burst_warned(target: Node, damage: float, delay: float)
+signal burst_warned(target: Node, damage: float, delay: float, label: String)
+## The Crimson Baron fight moved to a new phase (1, 2, 3): banner title and a hint.
+signal boss_phase(phase: int, title: String, hint: String)
 ## A burst landed: `absorbed` went into the shield, `dealt` hit health.
 signal burst_landed(target: Node, absorbed: float, dealt: float)
 

@@ -17,12 +17,16 @@ extends Node
 @export var max_mana_base: float = 100.0
 @export var max_mana_growth: float = 8.0
 @export var regen_rate_base: float = 4.0
+## Mana regen grows a little each round so long runs aren't starved (per round after the 1st).
+@export var regen_growth: float = 0.25
 ## Share of max mana restored at the start of each new round (original design: half).
 @export_range(0.0, 1.0) var round_start_mana_refill: float = 0.5
 
 @export_group("Damage & Burst")
-@export var base_dps: float = 3.0
-@export var dps_growth: float = 0.7
+## Steady damage per fighter (before armor): base + growth per round. Softened 2026-10-21
+## (was 3.0 + 0.7/round) so a new player's first deaths land around rounds 6–8.
+@export var base_dps: float = 2.6
+@export var dps_growth: float = 0.35
 @export var burst_interval: float = 5.0
 ## Seconds of red warning before a burst lands (time to react with a shield or heal).
 @export var burst_telegraph_time: float = 1.5
@@ -36,7 +40,9 @@ extends Node
 ## 1, 2, 3 … (rounds past the list take full damage). Applies to steady damage and bursts.
 @export var early_damage_scale: PackedFloat32Array = [0.6, 0.75, 0.9]
 
-@export var armor_dps_multipliers: Dictionary = {"LIGHT": 1.6, "MEDIUM": 1.2, "HEAVY": 0.8}
+## Damage taken by armor type. Light was 1.6 / medium 1.2 until 2026-10-21: half of all
+## fighters are light, so that made rounds 3–4 a wall.
+@export var armor_dps_multipliers: Dictionary = {"LIGHT": 1.35, "MEDIUM": 1.1, "HEAVY": 0.8}
 
 func get_round_time(round: int) -> float:
 	return minf(round_time_max, first_round_time + round_time_growth * maxi(0, round - 1))
@@ -50,6 +56,9 @@ func is_boss_round(round: int) -> bool:
 ## 1 for the Baron's first appearance, 2 for his second, …
 func boss_appearance(round: int) -> int:
 	return maxi(1, round / maxi(1, boss_every))
+
+func get_regen_rate(round: int) -> float:
+	return regen_rate_base + regen_growth * maxi(0, round - 1)
 
 func get_max_mana(round: int) -> float:
 	return max_mana_base + (round - 1) * max_mana_growth

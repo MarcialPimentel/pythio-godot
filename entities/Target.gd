@@ -45,6 +45,7 @@ var _icon_shield: TextureRect
 var _icon_danger: TextureRect
 var _icon_protect: TextureRect
 var _icon_delayed: TextureRect
+var _icon_saturated: TextureRect
 
 
 func _ready() -> void:
@@ -71,6 +72,7 @@ func _ready() -> void:
 	EventBus.burst_warned.connect(_on_burst_warned)
 	EventBus.burst_landed.connect(_on_burst_landed)
 	EventBus.combo_fired.connect(_on_combo_fired)
+	EventBus.rule_triggered.connect(_on_rule_triggered)
 
 	hp_bar.max_value = health_comp.max_health
 	shield_bar.max_value = health_comp.max_health
@@ -91,7 +93,7 @@ func _setup_sprite() -> void:
 	shield_bubble.size = Vector2(maxf(w, h * 0.75) * 1.15, h * 1.08)
 	shield_bubble.position = Vector2((size.x - shield_bubble.size.x) / 2.0, _feet_y - shield_bubble.size.y + 10)
 	if is_boss:
-		status_icons.position.y = _feet_y - h - 40
+		status_icons.position.y = _feet_y - h - 80   # icons above the warning text
 		incoming_label.position.y = _feet_y - h - 40
 
 
@@ -101,6 +103,7 @@ func _setup_status_icons() -> void:
 	_icon_danger = _make_status_icon("ui/icons/status_debuff_1.png")
 	_icon_protect = _make_status_icon("ui/icons/status_buff_4.png")
 	_icon_delayed = _make_status_icon("ui/icons/status_buff_2.png")
+	_icon_saturated = _make_status_icon("ui/icons/status_debuff_2.png")
 
 
 func _make_status_icon(path: String) -> TextureRect:
@@ -172,6 +175,15 @@ func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: S
 				_float_text("Blooms soon", FLOAT_HEAL, 0.8)
 
 
+## A battlefield rule bit this fighter: a muted grey word so you learn why.
+func _on_rule_triggered(kind: String, target) -> void:
+	if target != self:
+		return
+	match kind:
+		"diminished": _float_text("Diminished", Color(0.62, 0.66, 0.75), 0.75, 30.0)
+		"saturated": _float_text("Saturated", Color(0.72, 0.68, 0.62), 0.75, 30.0)
+
+
 ## A synergy fired on this fighter: gold flash, gold burst and the combo's name.
 func _on_combo_fired(target, label: String) -> void:
 	if target != self:
@@ -183,10 +195,10 @@ func _on_combo_fired(target, label: String) -> void:
 	tw.tween_property(sprite, "self_modulate", Color.WHITE, 0.5)
 
 
-func _on_burst_warned(target, damage: float, _delay: float) -> void:
+func _on_burst_warned(target, damage: float, _delay: float, label: String) -> void:
 	if target != self:
 		return
-	incoming_label.text = "! INCOMING %d" % roundi(damage)
+	incoming_label.text = "! %s %d" % [label, roundi(damage)]
 
 
 func _on_burst_landed(target, absorbed: float, dealt: float) -> void:
@@ -264,6 +276,7 @@ func _process(delta: float) -> void:
 		shield_bubble.modulate.a = 0.75 + 0.2 * sin(t * 3.0)
 	_icon_protect.visible = not dead and (health_comp.has_status("PROTECT") or health_comp.has_status("SAVE"))
 	_icon_delayed.visible = not dead and (health_comp.has_status("DELAYED") or health_comp.has_status("ECHO"))
+	_icon_saturated.visible = not dead and health_comp.has_status("SATURATED")
 	if has_hot:
 		var longest: Status = null
 		for s in health_comp.get_statuses("HOT"):

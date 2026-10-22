@@ -28,13 +28,17 @@ _Last updated: 2026-10-21. Owner: Marz. Claude works through this list one pull 
   Q–T bar; the two contracts are a non-choice; wants spells to flash when a combo is ready;
   new ideas: bandages, battlefield rules that mirror passives, debuffs needing cleanses,
   effective healing on the leaderboard, raid-size parties later.
-- **Next up: Phase C** (all of it in one branch/PR, as for Phase B): #31 difficulty curve →
-  #49 passive tray → #29 single "next party" screen → #50 combo-ready glow → #51 bandages →
-  #52 battlefield rules + mirrored passives → #32 effective healing, run summary, leaderboard
-  → #30 Baron fight.
-- **Waiting on owner:** playtest of Phase C when it's built.
-- **Known rough spots:** endless scaling is steep (fixed in #31) · stand-in art (new spells
-  reuse 4 icons) · no sound · the Baron is a big health bar (#30).
+- **Phase C built 2026-10-21 (one PR for the whole phase, awaiting owner review):** fairer
+  difficulty curve (bot's first deaths ~rounds 6–7, was 3–5) · passive tray (5 spells +
+  3 passives) · one "next party" screen · combo-ready glow on spell buttons · bandages
+  (Space) · battlefield rules with mirrored passives (Bulwark, Second Wind, Overflow) ·
+  effective healing, run summary and a new rounds-then-healing leaderboard (older boards
+  browsable by build with ◀ ▶) · the Crimson
+  Baron fight in three telegraphed phases.
+- **Next up:** owner playtests Phase C → Phase D (debuffs and cleanses, #23, #53).
+- **Waiting on owner:** Phase C review and playtest.
+- **Known rough spots:** stand-in art (new spells reuse 4 icons) · no sound · the old
+  leaderboard file (`leaderboard_godot.json`) is left on the server but no longer read.
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
@@ -100,23 +104,23 @@ One bullet ≈ one pull request.
 - ✅ #27 **Remaining spells by school,** including passives and prerequisites.
 - ✅ #28 **Synergy hints on pick cards** and a build summary above the spell bar.
 
-### Phase C: New spells, mechanics and changes (from Phase B playtest)
-- ⬜ #31 **Difficulty curve:** one more fighter every 2 rounds (cap 8), softer damage
+### Phase C: New spells, mechanics and changes (from Phase B playtest)  — 🔶 built, in review (one PR)
+- 🔶 #31 **Difficulty curve:** one more fighter every 2 rounds (cap 8), softer damage
   growth; a new player's first deaths around rounds 6–8.
-- ⬜ #49 **Passive tray:** 3 gold slots next to the spell bar (shared with keystones later);
+- 🔶 #49 **Passive tray:** 3 gold slots next to the spell bar (shared with keystones later);
   Q–T only for spells you cast.
-- ⬜ #29 **One "next party" screen** instead of two near-identical contracts; the Baron
+- 🔶 #29 **One "next party" screen** instead of two near-identical contracts; the Baron
   keeps his own card.
-- ⬜ #50 **Combo-ready glow:** a spell button glows gold when casting it on the hovered
+- 🔶 #50 **Combo-ready glow:** a spell button glows gold when casting it on the hovered
   fighter would fire a combo.
-- ⬜ #51 **Bandages:** Space on a hovered fighter channels ~40 healing over ~2.5s; 3 charges
+- 🔶 #51 **Bandages:** Space on a hovered fighter channels ~40 healing over ~2.5s; 3 charges
   max, +1 every 2 rounds.
-- ⬜ #52 **Battlefield rules and mirrored passives:** diminishing shields ↔ Bulwark,
+- 🔶 #52 **Battlefield rules and mirrored passives:** diminishing shields ↔ Bulwark,
   exhaustion at 0 mana ↔ Second Wind, soft saturation on overheal ↔ Overflow.
-- ⬜ #32 **Effective healing, run summary and leaderboard:** rank by rounds then effective
+- 🔶 #32 **Effective healing, run summary and leaderboard:** rank by rounds then effective
   healing; game-over stats (effective healing, overheal %, mitigated, spells, combos);
   a new board for the new scoring; earlier boards stay browsable by build (◀ ▶ arrows).
-- ⬜ #30 **Crimson Baron fight** with telegraphed phases.
+- 🔶 #30 **Crimson Baron fight** with telegraphed phases.
 
 ### Phase D: Debuffs and cleanses
 - ⬜ #23 **Debuffs from round 6:** Poison (stacking DoT → Cleanse), Hex (−50% healing taken

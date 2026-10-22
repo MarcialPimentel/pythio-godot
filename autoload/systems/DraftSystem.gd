@@ -19,8 +19,10 @@ signal build_complete
 @export var offer_count: int = 3
 ## How many offers come from outside your school (splashing is where creative builds come from).
 @export var off_school_offers: int = 1
-## Spellbook cap; at the cap only rank-ups are offered. (Keys Q–T = 5.)
+## Caps: spells you cast (keys Q–T) and passive slots. At a cap only rank-ups of that kind
+## are offered; with both full and no rank-ups left, the build is complete.
 @export var spellbook_cap: int = 5
+@export var passive_cap: int = 3
 ## Weights for the rest of the offers.
 @export var own_school_weight: float = 3.0
 @export var any_school_weight: float = 1.5
@@ -97,21 +99,29 @@ func offers_after_round(round_cleared: int) -> Array[SpellData]:
 
 
 func is_full() -> bool:
-	return SpellSystem.spells.size() >= spellbook_cap
+	return spells_full() and passives_full()
+
+
+func spells_full() -> bool:
+	return SpellSystem.spells.size() >= mini(spellbook_cap, SpellSystem.SLOTS)
+
+
+func passives_full() -> bool:
+	return SpellSystem.passives.size() >= mini(passive_cap, SpellSystem.PASSIVE_SLOTS)
 
 
 ## Spells you could be offered right now: new spells (if there's room) and rank-ups.
 func candidates() -> Dictionary:
 	var fresh: Array[SpellData] = []
 	var upgrades: Array[SpellData] = []
-	var full := is_full()
 	for s in SpellSystem.library:
 		var owned := SpellSystem.owned_rank(s.family())
 		if owned > 0:
 			if s.rank == owned + 1:
 				upgrades.append(s)
 			continue
-		if s.rank != 1 or full or not requirements_met(s):
+		var no_room := passives_full() if s.is_passive() else spells_full()
+		if s.rank != 1 or no_room or not requirements_met(s):
 			continue
 		fresh.append(s)
 	return {"fresh": fresh, "upgrades": upgrades}
@@ -163,7 +173,7 @@ func synergy(spell: SpellData) -> Dictionary:
 	var with: Array[SpellData] = []
 	var from: Array[SpellData] = []
 	var tags: Array[String] = []
-	for own in SpellSystem.spells:
+	for own in SpellSystem.all_owned():
 		if own.family() == spell.family():
 			continue
 		for t in spell.reacts_to_tags:

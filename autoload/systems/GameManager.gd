@@ -13,13 +13,17 @@ var current_round: int = 1
 var round_time: float
 var in_round: bool = false
 var score: int = 0
-var high_score: int = 0
+var best_rounds: int = 0
+var best_healing: int = 0
 var mana: float = 100.0
 var max_mana: float = 100.0
 var regen_rate: float = 4.0
 var last_run_won: bool = false
 ## Set when the F1 debug panel changes anything; such runs can't be posted online.
 var debug_used: bool = false
+## Exhaustion (battlefield rule): mana refills slower while this counts down.
+var exhausted_time: float = 0.0
+var exhausted_regen_factor: float = 1.0
 var god_mode: bool = false
 
 func _ready() -> void:
@@ -33,6 +37,7 @@ func new_game() -> void:
 	max_mana = DifficultySystem.max_mana_base
 	regen_rate = DifficultySystem.regen_rate_base
 	in_round = false
+	exhausted_time = 0.0
 	round_time = DifficultySystem.get_round_time(current_round)
 	DraftSystem.reset()
 	show_spec_choice.emit()
@@ -48,20 +53,22 @@ func end_round(success: bool) -> void:
 	
 	if success:
 		score += current_round * 100  # later tie to gold
+		EventBus.round_cleared.emit(current_round)
 	else:
 		last_run_won = false
-		game_over.emit(current_round, score)
 		save_high_score()
+		game_over.emit(current_round, score)
 		return
 	
 	current_round += 1
 	if not DifficultySystem.is_endless() and current_round > DifficultySystem.total_rounds:
 		last_run_won = true
-		game_over.emit(DifficultySystem.total_rounds, score)
 		save_high_score()
+		game_over.emit(DifficultySystem.total_rounds, score)
 	else:
 		round_time = DifficultySystem.get_round_time(current_round)
 		max_mana = DifficultySystem.get_max_mana(current_round)
+		regen_rate = DifficultySystem.get_regen_rate(current_round)
 		# Carry leftover mana and top up part of the pool, rewarding efficient rounds.
 		mana = minf(max_mana, mana + DifficultySystem.round_start_mana_refill * max_mana)
 		_after_round(current_round - 1)
@@ -78,25 +85,55 @@ func _after_round(round_cleared: int) -> void:
 func spend_mana(cost: float) -> bool:
 	if mana >= cost:
 		mana -= cost
+		if cost > 0.0:
+			EffectSystem.mana_spent()
 		return true
 	return false
 
 func regen_mana(delta: float) -> void:
-	mana = minf(max_mana, mana + regen_rate * delta)
+	var rate := regen_rate
+	if exhausted_time > 0.0:
+		exhausted_time -= delta
+		rate *= exhausted_regen_factor
+	mana = minf(max_mana, mana + rate * delta)
 
+
+## Exhaustion: mana refills at `factor` speed for `seconds`.
+func exhaust(seconds: float, factor: float) -> void:
+	exhausted_time = maxf(exhausted_time, seconds)
+	exhausted_regen_factor = factor
+	EventBus.rule_triggered.emit("exhausted", null)
+
+## Best run on this device: most rounds survived, then most effective healing.
 func save_high_score() -> void:
 	if debug_used:
 		return
-	if score > high_score:
-		high_score = score
+	var r := rounds_survived()
+	var h := RunStats.effective_healing()
+	if r > best_rounds or (r == best_rounds and h > best_healing):
+		best_rounds = r
+		best_healing = h
 		var config = ConfigFile.new()
-		config.set_value("scores", "high", high_score)
+		config.set_value("best", "rounds", best_rounds)
+		config.set_value("best", "healing", best_healing)
 		config.save("user://highscore.cfg")
 
 func load_high_score() -> void:
 	var config = ConfigFile.new()
 	if config.load("user://highscore.cfg") == OK:
-		high_score = config.get_value("scores", "high", 0)
+		best_rounds = config.get_value("best", "rounds", 0)
+		best_healing = config.get_value("best", "healing", 0)
+
+
+## Rounds fully survived in the current/last run.
+func rounds_survived() -> int:
+	return maxi(0, current_round - 1)
+
+
+func best_text() -> String:
+	if best_rounds <= 0 and best_healing <= 0:
+		return "Best: no runs yet"
+	return "Best: %d rounds · %s healing" % [best_rounds, RunStats.fmt(best_healing)]
 
 
 # ── Debug panel helpers (F1) ───────────────────────────
@@ -117,6 +154,7 @@ func debug_jump_to_round(n: int) -> void:
 	current_round = maxi(1, n)
 	round_time = DifficultySystem.get_round_time(current_round)
 	max_mana = DifficultySystem.get_max_mana(current_round)
+	regen_rate = DifficultySystem.get_regen_rate(current_round)
 	mana = max_mana
 	show_party_choice.emit()
 

@@ -18,6 +18,9 @@ func apply(spell: SpellData, target: Node) -> void:
 		if other:
 			EffectSystem.heal(other, lowest_other_amount, spell, spell.tags)
 
+func would_heal(_spell: SpellData, _target: Node) -> bool:
+	return true
+
 func describe() -> String:
 	var s := "Heals %s." % n(amount)
 	if neighbor_amount > 0.0:

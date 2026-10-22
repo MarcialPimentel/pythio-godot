@@ -5,7 +5,7 @@
 > Spell ideas from the owner, for inspiration. Numbers here are the intended baseline.
 > See `docs/roadmap.md` for which spells are in the MVP and how they map to the synergy system.
 
-## Spells in the game now (Phase B, 2026-10-21)
+## Spells in the game now (Phase C, 2026-10-21)
 
 The game's real numbers, generated from `resources/spells/*.tres` (edit those files to change a
 spell; the card text is built from them). **Rule: fast, efficient, big — pick two.** Slow casts
@@ -13,10 +13,14 @@ are the mana-efficient ones; instant or big heals cost more per point healed. "H
 counts every point of healing/absorb a cast can do (shields count what they absorb).
 
 - **Schools:** you start with Mending (Heal), Bloom (Renew) or Ward (Shield).
-- **Picks:** after round 1, then every 5 rounds, choose 1 of 3. Spellbook cap 5 (keys Q–T;
-  passives take a slot but no key). Ranks replace in place: Heal → Heal II → Heal III,
+- **Picks:** after round 1, then every 5 rounds, choose 1 of 3. Up to 5 spells you cast
+  (keys Q–T) and 3 passives (their own tray). Ranks replace in place: Heal → Heal II → Heal III,
   Renew → Rejuvenation, Shield → Shield II.
 - **Combo spells and passives** react to tags and are only offered once you own that tag.
+- **Battlefield rules** everyone plays by (Diminishing shields, Exhaustion, Saturation) are
+  in `resources/rules/`; Bulwark, Second Wind and Overflow are the passives that cancel them.
+- **Bandages** (Space on a hovered fighter) aren't a spell: 40 healing channelled over 2.5s,
+  3 charges, +1 every 2 rounds (`BandageSystem`).
 
 | Spell | School | Tags | Mana | Cast | Cooldown | What it does | HP per mana |
 |---|---|---|---|---|---|---|---|
@@ -27,6 +31,7 @@ counts every point of healing/absorb a cast can do (shields count what they abso
 | Heal | Mending | Direct | 10 | 1.5s | — | Heals 30. | 3.0 |
 | Heal II *(rank 2)* | Mending | Direct | 13 | 1.5s | — | Heals 45. | 3.5 |
 | Heal III *(rank 3)* | Mending | Direct | 16 | 1.5s | — | Heals 62. | 3.9 |
+| Overflow | Mending | — | passive | — | — | Cancels Saturation: overhealing turns 50% of the overheal into a Shield (up to 20, 5s). | — |
 | Seraphic Blessing | Mending | — | passive | — | — | Your Direct heals on a fighter below 40% health heal 30% more. Offered once you own a Direct spell. | — |
 | Aura of Mending | Bloom | — | passive | — | — | Each time one of your Heal-over-Time effects heals, the fighters on each side are healed for 30% of it. Offered once you own a Heal-over-Time spell. | — |
 | Healing Plague | Bloom | Heal-over-Time, Multi-target | 22 | 1.5s | — | Heals 24 over 6s (4 each second). Also on the fighters on each side. | 3.3 |
@@ -34,6 +39,7 @@ counts every point of healing/absorb a cast can do (shields count what they abso
 | Overgrowth | Bloom | — | 10 | instant | 6s | Extends every Heal-over-Time effect on the fighter by 5s. Offered once you own a Heal-over-Time spell. | — |
 | Renew | Bloom | Heal-over-Time | 12 | instant | — | Heals 40 over 8s (5 each second). | 3.3 |
 | Rejuvenation *(rank 2)* | Bloom | Heal-over-Time | 16 | instant | — | Heals 64 over 8s (8 each second). | 4.0 |
+| Bulwark | Ward | — | passive | — | — | Cancels Diminishing shields: your Shield effects stack at full strength and absorb 15% more. Offered once you own a Shield spell. | — |
 | Divine Protection | Ward | — | 20 | instant | 12s | The fighter takes 50% less damage for 5s. | — |
 | Guardian Ward | Ward | Shield | 18 | instant | — | Absorbs the next 25 damage for 6s. When it breaks or fades, heals 20. | 2.5 |
 | Shield | Ward | Shield | 14 | instant | — | Absorbs the next 30 damage for 8s. | 2.1 |
@@ -45,6 +51,7 @@ counts every point of healing/absorb a cast can do (shields count what they abso
 | Divine Channel | Any school | — | 0 | 3s | 30s | Restores 50 of your mana. | — |
 | Mana Conduit | Any school | — | passive | — | — | Overhealing isn't wasted: you get 20% of it back as mana. | — |
 | Mend Wounds | Any school | Direct, Heal-over-Time | 16 | 1s | — | Heals 20. Then heals 15 over 5s (3 each second). | 2.2 |
+| Second Wind | Any school | — | passive | — | — | Cancels Exhaustion: running your mana dry restores 30 mana instead (once every 20s). | — |
 
 ### Not in the game yet
 Keystones (Phase D) · Cleanse / Purify (need damage-over-time, Phase C) · Harmonize, Decoy,

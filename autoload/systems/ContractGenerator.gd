@@ -19,6 +19,12 @@ extends Node
 @export var boss_base_hp: int = 1200
 @export var boss_hp_per_appearance: int = 600
 
+@export_group("Party size")
+## Round 1 party size; one more fighter every `party_growth_every` rounds, up to the cap.
+@export var party_start: int = 4
+@export var party_growth_every: int = 2
+@export var party_max: int = 8
+
 @export_group("Fighters")
 ## Starting HP by armor type (original design: heavy 100 / medium 75 / light 50).
 @export var armor_base_hp := {"HEAVY": 100, "MEDIUM": 75, "LIGHT": 50}
@@ -34,6 +40,15 @@ extends Node
 @export var flavor_suffixes: PackedStringArray = ["band", "squad", "caravan", "outpost"]
 
 var rng := RandomNumberGenerator.new()
+
+## What Pythio's handler says when the next party shows up.
+const NEXT_PARTY_LINES: PackedStringArray = [
+	"Another party needs you. They always do.",
+	"We got another invite. Bring bandages.",
+	"Time for the next group. Same blood, new faces.",
+	"Someone paid in advance. Try to earn it.",
+	"Fresh customers. Mostly in one piece.",
+]
 
 
 func _ready() -> void:
@@ -55,8 +70,7 @@ func generate_contract(round_num: int) -> ContractData:
 	
 	# ── Unit count ──
 	var progress := float(round_num - 1) / 4.0   # 0..1 across rounds 1–5
-	var target_units := roundi(unit_count_curve.sample(progress) if unit_count_curve else 3 + round_num)
-	target_units = clamp(target_units, 2, 8)
+	var target_units := party_size(round_num)
 	
 	# ── Generate units ──
 	contract.unit_templates.clear()
@@ -82,13 +96,20 @@ func generate_contract(round_num: int) -> ContractData:
 	# ── Metadata ──
 	contract.is_boss = false
 	contract.contract_name = "%d %s %s" % [target_units, flavor_prefixes[rng.randi() % flavor_prefixes.size()], flavor_suffixes[rng.randi() % flavor_suffixes.size()]]
-	contract.flavor_text = "A group of %d wounded fighters needs urgent care. Payment upon survival." % target_units
+	contract.flavor_text = NEXT_PARTY_LINES[rng.randi() % NEXT_PARTY_LINES.size()]
 	
 	# ── Reward & Risk ──
 	contract.reward_gold = gold_base_per_round + gold_per_unit * target_units
 	contract.risk_level = mini(max_risk, roundi(target_units * risk_per_unit + (round_num - 1) * 0.5))
 	
 	return contract
+
+
+## 4, 4, 5, 5, 6, 6 … up to 8 (owner, 2026-10-21: one more fighter every 2 rounds).
+func party_size(round_num: int) -> int:
+	if unit_count_curve:
+		return clampi(roundi(unit_count_curve.sample(float(round_num - 1) / 4.0)), 2, party_max)
+	return mini(party_max, party_start + maxi(0, round_num - 1) / maxi(1, party_growth_every))
 
 
 func generate_boss_contract(round_num: int) -> ContractData:
@@ -110,6 +131,15 @@ func generate_boss_contract(round_num: int) -> ContractData:
 	boss_unit.is_boss_unit = true
 	
 	boss.unit_templates = [boss_unit]
+	# His guards: ordinary fighters, so the fight is still triage, not one big health bar.
+	var hp_mult := 1.0 + hp_growth_per_round * (round_num - 1)
+	for i in BossDirector.guards:
+		var g := UnitTemplate.new()
+		g.display_name = "Baron's Guard"
+		g.character = "knight"
+		g.armor_type = "HEAVY"
+		g.base_max_health = roundi(armor_base_hp.get("HEAVY", 100) * hp_mult)
+		boss.unit_templates.append(g)
 	boss.risk_level = 5
 	
 	return boss

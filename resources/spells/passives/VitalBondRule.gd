@@ -18,6 +18,7 @@ func on_shield_ended(target: Node, status, broken: bool, _remaining: float) -> v
 		gave = true
 	if gave:
 		EffectSystem.combo(target, "Vital Bond")
+		EffectSystem.passive_fired(self)
 
 func describe() -> String:
 	return "When one of your {SHIELD} effects breaks, the fighters on each side gain a %d {SHIELD} for %ds." % [roundi(shield_amount), roundi(duration)]

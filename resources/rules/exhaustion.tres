@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ExhaustionRule" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/passives/ExhaustionRule.gd" id="1_0h6cn"]
+
+[resource]
+script = ExtResource("1_0h6cn")
+seconds = 4.0
+regen_factor = 0.5
+rule_id = "exhaustion"
+rule_name = "Exhaustion"
+negates = PackedStringArray()

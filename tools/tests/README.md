@@ -15,6 +15,11 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_combos.gd` | real casts of Renew → Overgrowth, Echo Healing → Heal, Shield → Spirit Surge; gold combo text, Pythio's quip, combo spells only offered once you own the tag they react to |
 | `test_passives.gd` | Seraphic Blessing, Aura of Mending, Vital Bond (incl. no chaining), Mana Conduit; Binding Heal, Healing Plague, Guardian Angel, Time Stop, Divine Channel with real casts |
 | `test_synergy.gd` | "Combos with your …" hints on pick cards, at least one offer combos with your spellbook when possible, build summary above the spell bar |
+| `test_bandages.gd` | Space on a hovered fighter channels 40 healing over 2.5s, no casting meanwhile, Space between rounds doesn't spend one, death cancels, +1 charge every 2 rounds (max 3) |
+| `test_rules.gd` | battlefield rules and mirrors: Diminishing shields ↔ Bulwark, Exhaustion ↔ Second Wind, Saturation ↔ Overflow (HoT ticks never saturate), rules panel shows what's cancelled |
+| `test_glow.gd` | spell buttons glow gold only when casting on the hovered fighter would fire a combo (Overgrowth on a HoT, Spirit Surge on a Shield, Echo-marked or low fighters for Direct heals) and you can cast it; pass a path to also save a screenshot |
+| `test_stats.gd` | effective healing = restored (no overheal) + shield absorbs + prevented damage; overheal %, combos, bandages; game-over summary, leaderboard payload and rows, local best |
+| `test_baron.gd` | Crimson Baron fight: arrives at 55% with 2 guards, phase banners at 0/40/75% of the round, assassin strikes only in phase 2, one execution in phase 3, no random bursts on him, visit 2 is 15% harder; pass a path for a phase-2 screenshot |
 | `screenshots.gd` | saves real screenshots of start, contract choice, boss, game over |
 
 ```bash
@@ -26,6 +31,11 @@ godot --headless --script tools/tests/test_picks.gd
 godot --headless --script tools/tests/test_combos.gd
 godot --headless --script tools/tests/test_passives.gd
 godot --headless --script tools/tests/test_synergy.gd
+godot --headless --script tools/tests/test_bandages.gd
+godot --headless --script tools/tests/test_rules.gd
+godot --headless --script tools/tests/test_glow.gd
+godot --headless --script tools/tests/test_stats.gd
+godot --headless --script tools/tests/test_baron.gd
 godot --headless --script tools/tests/test_debug_panel.gd
 timeout 180 godot --headless --script tools/tests/test_full_run.gd   # fast-forwarded; quits on its own after Play Again
 # screenshots need a (virtual) display:

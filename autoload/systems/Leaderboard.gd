@@ -5,6 +5,14 @@
 extends Node
 
 signal top_loaded(ok: bool, entries: Array)
+
+## Boards from the server, newest first: [{id, title, kind, current}]. A new board starts
+## only when scoring changes; older ones stay browsable (◀ ▶ on the start screen).
+var boards: Array = []
+## The board currently shown, and how its rows read ("healing" or "classic").
+var board_id: String = ""
+var board_kind: String = "healing"
+var board_title: String = ""
 signal submitted(ok: bool, rank: int, entries: Array, message: String)
 
 ## Used when the game isn't running in a browser (editor / desktop builds).
@@ -25,21 +33,24 @@ func _ready() -> void:
 			_endpoint = url
 
 
-func fetch_top() -> void:
+## Loads a board's top 10 (`board` = "" for the current one).
+func fetch_top(board: String = "") -> void:
 	var req := _new_request()
 	req.request_completed.connect(func(result, code, _h, body):
 		var data = _parse(result, code, body)
 		var ok: bool = data != null and data.get("status") == "ok"
 		if ok:
 			entries = data.get("entries", [])
+			_read_board(data)
 		top_loaded.emit(ok, entries)
 		req.queue_free())
-	if req.request(_endpoint + "?action=top") != OK:
+	if req.request(_endpoint + "?action=top" + ("&board=" + board.uri_encode() if board != "" else "")) != OK:
 		top_loaded.emit(false, entries)
 		req.queue_free()
 
 
-func submit(player_name: String, score: int, round_reached: int, won: bool) -> void:
+## Posts a run: rounds survived, then effective healing (the board ranks by both).
+func submit(player_name: String, rounds: int, healing: int) -> void:
 	save_player_name(player_name)
 	var req := _new_request()
 	req.request_completed.connect(func(result, code, _h, body):
@@ -47,14 +58,30 @@ func submit(player_name: String, score: int, round_reached: int, won: bool) -> v
 		var ok: bool = data != null and data.get("status") == "ok"
 		if ok:
 			entries = data.get("entries", [])
+			_read_board(data)
 		var msg: String = "" if ok else (data.get("message", "Couldn't reach the leaderboard") if data else "Couldn't reach the leaderboard")
 		submitted.emit(ok, int(data.get("rank", 0)) if ok else 0, entries, msg)
 		req.queue_free())
-	var body := JSON.stringify({"name": player_name, "score": score, "round": round_reached, "won": won})
+	var build := str(ProjectSettings.get_setting("application/config/version", "dev")).replace("·", "/")
+	var body := JSON.stringify({"name": player_name, "rounds": rounds, "healing": healing, "build": build})
 	var err := req.request(_endpoint + "?action=submit", ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
 	if err != OK:
 		submitted.emit(false, 0, entries, "Couldn't reach the leaderboard")
 		req.queue_free()
+
+
+func _read_board(data: Dictionary) -> void:
+	boards = data.get("boards", boards)
+	board_id = str(data.get("board", board_id))
+	board_kind = str(data.get("kind", "healing"))
+	board_title = str(data.get("title", ""))
+
+
+## The board `step` places away from the one shown (−1 = newer, +1 = older), or "".
+func neighbour_board(step: int) -> String:
+	var i := boards.map(func(b): return b.get("id", "")).find(board_id)
+	var j := i + step
+	return boards[j].get("id", "") if i != -1 and j >= 0 and j < boards.size() else ""
 
 
 func load_player_name() -> String:

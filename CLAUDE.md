@@ -58,8 +58,8 @@ gold flash, sometimes a Pythio quip.
 - Godot **4.3**, GDScript, GL Compatibility renderer.
 - Main scene: `scenes/Game.tscn` (script `scenes/game.gd`).
 - Global systems are autoloads (see `project.godot`): GameManager, SpellSystem,
-  DraftSystem, EffectSystem, TargetSystem, ContractGenerator, DifficultySystem, EventBus,
-  PartyChoicePanel.
+  DraftSystem, BandageSystem, RunStats, BossDirector, EffectSystem, TargetSystem,
+  ContractGenerator, DifficultySystem, EventBus, PartyChoicePanel.
 - Data lives in Resources: spells in `resources/spells/*.tres`, schools in
   `resources/specs/*.tres`, contracts and units in `data/`.
 
@@ -75,7 +75,13 @@ gold flash, sometimes a Pythio quip.
   (healed, hot_ticked, shield_absorbed, shield_ended, combo_fired …).
 - Add a spell = a new `.tres` in `resources/spells/` built from existing effects; a new
   mechanic = a new effect/status/passive class. Ranks share `rank_family`.
-- `DraftSystem` owns the school pick, the pick schedule, offers, the cap and rank-ups.
+- `DraftSystem` owns the school pick, the pick schedule, offers, the caps (5 spells + 3
+  passives) and rank-ups.
+- **Battlefield rules** are `PassiveRule`s in `resources/rules/`, active for everyone unless a
+  passive you own lists their `rule_id` in `negates`. `EffectSystem.active_rules()` = rules
+  in force + your passives. Effects and passives can answer `would_combo()` (spell glow).
+- `BandageSystem` (Space channel, charges), `RunStats` (effective healing for the summary and
+  leaderboard), `BossDirector` (the Crimson Baron's phases; uses `TargetSystem.telegraph()`).
 
 ## Folder layout
 - `autoload/systems/` — game-wide logic (rounds, spells, targets, difficulty, contracts)

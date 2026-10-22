@@ -2,9 +2,9 @@ extends SceneTree
 # A simple bot that plays real runs, for balance checks (not a pass/fail test).
 # Usage: godot --headless --script tools/tests/sim_bot.gd -- <runs per school> [time scale]
 # Each school is played <runs> times; prints the round reached and the spells picked.
-# The bot: shields a fighter with an incoming burst if it can, otherwise heals whoever is
-# lowest (below 85%) with the best spell it can afford, keeps HoTs up, and on picks takes
-# the first card that combos with its spellbook (else the first card).
+# The bot: shields a fighter with an incoming burst if it can, bandages anyone below 30%,
+# otherwise heals whoever is lowest (below 85%) with the best spell it can afford, keeps
+# HoTs up, and on picks takes rank-ups, then healing, then combos.
 var game; var GM; var SS; var DS; var TS
 var runs := 3; var scale := 4.0; var kit: PackedStringArray = []
 var school_i := 0; var run_i := 0; var results := {}
@@ -84,7 +84,13 @@ func _act():
 			var def := _castable(func(s): return s.tags.has("SHIELD") or s.id in ["divine_protection", "time_stop"])
 			if not def.is_empty():
 				SS.request_cast(def[0], t); return
-	# 2) lowest fighter below 85%
+	# 2) someone below 30% and a bandage left → bandage them (panic button)
+	var BS = root.get_node("BandageSystem")
+	for t in alive:
+		if BS.charges > 0 and t.health_comp.current_health / t.health_comp.max_health < 0.3 and not BS.is_channeling():
+			if BS.try_bandage(t): _note("bandage"); return
+	if BS.is_channeling(): return
+	# 3) lowest fighter below 85%
 	alive.sort_custom(func(a, b): return a.health_comp.current_health / a.health_comp.max_health < b.health_comp.current_health / b.health_comp.max_health)
 	if alive.is_empty(): return
 	var heals := _castable(func(s): return s.tags.has("DIRECT") or s.tags.has("HOT") or s.tags.has("DELAYED") or s.tags.has("SHIELD"))

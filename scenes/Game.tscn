@@ -416,10 +416,10 @@ layout_mode = 1
 [node name="GameOverPanel" type="Panel" parent="GameUI"]
 visible = false
 layout_mode = 0
-offset_left = 610.0
-offset_top = 250.0
-offset_right = 1310.0
-offset_bottom = 720.0
+offset_left = 480.0
+offset_top = 200.0
+offset_right = 1440.0
+offset_bottom = 760.0
 
 [node name="GameOverContainer" type="VBoxContainer" parent="GameUI/GameOverPanel"]
 layout_mode = 1
@@ -438,7 +438,7 @@ alignment = 1
 [node name="ScoreLabel" type="Label" parent="GameUI/GameOverPanel/GameOverContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_oswald_bold")
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 27
 text = "Contract fulfilled."
 horizontal_alignment = 1
 autowrap_mode = 3
