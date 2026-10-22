@@ -129,6 +129,18 @@ func add_spell(spell: SpellData) -> int:
 	return row.size() - 1
 
 
+## Swaps `old` for `new` in the same slot (a full bar: the new spell takes the old one's key).
+func replace_spell(old: SpellData, new: SpellData) -> int:
+	var row := passives if new.is_passive() else spells
+	var i := row.find(old)
+	if i == -1:
+		return -1
+	row[i] = new
+	cooldowns.erase(old.id)
+	spellbook_changed.emit()
+	return i
+
+
 func owns_tag(tag: String) -> bool:
 	for s in all_owned():
 		if s.tags.has(tag):

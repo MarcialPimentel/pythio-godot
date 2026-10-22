@@ -39,6 +39,8 @@ extends Control
 const ART := "res://assets/art/"
 ## Spellbook size: keys Q W E R. Empty slots wait for a spell pick.
 const SPELL_SLOTS := 4
+## Marks the Skip card among the pick options.
+const SKIP := "__skip__"
 ## Spell icon by spell id; other spells use the icon for their main tag (stand-in art).
 const SPELL_ICONS := {
 	"flash_heal": "ui/icons/spell_flash_heal.png",
@@ -66,7 +68,8 @@ const QUIPS := {
 	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
 	"combo": ["Now that's teamwork.", "Two spells, one invoice.", "Elegant. Expensive, but elegant.",
 		"Put that on the bill.", "That's how it's done."],
-	"build_complete": ["That's the whole kit. Now let's see how far it goes.", "No more tricks. Just you and the bleeding."],
+	"skip": ["Saving it for later. Bold.", "Fine. More mana, fewer surprises."],
+	"build_complete": ["That's a full kit. From here, every new trick costs an old one.", "Bag's full. Now let's see how far it goes."],
 }
 
 var spell_buttons: Array[Button] = []
@@ -92,6 +95,11 @@ var _card_mode := ""
 const COMBO_QUIP_GAP := 8.0
 var _last_combo_quip := -100.0
 var _card_options: Array = []
+## The offer screen being shown (so "Back" from the swap screen can return to it).
+var _last_offers: Array = []
+var _last_pick_round := 0
+## The spell waiting to replace one of yours (swap screen).
+var _pending_swap: SpellData = null
 
 
 ## The game fonts only cover letters and basic punctuation. Symbols such as ◀ ▶ ★ ■ □ ● ≤
@@ -166,6 +174,7 @@ func _ready() -> void:
 	card_panel = preload("res://ui/CardChoicePanel.gd").new()
 	game_ui.add_child(card_panel)
 	card_panel.chosen.connect(_on_card_chosen)
+	card_panel.back_pressed.connect(func(): _show_spell_pick(_last_offers, _last_pick_round))
 	add_child(preload("res://ui/DebugPanel.gd").new())
 	var pause_menu = preload("res://ui/PauseMenu.gd").new()
 	pause_menu.can_open = func(): return game_ui.visible and not game_over_panel.visible
@@ -260,17 +269,43 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	contract_info.visible = false
 	round_label.text = ("Round %d cleared" % round_cleared) if round_cleared > 0 else "Bonus pick"
 	_card_mode = "spell"
-	_card_options = offers.duplicate()
+	_last_offers = Array(offers)
+	_last_pick_round = round_cleared
+	_card_options = []   # untyped: it also holds the Skip marker
+	_card_options.append_array(offers)
 	var title := pick_title(_card_options)
 	timer_label.text = title.replace("Add", "Pick")
 	var cards: Array = []
 	for spell in _card_options:
 		cards.append(spell_card(spell))
+	_card_options.append(SKIP)
+	cards.append(skip_card())
 	var sub := "Spells %d / %d · Passives %d / %d" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
 		SpellSystem.passives.size(), DraftSystem.passive_cap]
-	sub += " — full: only rank-ups from here." if DraftSystem.is_full() else " — next pick after round %d." % _next_pick_round(round_cleared)
+	if DraftSystem.spells_full() or DraftSystem.passives_full():
+		sub += " — full: a new one replaces one of yours."
+	sub += " Next pick after round %d." % _next_pick_round(round_cleared)
 	card_panel.show_cards(title, sub, cards)
 	_say("pick", 4.0)
+
+
+## Second step when your bar is full: which spell does the new one replace?
+func _show_swap(spell: SpellData) -> void:
+	_card_mode = "swap"
+	_pending_swap = spell
+	var row: Array = SpellSystem.passives if spell.is_passive() else SpellSystem.spells
+	_card_options = row.duplicate()
+	var cards: Array = []
+	for i in _card_options.size():
+		var c := spell_card(_card_options[i])
+		var key := "" if spell.is_passive() else SpellSystem.key_label_for_slot(i)
+		c.header = ("YOUR %s  [%s]" % ["PASSIVE" if spell.is_passive() else "SPELL", key]) if key != "" else "YOUR PASSIVE"
+		c.badge = "REPLACE"
+		c.badge_color = Color(0.95, 0.35, 0.3)
+		c.hint_bb = ""
+		cards.append(c)
+	card_panel.show_cards("Replace which %s?" % ("passive" if spell.is_passive() else "spell"),
+		"%s takes its slot%s." % [spell.display_name, "" if spell.is_passive() else " and its key"], cards, "Back to the offers")
 
 
 ## "Add a spell", "Add a passive" or "Add a spell or passive", depending on what's offered.
@@ -296,7 +331,17 @@ func _on_card_chosen(index: int) -> void:
 		"spec":
 			DraftSystem.choose_spec(choice)
 		"spell":
-			DraftSystem.take(choice)
+			if typeof(choice) == TYPE_STRING and choice == SKIP:
+				DraftSystem.skip()
+				_say("skip", 3.0)
+			elif DraftSystem.needs_swap(choice):
+				_show_swap(choice)
+				return
+			else:
+				DraftSystem.take(choice)
+		"swap":
+			DraftSystem.swap(choice, _pending_swap)
+			_pending_swap = null
 	_card_mode = ""
 	GameManager.continue_to_contracts()
 
@@ -319,6 +364,18 @@ func spec_card(spec: SpecData) -> Dictionary:
 	}
 
 
+## The Skip card: pass on this pick for a little extra max mana.
+func skip_card() -> Dictionary:
+	var grey := Color(0.7, 0.66, 0.6)
+	return {
+		"header": "PASS", "header_color": grey, "accent": grey,
+		"title": "Skip",
+		"stats": "+%d max mana for the rest of the run" % roundi(DraftSystem.skip_bonus_max_mana),
+		"body_bb": "Keep your build as it is. Nothing new to learn, a little more to spend.",
+		"flavor": "Sometimes the best trick is the one you already know.",
+	}
+
+
 ## Card data for a spell on the pick screen.
 func spell_card(spell: SpellData) -> Dictionary:
 	var school_color: Color = SpellTags.SCHOOL_COLORS.get(spell.school, Color.WHITE)
@@ -330,6 +387,8 @@ func spell_card(spell: SpellData) -> Dictionary:
 		var old := SpellSystem.all_owned().filter(func(s): return s.family() == spell.family())
 		if not old.is_empty():
 			header = "UPGRADES %s" % old[0].display_name.to_upper()
+	elif DraftSystem.needs_swap(spell):
+		badge = "SWAP"
 	elif DraftSystem.school() != "" and spell.school != DraftSystem.school() and spell.school != "ANY":
 		badge = "OTHER SCHOOL"
 	elif spell.is_passive():
@@ -343,7 +402,7 @@ func spell_card(spell: SpellData) -> Dictionary:
 		"stats": spell.stats_line(),
 		"tags": spell.tags,
 		"body_bb": spell.description_bb(),
-		"hint_bb": synergy_hint_bb(spell),
+		"hint_bb": synergy_hint_bb(spell) + (("\n" if synergy_hint_bb(spell) != "" else "") + "[color=#c9c2b6][i]Your %s are full: you'll choose one to replace.[/i][/color]" % ("passives" if spell.is_passive() else "spells") if badge == "SWAP" else ""),
 		"flavor": spell.flavor,
 	}
 

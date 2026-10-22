@@ -8,6 +8,7 @@ signal spec_chosen(spec: SpecData)
 signal spell_taken(spell: SpellData)
 ## Fired once per run when a pick round arrives and there's nothing left to offer.
 signal build_complete
+signal skipped
 
 @export_group("Schedule")
 ## First spell pick happens after this round (so you're not alone with one spell for long).
@@ -23,6 +24,11 @@ signal build_complete
 ## are offered; with both full and no rank-ups left, the build is complete.
 @export var spellbook_cap: int = 4
 @export var passive_cap: int = 3
+## Owner, 2026-10-22 (proposed by Claude): when a row is full, new spells are still offered
+## and taking one replaces a spell you choose. Off = the old rule (rank-ups, then build complete).
+@export var swap_when_full: bool = true
+## Skipping a pick gives this much extra max mana for the rest of the run.
+@export var skip_bonus_max_mana: float = 10.0
 ## Weights for the rest of the offers.
 @export var own_school_weight: float = 3.0
 @export var any_school_weight: float = 1.5
@@ -95,7 +101,8 @@ func offers_after_round(round_cleared: int) -> Array[SpellData]:
 	if not is_pick_round(round_cleared):
 		return none
 	var offers := make_offers()
-	if offers.is_empty() and not _complete_announced:
+	var settled: bool = is_full() and candidates().upgrades.is_empty()
+	if (offers.is_empty() or settled) and not _complete_announced:
 		_complete_announced = true
 		build_complete.emit()
 	return offers
@@ -124,7 +131,7 @@ func candidates() -> Dictionary:
 				upgrades.append(s)
 			continue
 		var no_room := passives_full() if s.is_passive() else spells_full()
-		if s.rank != 1 or no_room or not requirements_met(s):
+		if s.rank != 1 or (no_room and not swap_when_full) or not requirements_met(s):
 			continue
 		fresh.append(s)
 	return {"fresh": fresh, "upgrades": upgrades}
@@ -231,3 +238,22 @@ func _weighted(list: Array, weight: Callable) -> SpellData:
 func take(spell: SpellData) -> void:
 	SpellSystem.add_spell(spell)
 	spell_taken.emit(spell)
+
+
+## True if taking `spell` means giving up one you own (its row is full and it isn't a rank-up).
+func needs_swap(spell: SpellData) -> bool:
+	if SpellSystem.owned_rank(spell.family()) > 0:
+		return false
+	return passives_full() if spell.is_passive() else spells_full()
+
+
+## Takes `spell` in place of `old` (same slot, same key).
+func swap(old: SpellData, spell: SpellData) -> void:
+	SpellSystem.replace_spell(old, spell)
+	spell_taken.emit(spell)
+
+
+## Passes on a pick: a little extra max mana instead.
+func skip() -> void:
+	GameManager.add_bonus_max_mana(skip_bonus_max_mana)
+	skipped.emit()

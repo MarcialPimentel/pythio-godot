@@ -9,6 +9,8 @@
 extends Control
 
 signal chosen(index: int)
+## The optional button under the cards (e.g. "Back to the offers").
+signal back_pressed
 
 const CARD_SIZE := Vector2(380, 560)
 const BG := Color(0.07, 0.06, 0.06, 0.97)
@@ -17,6 +19,7 @@ const FRAME := Color(0.85, 0.8, 0.72, 0.9)
 var _title: Label
 var _subtitle: Label
 var _row: HBoxContainer
+var _back: Button
 var _cards: Array[Button] = []
 var _styles: Array[StyleBoxFlat] = []
 var _accents: Array[Color] = []
@@ -66,8 +69,19 @@ func _ready() -> void:
 	_row.add_theme_constant_override("separation", 36)
 	col.add_child(_row)
 
+	var back_row := CenterContainer.new()
+	col.add_child(back_row)
+	_back = Button.new()
+	_back.focus_mode = Control.FOCUS_NONE
+	_back.custom_minimum_size = Vector2(360, 54)
+	_back.add_theme_font_size_override("font_size", 22)
+	_back.visible = false
+	_back.pressed.connect(_on_back)
+	back_row.add_child(_back)
 
-func show_cards(title: String, subtitle: String, cards: Array) -> void:
+
+## `back_text`: show a button under the cards (Backspace works too); "" = none.
+func show_cards(title: String, subtitle: String, cards: Array, back_text: String = "") -> void:
 	if _tween:
 		_tween.kill()   # a choice still fading out must not land on the new cards
 	_title.text = title
@@ -79,6 +93,8 @@ func show_cards(title: String, subtitle: String, cards: Array) -> void:
 	_accents.clear()
 	for i in cards.size():
 		_row.add_child(_build_card(i, cards[i]))
+	_back.text = back_text + "  (Backspace)" if back_text != "" else ""
+	_back.visible = back_text != ""
 	_locked = false
 	visible = true
 	modulate.a = 0.0
@@ -93,10 +109,22 @@ func close() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or not (event is InputEventKey) or not event.pressed or event.echo:
 		return
+	if event.keycode == KEY_BACKSPACE and _back.visible:
+		_on_back()
+		get_viewport().set_input_as_handled()
+		return
 	var i: int = event.keycode - KEY_1
 	if i >= 0 and i < _cards.size():
 		_choose(i)
 		get_viewport().set_input_as_handled()
+
+
+func _on_back() -> void:
+	if _locked:
+		return
+	_locked = true
+	visible = false
+	back_pressed.emit()
 
 
 func _choose(i: int) -> void:
