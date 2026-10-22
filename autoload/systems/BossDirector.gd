@@ -1,5 +1,5 @@
 # autoload/systems/BossDirector.gd
-# The Crimson Baron fight. He's your patient: he arrives badly hurt with two guards, and the
+# The Crimson Baron fight. He's your patient: he arrives badly hurt (55%) with two guards, and the
 # round plays out in three telegraphed phases (announced with a red banner):
 #   1. The wound reopens   — steady bleeding
 #   2. Assassins in the rafters — a telegraphed strike on him every few seconds
@@ -9,7 +9,7 @@ extends Node
 
 @export_group("Arrival")
 ## The Baron starts the fight at this share of his health ("lies dying").
-@export_range(0.1, 1.0) var start_health: float = 0.45
+@export_range(0.1, 1.0) var start_health: float = 0.55
 ## How many guards come with him.
 @export var guards: int = 2
 
@@ -23,7 +23,7 @@ extends Node
 @export var assassin_hit: float = 0.09
 @export var assassin_every: float = 3.5
 @export var assassin_warning: float = 1.5
-@export var execution_hit: float = 0.35
+@export var execution_hit: float = 0.22
 @export var execution_warning: float = 3.0
 ## Each return visit, all of the above hit this much harder (0.15 = +15% per visit).
 @export var per_visit: float = 0.15

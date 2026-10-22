@@ -1,5 +1,5 @@
 extends SceneTree
-# The Crimson Baron fight: arrives at 45% with 2 guards; phase banners at 0 / 40% / 75% of
+# The Crimson Baron fight: arrives at 55% with 2 guards; phase banners at 0 / 40% / 75% of
 # the round; assassin strikes only in phase 2; one execution warning in phase 3; random
 # bursts never target him; his second visit hits 15% harder.
 # Pass a path to also save a screenshot during phase 2.
@@ -33,7 +33,7 @@ func _process(d):
 			game.party_choice_panel._on_left_chosen(); wait = 0.2
 		3:
 			baron = TS.targets.filter(func(t): return t.is_boss)[0]
-			P("fighters: %s · Baron health %.0f / %.0f (45%%)" % [str(TS.targets.map(func(t): return t.display_name)), baron.health_comp.current_health, baron.health_comp.max_health])
+			P("fighters: %s · Baron health %.0f / %.0f (55%%)" % [str(TS.targets.map(func(t): return t.display_name)), baron.health_comp.current_health, baron.health_comp.max_health])
 			for t in TS.targets: t.health_comp.invulnerable = true   # watch the whole fight
 			Engine.time_scale = 3.0
 			t0 = now(); step = 4; return false

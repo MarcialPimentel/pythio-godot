@@ -19,7 +19,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_rules.gd` | battlefield rules and mirrors: Diminishing shields ↔ Bulwark, Exhaustion ↔ Second Wind, Saturation ↔ Overflow (HoT ticks never saturate), rules panel shows what's cancelled |
 | `test_glow.gd` | spell buttons glow gold only when casting on the hovered fighter would fire a combo (Overgrowth on a HoT, Spirit Surge on a Shield, Echo-marked or low fighters for Direct heals) and you can cast it; pass a path to also save a screenshot |
 | `test_stats.gd` | effective healing = restored (no overheal) + shield absorbs + prevented damage; overheal %, combos, bandages; game-over summary, leaderboard payload and rows, local best |
-| `test_baron.gd` | Crimson Baron fight: arrives at 45% with 2 guards, phase banners at 0/40/75% of the round, assassin strikes only in phase 2, one execution in phase 3, no random bursts on him, visit 2 is 15% harder; pass a path for a phase-2 screenshot |
+| `test_baron.gd` | Crimson Baron fight: arrives at 55% with 2 guards, phase banners at 0/40/75% of the round, assassin strikes only in phase 2, one execution in phase 3, no random bursts on him, visit 2 is 15% harder; pass a path for a phase-2 screenshot |
 | `screenshots.gd` | saves real screenshots of start, contract choice, boss, game over |
 
 ```bash

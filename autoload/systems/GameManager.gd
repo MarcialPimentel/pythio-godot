@@ -68,6 +68,7 @@ func end_round(success: bool) -> void:
 	else:
 		round_time = DifficultySystem.get_round_time(current_round)
 		max_mana = DifficultySystem.get_max_mana(current_round)
+		regen_rate = DifficultySystem.get_regen_rate(current_round)
 		# Carry leftover mana and top up part of the pool, rewarding efficient rounds.
 		mana = minf(max_mana, mana + DifficultySystem.round_start_mana_refill * max_mana)
 		_after_round(current_round - 1)
@@ -153,6 +154,7 @@ func debug_jump_to_round(n: int) -> void:
 	current_round = maxi(1, n)
 	round_time = DifficultySystem.get_round_time(current_round)
 	max_mana = DifficultySystem.get_max_mana(current_round)
+	regen_rate = DifficultySystem.get_regen_rate(current_round)
 	mana = max_mana
 	show_party_choice.emit()
 

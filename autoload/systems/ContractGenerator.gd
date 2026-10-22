@@ -19,6 +19,12 @@ extends Node
 @export var boss_base_hp: int = 1200
 @export var boss_hp_per_appearance: int = 600
 
+@export_group("Party size")
+## Round 1 party size; one more fighter every `party_growth_every` rounds, up to the cap.
+@export var party_start: int = 4
+@export var party_growth_every: int = 2
+@export var party_max: int = 8
+
 @export_group("Fighters")
 ## Starting HP by armor type (original design: heavy 100 / medium 75 / light 50).
 @export var armor_base_hp := {"HEAVY": 100, "MEDIUM": 75, "LIGHT": 50}
@@ -64,8 +70,7 @@ func generate_contract(round_num: int) -> ContractData:
 	
 	# ── Unit count ──
 	var progress := float(round_num - 1) / 4.0   # 0..1 across rounds 1–5
-	var target_units := roundi(unit_count_curve.sample(progress) if unit_count_curve else 3 + round_num)
-	target_units = clamp(target_units, 2, 8)
+	var target_units := party_size(round_num)
 	
 	# ── Generate units ──
 	contract.unit_templates.clear()
@@ -98,6 +103,13 @@ func generate_contract(round_num: int) -> ContractData:
 	contract.risk_level = mini(max_risk, roundi(target_units * risk_per_unit + (round_num - 1) * 0.5))
 	
 	return contract
+
+
+## 4, 4, 5, 5, 6, 6 … up to 8 (owner, 2026-10-21: one more fighter every 2 rounds).
+func party_size(round_num: int) -> int:
+	if unit_count_curve:
+		return clampi(roundi(unit_count_curve.sample(float(round_num - 1) / 4.0)), 2, party_max)
+	return mini(party_max, party_start + maxi(0, round_num - 1) / maxi(1, party_growth_every))
 
 
 func generate_boss_contract(round_num: int) -> ContractData:
