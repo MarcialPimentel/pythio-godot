@@ -30,6 +30,22 @@ func _process(d):
 			for i in 300:
 				if DS.make_offers().any(DS.has_synergy): with_syn += 1
 			P("RESULT offers with at least one combo card: %d / 300" % with_syn)
+			# Tag-weighted offers (#68): share of offered new cards that share/react to a tag you own
+			var share_for := func(w: float) -> float:
+				DS.tag_affinity_weight = w
+				var hit := 0; var n := 0
+				for i in 600:
+					DS.tag_affinity_weight = w
+					var offers: Array = DS.make_offers()
+					DS.tag_affinity_weight = 1.0   # measure with weighting on, whatever made the offer
+					for c in offers:
+						if SS.owned_rank(c.family()) > 0: continue
+						n += 1
+						if DS.tag_affinity(c) > 1.0: hit += 1
+				return float(hit) / maxf(1.0, n)
+			var off: float = share_for.call(0.0); var on: float = share_for.call(1.0)
+			P("RESULT tag-weighted offers: cards touching your tags %.0f%% with weighting off → %.0f%% on (higher=%s)" % [off * 100.0, on * 100.0, on > off])
+			P("affinity: Overgrowth=%.1f Mend Wounds=%.1f Spirit Surge=%.1f (Renew + Overgrowth owned: HoT)" % [DS.tag_affinity(SS.get_library_spell("overgrowth")), DS.tag_affinity(SS.get_library_spell("mend_wounds")), DS.tag_affinity(SS.get_library_spell("spirit_surge"))])
 			SS.add_spell(SS.get_library_spell("shield"))
 			P("build summary: '%s'" % strip(game._build_label.text))
 			quit()

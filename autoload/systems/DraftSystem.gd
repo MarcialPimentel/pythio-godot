@@ -8,25 +8,35 @@ signal spec_chosen(spec: SpecData)
 signal spell_taken(spell: SpellData)
 ## Fired once per run when a pick round arrives and there's nothing left to offer.
 signal build_complete
+signal skipped
 
 @export_group("Schedule")
 ## First spell pick happens after this round (so you're not alone with one spell for long).
 @export var first_pick_after_round: int = 1
-## …then after every Nth round (5 → after rounds 5, 10, 15 …).
-@export var pick_every: int = 5
+## …then every Nth round after that (owner, 2026-10-22: 2 → after rounds 1, 3, 5, 7 …).
+@export var pick_every: int = 2
 
 @export_group("Offers")
 @export var offer_count: int = 3
 ## How many offers come from outside your school (splashing is where creative builds come from).
 @export var off_school_offers: int = 1
-## Caps: spells you cast (keys Q–T) and passive slots. At a cap only rank-ups of that kind
+## Caps: spells you cast (keys Q–R) and passive slots. At a cap only rank-ups of that kind
 ## are offered; with both full and no rank-ups left, the build is complete.
-@export var spellbook_cap: int = 5
+@export var spellbook_cap: int = 4
 @export var passive_cap: int = 3
+## Owner, 2026-10-22 (proposed by Claude): when a row is full, new spells are still offered
+## and taking one replaces a spell you choose. Off = the old rule (rank-ups, then build complete).
+@export var swap_when_full: bool = true
+## Skipping a pick gives this much extra max mana for the rest of the run.
+@export var skip_bonus_max_mana: float = 10.0
 ## Weights for the rest of the offers.
 @export var own_school_weight: float = 3.0
 @export var any_school_weight: float = 1.5
 @export var rank_up_weight: float = 2.0
+## Offers lean toward the tags you already own (#68): each owned tag a spell shares or
+## reacts to (up to 2) adds this much to its weight (1.0 → ×2 for one, ×3 for two).
+## Keeps a big pool from burying your combo pieces. 0 = off.
+@export var tag_affinity_weight: float = 1.0
 
 var specs: Array[SpecData] = []
 var current_spec: SpecData = null
@@ -83,7 +93,10 @@ func school() -> String:
 func is_pick_round(round_cleared: int) -> bool:
 	if round_cleared <= 0:
 		return false
-	return round_cleared == first_pick_after_round or (pick_every > 0 and round_cleared % pick_every == 0)
+	if round_cleared == first_pick_after_round:
+		return true
+	return pick_every > 0 and round_cleared > first_pick_after_round \
+		and (round_cleared - first_pick_after_round) % pick_every == 0
 
 
 ## Offers for after `round_cleared` (empty if it isn't a pick round or nothing is left).
@@ -92,7 +105,8 @@ func offers_after_round(round_cleared: int) -> Array[SpellData]:
 	if not is_pick_round(round_cleared):
 		return none
 	var offers := make_offers()
-	if offers.is_empty() and not _complete_announced:
+	var settled: bool = is_full() and candidates().upgrades.is_empty()
+	if (offers.is_empty() or settled) and not _complete_announced:
 		_complete_announced = true
 		build_complete.emit()
 	return offers
@@ -121,7 +135,7 @@ func candidates() -> Dictionary:
 				upgrades.append(s)
 			continue
 		var no_room := passives_full() if s.is_passive() else spells_full()
-		if s.rank != 1 or no_room or not requirements_met(s):
+		if s.rank != 1 or (no_room and not swap_when_full) or not requirements_met(s):
 			continue
 		fresh.append(s)
 	return {"fresh": fresh, "upgrades": upgrades}
@@ -148,7 +162,7 @@ func make_offers() -> Array[SpellData]:
 	# Off-school picks first (new spells from another school), then weighted for the rest.
 	var off: Array = c.fresh.filter(func(s): return mine != "" and s.school != mine and s.school != "ANY")
 	for i in mini(off_school_offers, off.size()):
-		var pick := _weighted(off, func(s): return s.offer_weight)
+		var pick := _weighted(off, func(s): return s.offer_weight * tag_affinity(s))
 		out.append(pick)
 		off.erase(pick)
 		pool.erase(pick)
@@ -206,11 +220,24 @@ func _weight_for(s: SpellData, upgrades: Array) -> float:
 	var w := s.offer_weight
 	if upgrades.has(s):
 		return w * rank_up_weight
+	w *= tag_affinity(s)
 	if s.school == school():
 		return w * own_school_weight
 	if s.school == "ANY":
 		return w * any_school_weight
 	return w
+
+
+## How strongly `spell` connects to the tags you own: 1 (none) up to 1 + 2 × tag_affinity_weight.
+func tag_affinity(spell: SpellData) -> float:
+	var owned := {}
+	for own in SpellSystem.all_owned():
+		for t in own.tags: owned[t] = true
+		for t in own.reacts_to_tags: owned[t] = true
+	var shared := {}
+	for t in spell.tags + spell.reacts_to_tags:
+		if owned.has(t): shared[t] = true
+	return 1.0 + tag_affinity_weight * mini(2, shared.size())
 
 
 func _weighted(list: Array, weight: Callable) -> SpellData:
@@ -228,3 +255,43 @@ func _weighted(list: Array, weight: Callable) -> SpellData:
 func take(spell: SpellData) -> void:
 	SpellSystem.add_spell(spell)
 	spell_taken.emit(spell)
+
+
+## True if taking `spell` means giving up one you own (its row is full and it isn't a rank-up).
+func needs_swap(spell: SpellData) -> bool:
+	if SpellSystem.owned_rank(spell.family()) > 0:
+		return false
+	return passives_full() if spell.is_passive() else spells_full()
+
+
+## Takes `spell` in place of `old` (same slot, same key).
+func swap(old: SpellData, spell: SpellData) -> void:
+	SpellSystem.replace_spell(old, spell)
+	spell_taken.emit(spell)
+
+
+## Debug (F1): put any spell in your build right now. A rank replaces its lower rank; with a
+## full row it replaces the last slot. Marks the run as debug (no leaderboard).
+func debug_take(spell: SpellData) -> void:
+	GameManager.debug_used = true
+	if needs_swap(spell):
+		var row: Array = SpellSystem.passives if spell.is_passive() else SpellSystem.spells
+		SpellSystem.replace_spell(row[row.size() - 1], spell)
+	else:
+		SpellSystem.add_spell(spell)
+	spell_taken.emit(spell)
+
+
+## Debug (F1): back to just your school's starter spell.
+func debug_reset_build() -> void:
+	GameManager.debug_used = true
+	var book: Array[SpellData] = []
+	if current_spec and current_spec.starter:
+		book.append(current_spec.starter)
+	SpellSystem.set_spellbook(book)
+
+
+## Passes on a pick: a little extra max mana instead.
+func skip() -> void:
+	GameManager.add_bonus_max_mana(skip_bonus_max_mana)
+	skipped.emit()

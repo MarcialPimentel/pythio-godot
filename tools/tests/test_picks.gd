@@ -6,7 +6,7 @@ func _initialize():
 	game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child.call_deferred(game)
 func P(s): print("TEST: ", s)
-func ids(list): return list.map(func(s): return s.id)
+func ids(list): return list.map(func(s): return s.id if s is SpellData else str(s))
 
 func _process(d):
 	f += 1
@@ -48,7 +48,8 @@ func _process(d):
 			SS.add_spell(SS.get_library_spell("shield"))
 			var slot = SS.add_spell(SS.get_library_spell("rejuvenation"))
 			P("rank-up: Rejuvenation went to slot %d, spellbook=%s" % [slot, ids(SS.spells)])
-			# Fill to the cap
+			# Fill to the cap (the old rule: no swaps, so a full row only gets rank-ups; test_swap.gd covers swaps)
+			DS.swap_when_full = false
 			for id in ["heal", "lifebloom", "chain_heal"]:
 				SS.add_spell(SS.get_library_spell(id))
 			var o1: Array = DS.make_offers()
@@ -63,6 +64,7 @@ func _process(d):
 			P("everything ranked up: spellbook=%s offers=%s" % [ids(SS.spells), ids(DS.make_offers())])
 			var a = DS.offers_after_round(5); var b = DS.offers_after_round(10)
 			P("RESULT build complete fires once: offers=%s/%s signal count=%d" % [ids(a), ids(b), complete])
+			DS.swap_when_full = true
 			# Real flow from a fresh run: school → round 1 → spell pick → contracts
 			GM.new_game(); wait = 0.2
 		3:

@@ -12,6 +12,8 @@ var _info: Label
 var _target_label: Label
 var _round_spin: SpinBox
 var _god_button: Button
+var _spell_pick: OptionButton
+var _spell_ids: Array[String] = []
 var _target: Node = null
 
 
@@ -88,6 +90,27 @@ func _toggle_god() -> void:
 	_god_button.text = "God mode: %s" % ("ON" if GameManager.god_mode else "off")
 
 
+## Every spell in the game, by school, for the "Take any spell" list.
+func _fill_spell_list() -> void:
+	_spell_pick.clear()
+	_spell_ids.clear()
+	var order := {"MENDING": 0, "BLOOM": 1, "WARD": 2, "ANY": 3}
+	var all: Array = SpellSystem.library.duplicate()
+	all.sort_custom(func(a, b): return [order.get(a.school, 9), a.display_name] < [order.get(b.school, 9), b.display_name])
+	for s in all:
+		_spell_pick.add_item("%s · %s%s" % [SpellTags.SCHOOL_LABELS.get(s.school, s.school), s.display_name, " (passive)" if s.is_passive() else ""])
+		_spell_ids.append(s.id)
+
+
+func _take_spell() -> void:
+	var i := _spell_pick.selected
+	if i < 0 or i >= _spell_ids.size():
+		return
+	var s := SpellSystem.get_library_spell(_spell_ids[i])
+	if s:
+		DraftSystem.debug_take(s)
+
+
 # ── Layout ─────────────────────────────────────────────
 
 func _build() -> void:
@@ -137,6 +160,19 @@ func _build() -> void:
 	_add_button(fighter, "Heal to full", _heal_target)
 
 	_god_button = _add_button(box, "God mode: off", _toggle_god)
+
+	# Take any spell (#69): test a build without waiting for offers.
+	var tl := Label.new(); tl.text = "Take any spell (full bar: replaces the last slot)"
+	box.add_child(tl)
+	var take := HBoxContainer.new()
+	box.add_child(take)
+	_spell_pick = OptionButton.new()
+	_spell_pick.focus_mode = Control.FOCUS_NONE
+	_spell_pick.custom_minimum_size = Vector2(260, 0)
+	take.add_child(_spell_pick)
+	_add_button(take, "Take", _take_spell)
+	_add_button(box, "Reset build to the starter spell", func(): DraftSystem.debug_reset_build())
+	_fill_spell_list.call_deferred()
 
 	var note := Label.new()
 	note.text = "Using these marks the run as a debug run:\nit won't post to the leaderboard or high score."

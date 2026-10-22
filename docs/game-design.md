@@ -108,8 +108,8 @@ system has to make a new spell easy to add: numbers and effects, not new code.
    one fighter gets a **burst warning** (red ring, "INCOMING"), then takes a big hit. You
    heal, shield and protect with spells (mana) and bandages (charges).
 3. **Survive the timer** and the round is cleared. **Any fighter dies** and the run is over.
-4. **Between rounds:** after round 1 and after every 5th round, you pick a new spell or
-   passive (1 of 3). Your mana carries over and tops up by half your max pool. Cooldowns
+4. **Between rounds:** after round 1 and then every other round (3, 5, 7 …), you pick a
+   new spell or passive (1 of 3), or skip. Your mana carries over and tops up by half your max pool. Cooldowns
    reset. A new party comes in at full health.
 
 **Endless [Decided].** Rounds never stop until someone dies. Your score is how far you got.
@@ -140,14 +140,18 @@ which spells you'll be offered most.
 
 Some spells belong to **Any school**: every school sees them as a home spell.
 
-**Picks.** After round 1, then after rounds 5, 10, 15 …, choose 1 of 3 cards. The first pick
-comes early so nobody plays five rounds with a single spell. You pick with the mouse or keys 1–3.
+**Picks [Decided 2026-10-22].** After round 1, then every other round (after rounds 3, 5,
+7 …), choose 1 of 3 cards, or Skip. A typical run (first deaths around rounds 6–8) sees about
+4 picks: more decisions sooner. You pick with the mouse or keys 1–4.
 
 How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSystem.gd`):
 - **One card from another school** whenever one is available [Decided]. Splashing is where
   creative builds come from.
 - The rest favour **your school** (×3 weight), then Any-school spells (×1.5), then
   rank-ups (×2).
+- **Offers lean toward the tags you own** [Proposed by Claude, built in Phase D]: a card
+  that shares or reacts to one of your tags is twice as likely, two of your tags three
+  times. That keeps a big pool from burying your combo pieces, for the "master a build" player.
 - **At least one card combos with something you own,** when that's possible. A card that
   combos says so ("Combos with your …").
 - **Combo spells and most passives only appear once you own the tag they react to.** For
@@ -155,43 +159,38 @@ How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSys
 - You're never offered a spell you already own (only its next rank).
 
 **Two kinds of slot [Decided].**
-- **5 spells you cast,** on keys Q, W, E, R, T.
+- **4 spells you cast,** on keys Q, W, E, R (was 5 until Phase D). Enough for the fast /
+  efficient / big triangle plus a combo spell; every slot matters.
 - **3 passive slots** in a gold tray next to the spell bar. Passives work on their own.
-  (Phase D: 4 spells on Q–R; keystones get their own slots in Phase E.)
+  Keystones will get their own slots (Phase E), not these.
 
 **Ranks, not duplicates [Decided].** Lesser/normal/greater versions are one spell with ranks.
 A rank-up is a pick option and replaces the lower rank in the same slot, so "go deeper or
 go wider?" is a real choice. Ranks today: Heal → Heal II → Heal III, Renew → Rejuvenation,
 Shield → Shield II.
 
-**Build complete [Decided].** When all 5 spell slots and 3 passive slots are full and no
-rank-ups are left, Pythio says the kit is complete. From then on the run is about how far
-you can take it.
+**When your bar is full: swap, upgrade or skip** [Proposed by Claude, built in Phase D;
+Marz is open either way]. New spells are still offered, marked **SWAP**. Taking one asks
+"Replace which spell?" (with a Back button), and the new spell takes the old one's slot and
+key. Rank-ups work as before. Every pick screen has a **Skip** card: +10 max mana for the
+rest of the run. To go back to the old rule (rank-ups only, then nothing), turn off
+`swap_when_full`.
+
+**Build complete [Decided].** When all spell and passive slots are full and no rank-ups are
+left, Pythio says the kit is full. Picks keep coming (as swaps), so the run is about how far
+you can take it, and whether to change your build on the way.
 
 | Tunable | Value | File |
 |---|---|---|
 | First pick after round | 1 | `DraftSystem.gd` (`first_pick_after_round`) |
-| Then a pick every | 5 rounds | same (`pick_every`) |
-| Cards offered | 3 | same (`offer_count`) |
+| Then a pick every | 2 rounds | same (`pick_every`) |
+| Cards offered | 3 (+ Skip) | same (`offer_count`) |
 | Cards from another school | 1 | same (`off_school_offers`) |
-| Spell slots / passive slots | 5 / 3 | same (`spellbook_cap`, `passive_cap`) |
+| Spell slots / passive slots | 4 / 3 | same (`spellbook_cap`, `passive_cap`), and `SpellSystem.gd` (`SLOTS`) |
 | Weight: own school / any school / rank-up | 3 / 1.5 / 2 | same |
+| Tag weighting (each owned tag shared, up to 2) | +1× | same (`tag_affinity_weight`) |
+| Swap when full / Skip reward | on / +10 max mana | same (`swap_when_full`, `skip_bonus_max_mana`) |
 | A spell's own offer weight | 1 (each spell) | `resources/spells/<spell>.tres` (`offer_weight`) |
-
-**Changing in Phase D [Decided 2026-10-22]** (the table above is today's game until then):
-- **Picks every other round:** after rounds 1, 3, 5, 7 … A typical run (first deaths around
-  rounds 6–8) sees about 4 picks instead of 2. More decisions sooner, and faster testing
-  while we find the fun.
-- **4 spells you cast, on keys Q–R** (was 5). Enough for the fast / efficient / big triangle
-  plus a combo spell; every slot matters more.
-- **Keystones get their own slots** (up to 3), no longer shared with passives (section 9).
-- **No guaranteed cleanse in a pick:** Cleanse becomes a basic ability (section 7).
-- **[Proposed] When the spell bar is full,** a pick can **swap** one of your spells for the
-  new one, **upgrade** a rank, or **Skip** for a small reward (say, +max mana). Picks stay
-  live all run, so "build complete" becomes "build settled" rather than "no more choices".
-  Marz is open either way; the alternative is today's rule (rank-ups, then build complete).
-- **[Proposed] Offers lean toward tags you own,** not just your school, so a big pool
-  doesn't dilute your combo pieces.
 
 ## 5. Spells and tags, and how combos work
 
@@ -202,13 +201,16 @@ new spell automatically combines with everything that shares its tag.
 | Tag | Meaning | Spells with it today |
 |---|---|---|
 | **Direct** | An instant chunk of healing | Heal (I–III), Flash Heal, Binding Heal, Chain Heal, Mend Wounds, Spirit Surge |
-| **Heal-over-Time** | Heals a bit every second | Renew / Rejuvenation, Healing Plague, Mend Wounds |
-| **Shield** | Absorbs damage before health | Shield (I–II), Guardian Ward |
-| **Delayed** | Heals later | Lifebloom |
-| **Multi-target** | Also heals other fighters | Binding Heal, Chain Heal, Healing Plague |
+| **Heal-over-Time** | Heals a bit every second | Renew / Rejuvenation, Healing Plague, Mend Wounds, Tranquility |
+| **Shield** | Absorbs damage before health | Shield (I–II), Guardian Ward, Aegis of Light |
+| **Delayed** | Heals later | Lifebloom, Promise of Light |
+| **Multi-target** | Also heals other fighters | Binding Heal, Chain Heal, Healing Plague, Tranquility, Aegis of Light |
+| **Protection** | Stops damage instead of healing it | Divine Protection, Time Stop, Guardian Angel |
 | **Cleanse** | Removes a debuff | Planned for Phase F (the basic Cleanse ability, and spells that react to it) |
 
-Tag names and colours live in `resources/spells/SpellTags.gd`.
+Tag names and colours live in `resources/spells/SpellTags.gd`. **Rule of thumb [Proposed]:**
+every tag has at least 2 spells with it and 2 that react to it (true since Phase D; the
+`test_batch2.gd` census checks it).
 
 **What reacts to tags (the combos):**
 
@@ -221,11 +223,19 @@ Tag names and colours live in `resources/spells/SpellTags.gd`.
 | Shield | Spirit Surge (spell) | Consumes the fighter's shields and heals for 150% of what was left |
 | Shield | Vital Bond (passive) | When a shield breaks, the fighters on each side get a 10 shield |
 | Shield | Bulwark (passive) | Shields stack at full strength and absorb 15% more |
+| Delayed | Hasten (spell) | Your Delayed heals on the fighter land now, 25% bigger |
+| Delayed | Ripening (passive) | Delayed heals on a fighter below 50% health heal 50% more |
+| Multi-target | Lingering Light (passive) | Casting a Multi-target spell leaves a 3/s heal-over-time on the target for 4s |
+| Multi-target | Rising Tide (passive) | Every 3rd Multi-target spell you cast gives 20 mana |
+| Protection | Sanctuary (passive) | Casting a Protection spell also gives the fighter a 15 shield |
+| Protection | Watchful Eye (passive) | Casting a Protection spell on a fighter below 40% heals them for 25 |
 | Overheal | Overflow, Mana Conduit (passives) | Overhealing becomes a shield, or mana |
 
 **Readable combos [Decided].**
 - **Before:** a spell button **glows gold** when casting it on the fighter under your mouse
-  would fire a combo (and you can afford it). That's the WoW proc-glow idea.
+  would fire a combo (and you can afford it). That's the WoW proc-glow idea. Only
+  conditional bonuses glow (a low fighter, the 3rd cast, a shield to cash in); a bonus that
+  always applies doesn't, so the glow keeps meaning "press it now".
 - **When it fires:** gold text and a gold flash on the fighter, and sometimes a Pythio
   quip. When a passive fires, its slot in the tray pulses gold.
 
@@ -235,21 +245,24 @@ generated from those numbers, so it always matches.
 
 | School | Spells you cast | Passives |
 |---|---|---|
-| Mending | Heal (I–III), Flash Heal, Binding Heal, Echo Healing, Guardian Angel | Seraphic Blessing, Overflow |
-| Bloom | Renew → Rejuvenation, Lifebloom, Healing Plague, Overgrowth | Aura of Mending |
-| Ward | Shield (I–II), Guardian Ward, Spirit Surge, Divine Protection, Time Stop | Bulwark, Vital Bond |
-| Any school | Chain Heal, Mend Wounds, Divine Channel | Mana Conduit, Second Wind |
+| Mending | Heal (I–III), Flash Heal, Binding Heal, Echo Healing, Guardian Angel, Promise of Light | Seraphic Blessing, Overflow, Rising Tide |
+| Bloom | Renew → Rejuvenation, Lifebloom, Healing Plague, Overgrowth, Hasten, Tranquility | Aura of Mending, Ripening |
+| Ward | Shield (I–II), Guardian Ward, Spirit Surge, Divine Protection, Time Stop, Aegis of Light | Bulwark, Vital Bond, Sanctuary, Watchful Eye |
+| Any school | Chain Heal, Mend Wounds, Divine Channel | Mana Conduit, Second Wind, Lingering Light |
+
+37 entries in all: 21 spells you cast (with ranks), 12 passives.
 
 **Casting.** Each spell has a mana cost, a cast time (0 = instant) and sometimes a
 cooldown. You can only cast one thing at a time. A round ending cancels a cast in progress.
 
-**[Proposed] Gaps in the synergy web:**
-- Nothing reacts to **Delayed** or **Multi-target** yet. One payoff each (for example a
-  passive that makes Delayed heals land bigger on low fighters, or one that makes
-  Multi-target heals also tick a small heal-over-time) would make those tags matter.
-- Guardian Angel, Divine Protection, Time Stop and Divine Channel have no tags, so they sit
-  outside the combo web. That's fine for emergency buttons, but a "Protection" tag (with
-  one payoff) would bring Ward's defensive spells into it.
+**Adding a spell is data [Decided 2026-10-22: the pool should grow easily].**
+- **A spell you cast** = a `.tres` file in `resources/spells/` listing its cost, cast time,
+  cooldown, tags and effects (heal, heal-over-time, shield, delayed heal, protection, death
+  save, extend heals-over-time, echo, consume shields, hasten delayed heals, mana). Heals
+  over time and shields can target the whole party.
+- **A passive** = a `.tres` file using the **generic tag trigger** (section 6): pick an event,
+  the tags, an optional health condition, an action and who it hits. The card text writes itself.
+- New *kinds* of effect (a new verb) still need code; new spells built from existing verbs don't.
 
 ## 6. Passives, battlefield rules and their mirrors
 
@@ -269,8 +282,21 @@ cancelled, the rules panel shows it struck through, with the passive's name in g
 Saturation is soft on purpose [Decided]. A hard "can't be healed" rule would punish
 heals-over-time, Chain Heal and Aura of Mending, and would fight Mana Conduit.
 
-**Other passives** (no rule to cancel): Aura of Mending, Seraphic Blessing, Vital Bond,
-Mana Conduit. See the combo table in section 5.
+**Other passives** (no rule to cancel): see the combo table in section 5.
+
+**Passives are data: the generic tag trigger (Phase D).** Every passive is one rule read from
+its file: **when** [event] happens to something tagged [tags] (optionally on a fighter below
+X% health), **do** [action] to [who].
+
+| Part | Choices |
+|---|---|
+| Event | a heal lands · a heal is about to land (boost it) · a heal-over-time ticks · overheal · a shield breaks · a shield is about to go on (boost it) · you cast a spell · you run your mana dry |
+| Conditions | tags · below X% health · a minimum amount · ignore quiet heals or echoes · every Nth time · a cooldown |
+| Action | heal · shield · mana · heal-over-time · extend heals-over-time · boost (+%) |
+| Who | that fighter · the fighters on each side · your most injured fighter · every fighter |
+
+Triggers can't set off the same kind of trigger (no endless chains). Script:
+`resources/spells/passives/TagTriggerRule.gd`. Keystones (Phase E) will use the same parts.
 
 **One system [Decided].** Rules, passives, future keystones and future debuffs are all the
 same kind of thing (a `PassiveRule`), so anything one can do, the others can too.
@@ -410,19 +436,20 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 
 | Action | Input |
 |---|---|
-| Cast a spell | Hover a fighter, press Q / W / E / R / T. With nothing hovered, it goes to the last fighter you clicked. |
+| Cast a spell | Hover a fighter, press Q / W / E / R. With nothing hovered, it goes to the last fighter you clicked. |
 | Cast by mouse | Click a spell button, then click a fighter |
 | Bandage | Space while hovering a fighter (during a round) |
 | Ready on the Next party screen | Space or Enter |
-| Choose a pick card | Click, or keys 1–3 |
+| Choose a pick card | Click, or keys 1–3 (4 = Skip) |
+| Back from "Replace which spell?" | The Back button, or Backspace |
 | Pause menu (Resume / Restart run / Quit to title) | Escape (during a run) |
-| Debug panel | F1 or \` |
+| Debug panel (+mana, skip or jump rounds, take any spell, reset build, god mode) | F1 or \` |
 
 **Combat screen**
 - **Top:** round number and timer (centre); the party size (left); battlefield rules (right).
 - **Middle:** the fighters in one row. Each has a name, a health bar, an armour label, a
   shield bubble, a heal-over-time ring and status icons. The "INCOMING" warning shows above.
-- **Bottom:** Pythio and his speech bubble (left); the 5 spell buttons with key, cost and
+- **Bottom:** Pythio and his speech bubble (left); the 4 spell buttons with key, cost and
   cooldown; the passive tray; a build summary above the bar; the mana bar, cast bar and
   bandage counter.
 - **Floating numbers** for heals, shields and combos (gold).
@@ -444,17 +471,10 @@ The roadmap has the details and issue numbers. Phases A, B and C are done and li
 Phases were reordered on 2026-10-22 so more spells and keystones come first: they're
 the fun we're trying to find.
 
-**Phase D: Faster builds and more spells [Decided 2026-10-22]**
-- **Passives as data:** one generic tag trigger ("when [event] happens to something tagged
-  [X], optionally on a fighter below Y% health, do [Z]"). Most passives and keystones become
-  numbers in a `.tres` file, not new code. This is what lets the pool grow big.
-- **Picks every other round,** 4 spell keys (Q–R), and a re-check of the difficulty curve.
-- **Full bar: swap, upgrade or skip** [Proposed, see section 4].
-- **Offers weighted toward the tags you own** [Proposed].
-- **Debug: take any spell,** so Marz can test builds without waiting for offers.
-- **Spell batch 2:** more spells and passives from the tag system, including payoffs for
-  Delayed and Multi-target and a tag for Ward's defensive spells. Every tag gets at least
-  2 spells that have it and 2 that react to it. Marz reviews the list first.
+**Phase D: Faster builds and more spells ✅ built 2026-10-22** (PR for #65–#70; sections 4–6
+describe it): passives as data (generic tag trigger) · picks every other round · 4 spell keys ·
+swap / upgrade / skip when full · offers weighted toward your tags · debug "take any spell" ·
+spell batch 2 (Protection tag, 4 new spells, 5 new passives).
 
 **Phase E: Keystones [Decided 2026-10-22]**
 - **Beat the Baron, pick a keystone** (1 of 3): after rounds 5, 10, 15, capped at 3.
@@ -505,17 +525,23 @@ Parked on purpose [Decided]. Don't build these without Marz's OK.
 
 ## 14. Open questions for Marz
 
-1. **Full spell bar:** swap / upgrade / skip, or rank-ups then build complete? (Section 4.)
-   **[Proposed]** swap / upgrade / skip. Settle after the Phase D playtest.
-2. **Cleanse key and the bandage's future.** Cleanse on F and the bandage on Space? Do we
+1. **Full spell bar:** built as swap / upgrade / skip (section 4). Keep it, or go back to
+   rank-ups then build complete? Settle after the Phase D playtest.
+2. **Phase D's other proposals, now playable:** offers weighted toward your tags, the Skip
+   reward (+10 max mana), the Protection tag, and the 9 new spells and passives. Keep, tune
+   or cut each.
+3. **Cleanse key and the bandage's future.** Cleanse on F and the bandage on Space? Do we
    keep the bandage once Cleanse exists? Should passives be able to improve either?
-3. **Passive slots.** Stay at 3 now that keystones have their own slots, or drop to 2 so
+4. **Passive slots.** Stay at 3 now that keystones have their own slots, or drop to 2 so
    each passive pick weighs more? **[Proposed]** Keep 3 until the Phase D playtest.
-4. **The long game.** Damage, health and mana all grow in straight lines forever, and the
+5. **The long game.** Damage, health and mana all grow in straight lines forever, and the
    party caps at 8 by round 9. Past round ~15, what makes round 25 feel different from
    round 15, other than bigger numbers? **[Proposed]** "Escalating chaos" should come from
    new kinds of threat (debuffs, then mixed patterns and battlefield events) more than from
    bigger numbers. Revisit after Phase F.
+6. **Party-wide spells and party size.** Tranquility and Aegis of Light get stronger the
+   bigger the party. Fine now (8 max), but raid mode (#54) would need them capped or
+   rescaled.
 
 **Settled 2026-10-22:** pick pacing (every other round); keystone timing (after each Baron,
 own slots); tags with no payoff (handled in spell batch 2); 4 spell keys; Cleanse separate
@@ -541,3 +567,4 @@ Listed so nobody "fixes" the wrong side.
 |---|---|---|
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
+| 2026-10-22 | Claude (for Marz) | Phase D built: passives as data (generic tag trigger), picks every other round, 4 spell keys, swap / upgrade / skip when full, offers weighted toward your tags, debug "take any spell", spell batch 2 (Protection tag; Promise of Light, Hasten, Tranquility, Aegis of Light; Ripening, Lingering Light, Rising Tide, Sanctuary, Watchful Eye). Sections 3–6, 11, 12 and 14 updated. |

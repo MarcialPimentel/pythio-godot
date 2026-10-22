@@ -1,19 +1,20 @@
 [gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_0i8e1"]
-[ext_resource type="Script" path="res://resources/spells/passives/SecondWindRule.gd" id="2_w052a"]
-[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_8autf"]
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_spelle"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="2_spelld"]
+[ext_resource type="Script" path="res://resources/spells/passives/TagTriggerRule.gd" id="3_tagtri"]
 
-[sub_resource type="Resource" id="Resource_c1fpo"]
-script = ExtResource("2_w052a")
-mana = 30.0
+[sub_resource type="Resource" id="Resource_p"]
+script = ExtResource("3_tagtri")
+event = "MANA_EMPTY"
+action = "MANA"
+amount = 30.0
 cooldown = 20.0
-rule_id = ""
-rule_name = ""
+text_override = "Running your mana dry restores 30 mana instead (once every 20s)."
 negates = PackedStringArray("exhaustion")
 
 [resource]
-script = ExtResource("3_8autf")
+script = ExtResource("2_spelld")
 id = "second_wind"
 display_name = "Second Wind"
 school = "ANY"
@@ -21,8 +22,8 @@ tags = Array[String]([])
 mana_cost = 0.0
 cast_time = 0.0
 cooldown = 0.0
-effects = Array[ExtResource("1_0i8e1")]([])
-passive = SubResource("Resource_c1fpo")
+effects = Array[ExtResource("1_spelle")]([])
+passive = SubResource("Resource_p")
 rank_family = ""
 rank = 1
 requires_tags = Array[String]([])

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_spelle"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="2_spelld"]
+[ext_resource type="Script" path="res://resources/spells/effects/ShieldEffect.gd" id="3_shield"]
+
+[sub_resource type="Resource" id="Resource_e0"]
+script = ExtResource("3_shield")
+amount = 12.0
+duration = 6.0
+heal_on_end = 0.0
+whole_party = true
+
+[resource]
+script = ExtResource("2_spelld")
+id = "aegis_of_light"
+display_name = "Aegis of Light"
+school = "WARD"
+tags = Array[String](["SHIELD", "MULTI"])
+mana_cost = 35.0
+cast_time = 1.5
+cooldown = 0.0
+effects = Array[ExtResource("1_spelle")]([SubResource("Resource_e0")])
+rank_family = ""
+rank = 1
+requires_tags = Array[String]([])
+reacts_to_tags = Array[String]([])
+offer_weight = 1.0
+flavor = "A little for everyone. Don't fight over it."

@@ -3,11 +3,14 @@ class_name ShieldStatus
 extends Status
 
 var remaining: float = 0.0
+## What it could absorb when it went on (for "when a shield breaks" triggers).
+var total: float = 0.0
 var heal_on_end: float = 0.0
 
 func _init(p_amount: float = 30.0, p_duration: float = 8.0, p_heal_on_end: float = 0.0) -> void:
 	kind = "SHIELD"
 	remaining = p_amount
+	total = p_amount
 	duration = p_duration
 	time_left = p_duration
 	heal_on_end = p_heal_on_end

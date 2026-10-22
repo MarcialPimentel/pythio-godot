@@ -9,13 +9,16 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_fighters.gd` | armor roll mix, HP by armor, damage by armor, death ends the run, Play Again |
 | `test_full_run.gd` | endless: round lengths, Baron every 5th round, mana top-up, rounds 1–12, death ends the run, Play Again |
 | `test_bursts.gd` | bursts land after their warning for the right damage, shields absorb them, nothing lands between rounds |
-| `test_debug_panel.gd` | F1 toggles the panel; jump to round, +mana, god mode, hit/heal, skip round; debug runs can't be posted; Play Again starts clean |
+| `test_debug_panel.gd` | F1 toggles the panel; jump to round, +mana, take any spell and reset the build (#69), god mode, hit/heal, skip round; debug runs can't be posted; Play Again starts clean |
 | `test_effects.gd` | every effect and status (heal, neighbours, most injured, heal-over-time, shields incl. heal-on-end, protection, death save, delayed heal, Overgrowth, Echo, Spirit Surge, mana), passive hooks, tag text |
-| `test_picks.gd` | school pick, pick schedule, offer rules (no owned/duplicate spells, one other-school card), rank-ups replace in place, cap → rank-ups only → build complete once, the real school → round → pick → contracts flow |
+| `test_picks.gd` | school pick, pick schedule (after rounds 1, 3, 5 …), offer rules (no owned/duplicate spells, one other-school card), rank-ups replace in place, cap → rank-ups only → build complete once, the real school → round → pick → contracts flow |
+| `test_swap.gd` | full spell bar (#67): new spells still offered, "Replace which spell?" screen with Back, the new spell takes the old one's slot and key, rank-ups skip the swap screen, Skip gives +10 max mana that lasts the run, build complete still fires once |
 | `test_combos.gd` | real casts of Renew → Overgrowth, Echo Healing → Heal, Shield → Spirit Surge; gold combo text, Pythio's quip, combo spells only offered once you own the tag they react to |
 | `test_passives.gd` | Seraphic Blessing, Aura of Mending, Vital Bond (incl. no chaining), Mana Conduit; Binding Heal, Healing Plague, Guardian Angel, Time Stop, Divine Channel with real casts |
-| `test_synergy.gd` | "Combos with your …" hints on pick cards, at least one offer combos with your spellbook when possible, build summary above the spell bar |
+| `test_synergy.gd` | "Combos with your …" hints on pick cards, at least one offer combos with your spellbook when possible, offers lean toward tags you own (#68), build summary above the spell bar |
 | `test_bandages.gd` | Space on a hovered fighter channels 40 healing over 2.5s, no casting meanwhile, Space between rounds doesn't spend one, death cancels, +1 charge every 2 rounds (max 3) |
+| `test_triggers.gd` | passives as data (#65): the generic tag trigger's events (heal lands, heal-over-time tick, overheal, shield breaks, cast, mana empty), actions (heal, shield, mana, heal-over-time, extend, boost), who it hits, every-Nth and cooldown limits, glow, and the card text it writes |
+| `test_batch2.gd` | spell batch 2 (#70) with real casts: Promise of Light, Hasten, Ripening, Tranquility, Aegis of Light, Lingering Light, Rising Tide, Sanctuary, Watchful Eye; their glows; offer gating; the tag census (every tag: 2+ spells have it, 2+ react to it) |
 | `test_rules.gd` | battlefield rules and mirrors: Diminishing shields ↔ Bulwark, Exhaustion ↔ Second Wind, Saturation ↔ Overflow (HoT ticks never saturate), rules panel shows what's cancelled |
 | `test_glow.gd` | spell buttons glow gold only when casting on the hovered fighter would fire a combo (Overgrowth on a HoT, Spirit Surge on a Shield, Echo-marked or low fighters for Direct heals) and you can cast it; pass a path to also save a screenshot |
 | `test_stats.gd` | effective healing = restored (no overheal) + shield absorbs + prevented damage; overheal %, combos, bandages; game-over summary, leaderboard payload and rows, local best |
@@ -29,10 +32,13 @@ godot --headless --script tools/tests/test_fighters.gd
 godot --headless --script tools/tests/test_bursts.gd
 godot --headless --script tools/tests/test_effects.gd
 godot --headless --script tools/tests/test_picks.gd
+godot --headless --script tools/tests/test_swap.gd
 godot --headless --script tools/tests/test_combos.gd
 godot --headless --script tools/tests/test_passives.gd
 godot --headless --script tools/tests/test_synergy.gd
 godot --headless --script tools/tests/test_bandages.gd
+godot --headless --script tools/tests/test_triggers.gd
+godot --headless --script tools/tests/test_batch2.gd
 godot --headless --script tools/tests/test_rules.gd
 godot --headless --script tools/tests/test_glow.gd
 godot --headless --script tools/tests/test_stats.gd

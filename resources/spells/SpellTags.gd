@@ -10,8 +10,10 @@ const HOT := "HOT"
 const SHIELD := "SHIELD"
 const DELAYED := "DELAYED"
 const MULTI := "MULTI"
+## Damage prevention: Divine Protection, Time Stop, Guardian Angel (#70).
+const PROTECT := "PROTECT"
 
-const ALL: Array[String] = [DIRECT, HOT, SHIELD, DELAYED, MULTI]
+const ALL: Array[String] = [DIRECT, HOT, SHIELD, DELAYED, MULTI, PROTECT]
 
 const LABELS := {
 	DIRECT: "Direct",
@@ -19,6 +21,7 @@ const LABELS := {
 	SHIELD: "Shield",
 	DELAYED: "Delayed",
 	MULTI: "Multi-target",
+	PROTECT: "Protection",
 }
 
 const COLORS := {
@@ -27,6 +30,7 @@ const COLORS := {
 	SHIELD: Color(0.45, 0.7, 1.0),     # electric blue: shields
 	DELAYED: Color(0.78, 0.66, 1.0),
 	MULTI: Color(0.92, 0.86, 0.75),
+	PROTECT: Color(0.8, 0.86, 0.96),   # pale steel: the shield family, but not a shield
 }
 
 # ── Schools (the three specializations) ──

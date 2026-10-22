@@ -18,16 +18,16 @@ signal spellbook_changed
 
 ## Keys for spellbook slots, in order. Rebind in Project Settings → Input Map
 ## (actions "spell_1" … "spell_5") once they exist there; these are the defaults.
-const DEFAULT_SPELL_KEYS: Array[Key] = [KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T]
-## Spells you cast: keys Q–T.
-const SLOTS := 5
+const DEFAULT_SPELL_KEYS: Array[Key] = [KEY_Q, KEY_W, KEY_E, KEY_R]
+## Spells you cast: keys Q–R (owner, 2026-10-22: 4, was 5).
+const SLOTS := 4
 ## Passives (and later keystones) live in their own tray.
 const PASSIVE_SLOTS := 3
 ## Spellbook before a specialization is picked (and in tests that skip the pick).
 @export var default_spellbook_ids: PackedStringArray = ["flash_heal", "renew", "shield"]
 
 var library: Array[SpellData] = []       # every spell in the game
-var spells: Array[SpellData] = []        # spells you cast, in key order (Q–T)
+var spells: Array[SpellData] = []        # spells you cast, in key order (Q–R)
 var passives: Array[SpellData] = []      # passive tray
 var cooldowns: Dictionary = {}           # spell_id -> seconds remaining
 
@@ -81,7 +81,7 @@ func get_library_spell(id: String) -> SpellData:
 	return null
 
 
-## Replaces everything you own; passives go to the tray, the rest to Q–T.
+## Replaces everything you own; passives go to the tray, the rest to Q–R.
 func set_spellbook(new_spells: Array[SpellData]) -> void:
 	spells.clear()
 	passives.clear()
@@ -127,6 +127,18 @@ func add_spell(spell: SpellData) -> int:
 	row.append(spell)
 	spellbook_changed.emit()
 	return row.size() - 1
+
+
+## Swaps `old` for `new` in the same slot (a full bar: the new spell takes the old one's key).
+func replace_spell(old: SpellData, new: SpellData) -> int:
+	var row := passives if new.is_passive() else spells
+	var i := row.find(old)
+	if i == -1:
+		return -1
+	row[i] = new
+	cooldowns.erase(old.id)
+	spellbook_changed.emit()
+	return i
 
 
 func owns_tag(tag: String) -> bool:

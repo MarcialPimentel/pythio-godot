@@ -25,6 +25,8 @@ var debug_used: bool = false
 var exhausted_time: float = 0.0
 var exhausted_regen_factor: float = 1.0
 var god_mode: bool = false
+## Extra max mana earned this run (skipping a spell pick).
+var bonus_max_mana: float = 0.0
 
 func _ready() -> void:
 	load_high_score()
@@ -35,6 +37,7 @@ func new_game() -> void:
 	debug_used = god_mode
 	mana = DifficultySystem.max_mana_base
 	max_mana = DifficultySystem.max_mana_base
+	bonus_max_mana = 0.0
 	regen_rate = DifficultySystem.regen_rate_base
 	in_round = false
 	exhausted_time = 0.0
@@ -75,7 +78,7 @@ func end_round(success: bool) -> void:
 		game_over.emit(DifficultySystem.total_rounds, score)
 	else:
 		round_time = DifficultySystem.get_round_time(current_round)
-		max_mana = DifficultySystem.get_max_mana(current_round)
+		max_mana = DifficultySystem.get_max_mana(current_round) + bonus_max_mana
 		regen_rate = DifficultySystem.get_regen_rate(current_round)
 		# Carry leftover mana and top up part of the pool, rewarding efficient rounds.
 		mana = minf(max_mana, mana + DifficultySystem.round_start_mana_refill * max_mana)
@@ -89,6 +92,13 @@ func _after_round(round_cleared: int) -> void:
 		show_party_choice.emit()
 	else:
 		show_spell_pick.emit(offers, round_cleared)
+
+## Permanent extra max mana for the rest of the run (and the same amount right now).
+func add_bonus_max_mana(amount: float) -> void:
+	bonus_max_mana += amount
+	max_mana += amount
+	mana = minf(max_mana, mana + amount)
+
 
 func spend_mana(cost: float) -> bool:
 	if mana >= cost:
@@ -161,7 +171,7 @@ func debug_jump_to_round(n: int) -> void:
 		EventBus.emit_signal("round_ended", current_round)
 	current_round = maxi(1, n)
 	round_time = DifficultySystem.get_round_time(current_round)
-	max_mana = DifficultySystem.get_max_mana(current_round)
+	max_mana = DifficultySystem.get_max_mana(current_round) + bonus_max_mana
 	regen_rate = DifficultySystem.get_regen_rate(current_round)
 	mana = max_mana
 	show_party_choice.emit()

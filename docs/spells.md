@@ -6,7 +6,7 @@
 > The original web game's spell data is in `docs/spells-web.json`; the 2026-10-21 balance
 > review is in `docs/design-direction.md`.
 
-## Spells in the game now (after Phase C, 2026-10-22)
+## Spells in the game now (after Phase D, 2026-10-22)
 
 The game's real numbers, generated from `resources/spells/*.tres` (edit those files to change a
 spell; the card text is built from them). "HP per mana" counts every point of healing/absorb
@@ -18,31 +18,46 @@ the same PR.
 | Binding Heal | Mending | Direct, Multi-target | 18 | 1.5s | — | Heals 30. Also heals your most injured other fighter for 20. | 2.8 |
 | Echo Healing | Mending | — | 12 | instant | 10s | For 8s, Direct heals on this fighter echo: 50% of each heal repeats 2s later. Offered once you own a Direct spell. | — |
 | Flash Heal | Mending | Direct | 20 | instant | — | Heals 32. | 1.6 |
-| Guardian Angel | Mending | — | 25 | instant | 25s | For 6s, a killing blow leaves the fighter at 1 health instead, then heals them for 30. | — |
+| Guardian Angel | Mending | Protection | 25 | instant | 25s | For 6s, a killing blow leaves the fighter at 1 health instead, then heals them for 30. | — |
 | Heal | Mending | Direct | 10 | 1.5s | — | Heals 30. | 3.0 |
 | Heal II *(rank 2)* | Mending | Direct | 13 | 1.5s | — | Heals 45. | 3.5 |
 | Heal III *(rank 3)* | Mending | Direct | 16 | 1.5s | — | Heals 62. | 3.9 |
-| Overflow | Mending | — | passive | — | — | Cancels Saturation: overhealing turns 50% of the overheal into a Shield (up to 20, 5s). | — |
-| Seraphic Blessing | Mending | — | passive | — | — | Your Direct heals on a fighter below 40% health heal 30% more. Offered once you own a Direct spell. | — |
-| Aura of Mending | Bloom | — | passive | — | — | Each time one of your Heal-over-Time effects heals, the fighters on each side are healed for 30% of it. Offered once you own a Heal-over-Time spell. | — |
+| Overflow | Mending | — | passive | passive | — | Cancels Saturation: overhealing turns 50% of the overheal into a Shield (up to 20, 5s). | — |
+| Promise of Light | Mending | Delayed | 14 | instant | — | After 3s, heals 40. | 2.9 |
+| Rising Tide | Mending | — | passive | passive | — | When you cast a Multi-target spell, you get 20 mana (every 3rd time). Offered once you own a Multi-target spell. | — |
+| Seraphic Blessing | Mending | — | passive | passive | — | Your Direct heals on a fighter below 40% health heal 30% more. Offered once you own a Direct spell. | — |
+| Aura of Mending | Bloom | — | passive | passive | — | Each time one of your Heal-over-Time effects heals, the fighters on each side are healed for 30% of it. Offered once you own a Heal-over-Time spell. | — |
+| Hasten | Bloom | — | 8 | instant | 8s | Your Delayed heals on the fighter land now, 25% bigger. Offered once you own a Delayed spell. | — |
 | Healing Plague | Bloom | Heal-over-Time, Multi-target | 22 | 1.5s | — | Heals 24 over 6s (4 each second). Also on the fighters on each side. | 3.3 |
 | Lifebloom | Bloom | Delayed | 10 | instant | — | After 6s, heals 45. | 4.5 |
 | Overgrowth | Bloom | — | 10 | instant | 6s | Extends every Heal-over-Time effect on the fighter by 5s. Offered once you own a Heal-over-Time spell. | — |
-| Renew | Bloom | Heal-over-Time | 12 | instant | — | Heals 40 over 8s (5 each second). | 3.3 |
 | Rejuvenation *(rank 2)* | Bloom | Heal-over-Time | 16 | instant | — | Heals 64 over 8s (8 each second). | 4.0 |
-| Bulwark | Ward | — | passive | — | — | Cancels Diminishing shields: your Shield effects stack at full strength and absorb 15% more. Offered once you own a Shield spell. | — |
-| Divine Protection | Ward | — | 20 | instant | 12s | The fighter takes 50% less damage for 5s. | — |
+| Renew | Bloom | Heal-over-Time | 12 | instant | — | Heals 40 over 8s (5 each second). | 3.3 |
+| Ripening | Bloom | — | passive | passive | — | Your Delayed heals on a fighter below 50% health heal 50% more. Offered once you own a Delayed spell. | — |
+| Tranquility | Bloom | Heal-over-Time, Multi-target | 30 | 2s | — | Every fighter heals 2 each second for 6s (12 each). | 0.4 per fighter (2.4 with 6) |
+| Aegis of Light | Ward | Shield, Multi-target | 35 | 1.5s | — | Every fighter gets a 12 Shield for 6s. | 0.3 per fighter (2.1 with 6) |
+| Bulwark | Ward | — | passive | passive | — | Cancels Diminishing shields: your Shield effects stack at full strength and absorb 15% more. Offered once you own a Shield spell. | — |
+| Divine Protection | Ward | Protection | 20 | instant | 12s | The fighter takes 50% less damage for 5s. | — |
 | Guardian Ward | Ward | Shield | 18 | instant | — | Absorbs the next 25 damage for 6s. When it breaks or fades, heals 20. | 2.5 |
+| Sanctuary | Ward | — | passive | passive | — | When you cast a Protection spell, that fighter gains a Shield of 15 for 6s. Offered once you own a Protection spell. | — |
 | Shield | Ward | Shield | 14 | instant | — | Absorbs the next 30 damage for 8s. | 2.1 |
 | Shield II *(rank 2)* | Ward | Shield | 17 | instant | — | Absorbs the next 45 damage for 8s. | 2.6 |
 | Spirit Surge | Ward | Direct | 10 | instant | 4s | Consumes the Shield effects on this fighter and heals for 150% of what they had left. Offered once you own a Shield spell. | — |
-| Time Stop | Ward | — | 25 | instant | 20s | The fighter takes no damage for 2.5s. | — |
-| Vital Bond | Ward | — | passive | — | — | When one of your Shield effects breaks, the fighters on each side gain a 10 Shield for 5s. Offered once you own a Shield spell. | — |
+| Time Stop | Ward | Protection | 25 | instant | 20s | The fighter takes no damage for 2.5s. | — |
+| Vital Bond | Ward | — | passive | passive | — | When one of your Shield effects breaks, the fighters on each side gain a Shield of 10 for 5s. Offered once you own a Shield spell. | — |
+| Watchful Eye | Ward | — | passive | passive | — | When you cast a Protection spell on a fighter below 40% health, that fighter is healed for 25. Offered once you own a Protection spell. | — |
 | Chain Heal | Any school | Direct, Multi-target | 26 | 2s | — | Heals 30. Also heals the fighters on each side for 15. | 2.3 |
 | Divine Channel | Any school | — | 0 | 3s | 30s | Restores 50 of your mana. | — |
-| Mana Conduit | Any school | — | passive | — | — | Overhealing isn't wasted: you get 20% of it back as mana. | — |
+| Lingering Light | Any school | — | passive | passive | — | When you cast a Multi-target spell, that fighter gains a Heal-over-Time of 3 each second for 4s. Offered once you own a Multi-target spell. | — |
+| Mana Conduit | Any school | — | passive | passive | — | Overhealing isn't wasted: you get 20% of it back as mana. | — |
 | Mend Wounds | Any school | Direct, Heal-over-Time | 16 | 1s | — | Heals 20. Then heals 15 over 5s (3 each second). | 2.2 |
-| Second Wind | Any school | — | passive | — | — | Cancels Exhaustion: running your mana dry restores 30 mana instead (once every 20s). | — |
+| Second Wind | Any school | — | passive | passive | — | Cancels Exhaustion: running your mana dry restores 30 mana instead (once every 20s). | — |
+
+New in Phase D (#70): Promise of Light, Hasten, Tranquility, Aegis of Light, Ripening,
+Lingering Light, Rising Tide, Sanctuary, Watchful Eye; Divine Protection, Time Stop and Guardian
+Angel gained the **Protection** tag. Every passive is now data on the generic tag trigger (#65).
+Party-wide spells (Tranquility, Aegis of Light) are cheap per fighter and get better the bigger
+the party: big and efficient at scale, but slow.
 
 ### Not in the game yet
 Cleanse (Phase F) · Keystones (Phase E) · Harmonize, Decoy,

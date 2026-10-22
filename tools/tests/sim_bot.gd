@@ -59,15 +59,18 @@ func _pick():
 			(func(): SS.set_spellbook_ids(kit)).call_deferred()
 		return
 	# Like a sensible player: rank-ups, then more healing, then combos, then anything.
+	# Never skips; when it must swap, it gives up its least useful spell.
 	var opts: Array = game._card_options
 	var score := func(s):
-		if SS.owned_rank(s.family()) > 0: return 4
+		if not (s is SpellData): return 0   # the Skip card
+		if SS.owned_rank(s.family()) > 0 and game._card_mode != "swap": return 4
 		if s.tags.has("DIRECT") or s.tags.has("HOT") or s.tags.has("MULTI"): return 3
 		if DS.has_synergy(s) or s.tags.has("SHIELD"): return 2
 		return 1
 	var best := 0
 	for i in opts.size():
-		if score.call(opts[i]) > score.call(opts[best]): best = i
+		var better: bool = score.call(opts[i]) < score.call(opts[best]) if game._card_mode == "swap" else score.call(opts[i]) > score.call(opts[best])
+		if better: best = i
 	game.card_panel._choose(best)
 
 func _castable(pred: Callable) -> Array:

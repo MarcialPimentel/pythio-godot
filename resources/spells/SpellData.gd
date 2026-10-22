@@ -10,7 +10,7 @@ extends Resource
 @export var display_name: String = "Heal"
 @export var icon: Texture2D
 @export_enum("MENDING", "BLOOM", "WARD", "ANY") var school: String = "ANY"
-## Plain-language tags (see SpellTags): DIRECT, HOT, SHIELD, DELAYED, MULTI.
+## Plain-language tags (see SpellTags): DIRECT, HOT, SHIELD, DELAYED, MULTI, PROTECT.
 @export var tags: Array[String] = []
 
 @export_group("Casting")

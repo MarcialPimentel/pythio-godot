@@ -1,20 +1,24 @@
 [gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_cnyxk"]
-[ext_resource type="Script" path="res://resources/spells/passives/OverflowRule.gd" id="2_lqi3y"]
-[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="3_h2m7w"]
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_spelle"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="2_spelld"]
+[ext_resource type="Script" path="res://resources/spells/passives/TagTriggerRule.gd" id="3_tagtri"]
 
-[sub_resource type="Resource" id="Resource_mlogq"]
-script = ExtResource("2_lqi3y")
+[sub_resource type="Resource" id="Resource_p"]
+script = ExtResource("3_tagtri")
+event = "OVERHEAL"
+min_value = 5.0
+skip_quiet = true
+action = "SHIELD"
+who = "TARGET"
 share = 0.5
-max_shield = 20.0
-seconds = 5.0
-rule_id = ""
-rule_name = ""
+max_amount = 20.0
+duration = 5.0
+text_override = "Overhealing turns 50% of the overheal into a {SHIELD} (up to 20, 5s)."
 negates = PackedStringArray("saturation")
 
 [resource]
-script = ExtResource("3_h2m7w")
+script = ExtResource("2_spelld")
 id = "overflow"
 display_name = "Overflow"
 school = "MENDING"
@@ -22,8 +26,8 @@ tags = Array[String]([])
 mana_cost = 0.0
 cast_time = 0.0
 cooldown = 0.0
-effects = Array[ExtResource("1_cnyxk")]([])
-passive = SubResource("Resource_mlogq")
+effects = Array[ExtResource("1_spelle")]([])
+passive = SubResource("Resource_p")
 rank_family = ""
 rank = 1
 requires_tags = Array[String]([])
