@@ -94,7 +94,27 @@ var _last_combo_quip := -100.0
 var _card_options: Array = []
 
 
+## The game fonts only cover letters and basic punctuation. Symbols such as ◀ ▶ ★ ■ □ ● ≤
+## come from a tiny DejaVu subset. Desktop builds could borrow them from system fonts, but the
+## web build has none, so without this they show as boxes.
+const SYMBOL_FONT := "res://assets/fonts/symbols-dejavu-bold.ttf"
+const GAME_FONTS := [
+	"res://assets/fonts/oswald-latin-500-normal.woff2",
+	"res://assets/fonts/oswald-latin-700-normal.woff2",
+	"res://assets/fonts/pirata-one-latin-400-normal.woff2",
+	"res://assets/fonts/special-elite-latin-400-normal.woff2",
+]
+
+static func add_symbol_fallback() -> void:
+	var symbols: Font = load(SYMBOL_FONT)
+	for path in GAME_FONTS:
+		var font: Font = load(path)
+		if font and symbols and not font.fallbacks.has(symbols):
+			font.fallbacks = font.fallbacks + [symbols]
+
+
 func _ready() -> void:
+	add_symbol_fallback()
 	GameManager.game_over.connect(_on_game_over)
 	GameManager.show_party_choice.connect(_show_party_choice)
 	GameManager.show_spec_choice.connect(_show_spec_choice)

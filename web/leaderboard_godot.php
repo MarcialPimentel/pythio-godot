@@ -15,7 +15,7 @@ header("Cache-Control: no-store");
 // Newest first. To start a new board: add it at the top and point CURRENT at it.
 const BOARDS = [
     "v2" => ["file" => "leaderboard_godot_v2.json", "title" => "Phase C onward", "kind" => "healing"],
-    "v1" => ["file" => "leaderboard_godot.json",    "title" => "Builds ≤ 33",    "kind" => "classic"],
+    "v1" => ["file" => "leaderboard_godot.json",    "title" => "Builds 1–33",    "kind" => "classic"],
 ];
 const CURRENT = "v2";
 const KEEP = 100;          // entries stored
