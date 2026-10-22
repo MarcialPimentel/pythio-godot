@@ -37,8 +37,8 @@ extends Control
 @onready var lb_status: Label            = $StartScreen/LeaderboardPanel/LeaderboardBox/LeaderboardStatus
 
 const ART := "res://assets/art/"
-## Spellbook size: keys Q W E R T. Empty slots wait for a spell pick.
-const SPELL_SLOTS := 5
+## Spellbook size: keys Q W E R. Empty slots wait for a spell pick.
+const SPELL_SLOTS := 4
 ## Spell icon by spell id; other spells use the icon for their main tag (stand-in art).
 const SPELL_ICONS := {
 	"flash_heal": "ui/icons/spell_flash_heal.png",

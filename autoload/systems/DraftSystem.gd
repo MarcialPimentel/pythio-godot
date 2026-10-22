@@ -12,16 +12,16 @@ signal build_complete
 @export_group("Schedule")
 ## First spell pick happens after this round (so you're not alone with one spell for long).
 @export var first_pick_after_round: int = 1
-## …then after every Nth round (5 → after rounds 5, 10, 15 …).
-@export var pick_every: int = 5
+## …then every Nth round after that (owner, 2026-10-22: 2 → after rounds 1, 3, 5, 7 …).
+@export var pick_every: int = 2
 
 @export_group("Offers")
 @export var offer_count: int = 3
 ## How many offers come from outside your school (splashing is where creative builds come from).
 @export var off_school_offers: int = 1
-## Caps: spells you cast (keys Q–T) and passive slots. At a cap only rank-ups of that kind
+## Caps: spells you cast (keys Q–R) and passive slots. At a cap only rank-ups of that kind
 ## are offered; with both full and no rank-ups left, the build is complete.
-@export var spellbook_cap: int = 5
+@export var spellbook_cap: int = 4
 @export var passive_cap: int = 3
 ## Weights for the rest of the offers.
 @export var own_school_weight: float = 3.0
@@ -83,7 +83,10 @@ func school() -> String:
 func is_pick_round(round_cleared: int) -> bool:
 	if round_cleared <= 0:
 		return false
-	return round_cleared == first_pick_after_round or (pick_every > 0 and round_cleared % pick_every == 0)
+	if round_cleared == first_pick_after_round:
+		return true
+	return pick_every > 0 and round_cleared > first_pick_after_round \
+		and (round_cleared - first_pick_after_round) % pick_every == 0
 
 
 ## Offers for after `round_cleared` (empty if it isn't a pick round or nothing is left).
