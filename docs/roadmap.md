@@ -115,7 +115,7 @@ One bullet ≈ one pull request.
   exhaustion at 0 mana ↔ Second Wind, soft saturation on overheal ↔ Overflow.
 - ⬜ #32 **Effective healing, run summary and leaderboard:** rank by rounds then effective
   healing; game-over stats (effective healing, overheal %, mitigated, spells, combos);
-  the leaderboard starts fresh.
+  a new board for the new scoring; earlier boards stay browsable by build (◀ ▶ arrows).
 - ⬜ #30 **Crimson Baron fight** with telegraphed phases.
 
 ### Phase D: Debuffs and cleanses
@@ -148,5 +148,5 @@ gold and a shop · better scoring · difficulty modes · achievements.
 - Decided 2026-10-21 (after Phase B playtest): passives get their own 3 slots, shared with
   keystones; bandages on Space while hovering; the soft overheal rule (next heal weaker);
   debuffs and cleanses come after Phase C; leaderboard ranks by rounds, then effective
-  healing, and starts fresh; one "next party" screen instead of two contracts; raid mode
+  healing, on a new board (older boards stay browsable by build); one "next party" screen instead of two contracts; raid mode
   is a backlog idea.

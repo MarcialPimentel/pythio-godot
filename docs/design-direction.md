@@ -104,7 +104,9 @@ contracts are a false choice; spells should flash when a combo is ready.
 - **Score:** rounds survived, then **effective healing** (health restored without overheal +
   damage absorbed by shields + damage prevented). Effective healing can't exceed the damage
   taken, so it mostly tracks survival — it's the tie-break; the run summary shows the
-  skill stats (overheal %, mitigated). The leaderboard starts fresh.
+  skill stats (overheal %, mitigated). New scores go on a new
+  board; each earlier board is kept and browsable by build with arrows (owner: friends'
+  scores must stay visible).
 - **Later (Phase D):** debuffs from round 6, each with a different answer — Poison →
   Cleanse, Hex (−50% healing) → Purify, Bleed → heal above ~80% or bandage. The round-5
   pick always offers a cleanse, so a run can't be lost to bad luck.
