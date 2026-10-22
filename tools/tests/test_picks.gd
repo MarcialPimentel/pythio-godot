@@ -51,8 +51,13 @@ func _process(d):
 			# Fill to the cap
 			for id in ["heal", "lifebloom", "chain_heal"]:
 				SS.add_spell(SS.get_library_spell(id))
+			var o1: Array = DS.make_offers()
+			P("spells full (%d/%d), passives empty: offers=%s (no new cast spells=%s)" % [SS.spells.size(), DS.spellbook_cap, ids(o1), o1.all(func(s): return s.is_passive() or SS.owned_rank(s.family()) > 0)])
+			for id in ["mana_conduit", "aura_of_mending", "vital_bond"]:
+				SS.add_spell(SS.get_library_spell(id))
+			P("passives go to the tray: spells=%s passives=%s" % [ids(SS.spells), ids(SS.passives)])
 			var o2: Array = DS.make_offers()
-			P("full (%d/%d): offers=%s (all rank-ups=%s)" % [SS.spells.size(), DS.spellbook_cap, ids(o2), o2.all(func(s): return SS.owned_rank(s.family()) > 0)])
+			P("full (%d/%d spells, %d/%d passives): offers=%s (all rank-ups=%s)" % [SS.spells.size(), DS.spellbook_cap, SS.passives.size(), DS.passive_cap, ids(o2), o2.all(func(s): return SS.owned_rank(s.family()) > 0)])
 			for id in ["shield_2", "heal_2", "heal_3"]:
 				SS.add_spell(SS.get_library_spell(id))
 			P("everything ranked up: spellbook=%s offers=%s" % [ids(SS.spells), ids(DS.make_offers())])

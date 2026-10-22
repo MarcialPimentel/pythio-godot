@@ -7,6 +7,7 @@ extends PassiveRule
 func on_healed(_target: Node, _amount: float, overheal: float, _tags: Array, _opts: Dictionary) -> void:
 	if overheal > 0.0:
 		EffectSystem.gain_mana(overheal * refund)
+		EffectSystem.passive_fired(self)
 
 func describe() -> String:
 	return "Overhealing isn't wasted: you get %d%% of it back as mana." % roundi(refund * 100.0)

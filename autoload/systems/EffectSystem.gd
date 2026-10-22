@@ -105,6 +105,13 @@ func combo(target: Node, label: String) -> void:
 	EventBus.combo_fired.emit(target, label)
 
 
+## Called by a passive rule when it takes effect.
+func passive_fired(rule: PassiveRule) -> void:
+	var spell := SpellSystem.passive_for_rule(rule)
+	if spell:
+		EventBus.passive_triggered.emit(spell)
+
+
 # ── Helpers for effects ────────────────────────────────
 
 func gain_mana(amount: float) -> void:

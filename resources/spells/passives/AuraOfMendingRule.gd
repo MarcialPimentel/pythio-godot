@@ -9,6 +9,7 @@ func on_hot_tick(target: Node, amount: float, _status) -> void:
 		var healed := EffectSystem.heal(other, amount * share, null, [], {"quiet": true, "no_echo": true})
 		if healed > 0.0:
 			EffectSystem.effect_applied.emit("hot_tick", other, amount * share, "")
+			EffectSystem.passive_fired(self)
 
 func describe() -> String:
 	return "Each time one of your {HOT} effects heals, the fighters on each side are healed for %d%% of it." % roundi(share * 100.0)

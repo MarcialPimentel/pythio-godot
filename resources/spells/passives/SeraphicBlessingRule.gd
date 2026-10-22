@@ -12,6 +12,7 @@ func modify_heal(amount: float, target: Node, tags: Array, opts: Dictionary) -> 
 	if hc.current_health / maxf(1.0, hc.max_health) >= below_health:
 		return amount
 	EffectSystem.combo(target, "Blessed")
+	EffectSystem.passive_fired(self)
 	return amount * (1.0 + bonus)
 
 func describe() -> String:

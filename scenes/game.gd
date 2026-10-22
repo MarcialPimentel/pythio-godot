@@ -81,6 +81,7 @@ var _quip_tween: Tween
 var _last_run := {"score": 0, "round": 1, "won": false}
 var card_panel: Control
 var _build_label: RichTextLabel
+var _passive_tray: HBoxContainer
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
 var _card_mode := ""
 ## Pythio comments on combos, but not every single one.
@@ -127,6 +128,9 @@ func _ready() -> void:
 	_build_label.size = Vector2(800, 30)
 	game_ui.add_child(_build_label)
 	SpellSystem.spellbook_changed.connect(_update_build_summary)
+	_make_passive_tray()
+	SpellSystem.spellbook_changed.connect(_refresh_passive_tray)
+	EventBus.passive_triggered.connect(_pulse_passive)
 	DraftSystem.spec_chosen.connect(func(_s): _update_build_summary())
 	card_panel = preload("res://ui/CardChoicePanel.gd").new()
 	game_ui.add_child(card_panel)
@@ -216,8 +220,8 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	var cards: Array = []
 	for spell in _card_options:
 		cards.append(spell_card(spell))
-	var used := SpellSystem.spells.size()
-	var sub := "Spellbook %d / %d" % [used, DraftSystem.spellbook_cap]
+	var sub := "Spells %d / %d · Passives %d / %d" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
+		SpellSystem.passives.size(), DraftSystem.passive_cap]
 	sub += " — full: only rank-ups from here." if DraftSystem.is_full() else " — next pick after round %d." % _next_pick_round(round_cleared)
 	card_panel.show_cards("Add a spell", sub, cards)
 	_say("pick", 4.0)
@@ -267,11 +271,13 @@ func spell_card(spell: SpellData) -> Dictionary:
 	var header: String = str(SpellTags.SCHOOL_LABELS.get(spell.school, "")).to_upper()
 	if owned > 0:
 		badge = "RANK UP"
-		var old := SpellSystem.spells.filter(func(s): return s.family() == spell.family())
+		var old := SpellSystem.all_owned().filter(func(s): return s.family() == spell.family())
 		if not old.is_empty():
 			header = "UPGRADES %s" % old[0].display_name.to_upper()
 	elif DraftSystem.school() != "" and spell.school != DraftSystem.school() and spell.school != "ANY":
 		badge = "OTHER SCHOOL"
+	elif spell.is_passive():
+		badge = "PASSIVE"
 	return {
 		"header": header, "header_color": school_color, "accent": school_color,
 		"badge": badge,
@@ -301,6 +307,76 @@ func synergy_hint_bb(spell: SpellData) -> String:
 	return "[color=#%s]%s[/color]\n[color=#%s][i]via %s[/i][/color]" % [gold, "\n".join(lines), Color(gold, 0.7).to_html(false), tag_words]
 
 
+# ── Passive tray: 3 gold slots next to the spell bar ───
+
+const TRAY_SLOT := Vector2(84, 84)
+
+func _make_passive_tray() -> void:
+	var box := VBoxContainer.new()
+	box.position = Vector2(1290, 846)
+	box.add_theme_constant_override("separation", 4)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := _slot_label("TrayTitle", "PASSIVES", 15, Color(1.0, 0.82, 0.3, 0.8), Vector2.ZERO, HORIZONTAL_ALIGNMENT_LEFT)
+	title.custom_minimum_size = Vector2(0, 20)
+	box.add_child(title)
+	_passive_tray = HBoxContainer.new()
+	_passive_tray.add_theme_constant_override("separation", 10)
+	box.add_child(_passive_tray)
+	game_ui.add_child(box)
+	_refresh_passive_tray()
+
+
+func _refresh_passive_tray() -> void:
+	if not _passive_tray:
+		return
+	for c in _passive_tray.get_children():
+		c.queue_free()
+	for i in SpellSystem.PASSIVE_SLOTS:
+		var slot := Panel.new()
+		slot.custom_minimum_size = TRAY_SLOT
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.06, 0.05, 0.04, 0.9)
+		style.border_color = Color(1.0, 0.82, 0.3, 0.75 if i < SpellSystem.passives.size() else 0.25)
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(4)
+		slot.add_theme_stylebox_override("panel", style)
+		if i < SpellSystem.passives.size():
+			var spell: SpellData = SpellSystem.passives[i]
+			slot.name = "P_" + spell.id
+			slot.tooltip_text = "%s (passive)\n%s" % [spell.display_name, spell.description_plain()]
+			var icon := TextureRect.new()
+			icon.texture = spell_icon(spell)
+			icon.modulate = Color(1.0, 0.85, 0.45)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			icon.offset_left = 8; icon.offset_top = 6; icon.offset_right = -8; icon.offset_bottom = -18
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			slot.add_child(icon)
+			var name_lbl := _slot_label("Name", spell.display_name, 12, Color(1.0, 0.86, 0.55), Vector2(0, 64), HORIZONTAL_ALIGNMENT_CENTER)
+			name_lbl.size = Vector2(TRAY_SLOT.x, 18)
+			name_lbl.clip_text = true
+			slot.add_child(name_lbl)
+		else:
+			slot.tooltip_text = "Empty passive slot — passives you pick go here."
+		_passive_tray.add_child(slot)
+
+
+## A passive just did something: its tray slot flashes gold.
+func _pulse_passive(spell: SpellData) -> void:
+	if not _passive_tray:
+		return
+	var slot := _passive_tray.get_node_or_null("P_" + spell.id)
+	if not slot:
+		return
+	slot.pivot_offset = TRAY_SLOT / 2.0
+	var tw := create_tween().set_parallel()
+	slot.modulate = Color(1.8, 1.5, 0.7)
+	slot.scale = Vector2.ONE * 1.12
+	tw.tween_property(slot, "modulate", Color.WHITE, 0.45)
+	tw.tween_property(slot, "scale", Vector2.ONE, 0.45)
+
+
 ## "BLOOM · Heal-over-Time ×2 · Shield ×1 · 3/5" above the spell bar.
 func _update_build_summary() -> void:
 	if not _build_label:
@@ -310,7 +386,7 @@ func _update_build_summary() -> void:
 		_build_label.text = ""
 		return
 	var counts := {}
-	for s in SpellSystem.spells:
+	for s in SpellSystem.all_owned():
 		for t in s.tags:
 			counts[t] = counts.get(t, 0) + 1
 	var parts: Array[String] = []
@@ -319,7 +395,8 @@ func _update_build_summary() -> void:
 	for t in SpellTags.ALL:
 		if counts.has(t):
 			parts.append("%s ×%d" % [SpellTags.bb(t), counts[t]])
-	parts.append("[color=#a9a39a]%d / %d spells[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap])
+	parts.append("[color=#a9a39a]%d / %d spells · %d / %d passives[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
+		SpellSystem.passives.size(), DraftSystem.passive_cap])
 	_build_label.text = "[center]%s[/center]" % "   ·   ".join(parts)
 
 

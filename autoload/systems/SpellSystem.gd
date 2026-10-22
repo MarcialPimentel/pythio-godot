@@ -19,13 +19,16 @@ signal spellbook_changed
 ## Keys for spellbook slots, in order. Rebind in Project Settings → Input Map
 ## (actions "spell_1" … "spell_5") once they exist there; these are the defaults.
 const DEFAULT_SPELL_KEYS: Array[Key] = [KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T]
-## Spellbook slots (keys Q–T). A passive takes a slot but has no key.
+## Spells you cast: keys Q–T.
 const SLOTS := 5
+## Passives (and later keystones) live in their own tray.
+const PASSIVE_SLOTS := 3
 ## Spellbook before a specialization is picked (and in tests that skip the pick).
 @export var default_spellbook_ids: PackedStringArray = ["flash_heal", "renew", "shield"]
 
 var library: Array[SpellData] = []       # every spell in the game
-var spells: Array[SpellData] = []        # the spellbook, in key order
+var spells: Array[SpellData] = []        # spells you cast, in key order (Q–T)
+var passives: Array[SpellData] = []      # passive tray
 var cooldowns: Dictionary = {}           # spell_id -> seconds remaining
 
 # Current cast
@@ -76,10 +79,26 @@ func get_library_spell(id: String) -> SpellData:
 	return null
 
 
+## Replaces everything you own; passives go to the tray, the rest to Q–T.
 func set_spellbook(new_spells: Array[SpellData]) -> void:
-	spells = new_spells.slice(0, SLOTS)
+	spells.clear()
+	passives.clear()
+	for s in new_spells:
+		if s.is_passive():
+			if passives.size() < PASSIVE_SLOTS:
+				passives.append(s)
+		elif spells.size() < SLOTS:
+			spells.append(s)
 	cooldowns.clear()
 	spellbook_changed.emit()
+
+
+## Everything you own: spells you cast, then passives.
+func all_owned() -> Array[SpellData]:
+	var out: Array[SpellData] = []
+	out.append_array(spells)
+	out.append_array(passives)
+	return out
 
 
 func set_spellbook_ids(ids: PackedStringArray) -> void:
@@ -94,20 +113,22 @@ func set_spellbook_ids(ids: PackedStringArray) -> void:
 ## Adds a spell. A higher rank of a spell you own replaces it in the same slot.
 ## Returns the slot used, or -1 if the spellbook is full.
 func add_spell(spell: SpellData) -> int:
-	for i in spells.size():
-		if spells[i].family() == spell.family():
-			spells[i] = spell
+	var row := passives if spell.is_passive() else spells
+	var cap := PASSIVE_SLOTS if spell.is_passive() else SLOTS
+	for i in row.size():
+		if row[i].family() == spell.family():
+			row[i] = spell
 			spellbook_changed.emit()
 			return i
-	if spells.size() >= SLOTS:
+	if row.size() >= cap:
 		return -1
-	spells.append(spell)
+	row.append(spell)
 	spellbook_changed.emit()
-	return spells.size() - 1
+	return row.size() - 1
 
 
 func owns_tag(tag: String) -> bool:
-	for s in spells:
+	for s in all_owned():
 		if s.tags.has(tag):
 			return true
 	return false
@@ -115,7 +136,7 @@ func owns_tag(tag: String) -> bool:
 
 ## The rank you own of a spell family (0 = not owned).
 func owned_rank(family: String) -> int:
-	for s in spells:
+	for s in all_owned():
 		if s.family() == family:
 			return s.rank
 	return 0
@@ -123,10 +144,18 @@ func owned_rank(family: String) -> int:
 
 func passive_rules() -> Array[PassiveRule]:
 	var out: Array[PassiveRule] = []
-	for s in spells:
+	for s in passives:
 		if s.passive:
 			out.append(s.passive)
 	return out
+
+
+## The passive spell that owns `rule` (for the tray to pulse), or null.
+func passive_for_rule(rule: PassiveRule) -> SpellData:
+	for s in passives:
+		if s.passive == rule:
+			return s
+	return null
 
 
 func _ensure_input_actions() -> void:
@@ -155,8 +184,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	for i in spells.size():
 		if event.is_action_pressed("spell_%d" % (i + 1)):
-			if spells[i].is_passive():
-				return
 			var target = hovered_target if is_instance_valid(hovered_target) else last_target
 			if is_instance_valid(target):
 				request_cast(spells[i], target)
