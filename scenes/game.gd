@@ -167,6 +167,18 @@ func _ready() -> void:
 	game_ui.add_child(card_panel)
 	card_panel.chosen.connect(_on_card_chosen)
 	add_child(preload("res://ui/DebugPanel.gd").new())
+	var pause_menu = preload("res://ui/PauseMenu.gd").new()
+	pause_menu.can_open = func(): return game_ui.visible and not game_over_panel.visible
+	pause_menu.restart_requested.connect(func():
+		await _leave_run()
+		_on_start_pressed())
+	pause_menu.quit_requested.connect(func():
+		await _leave_run()
+		game_ui.visible = false
+		start_screen.visible = true
+		score_label.text = GameManager.best_text()
+		Leaderboard.fetch_top())
+	add_child(pause_menu)
 
 	cast_label = _add_bar_label(cast_bar, 18)
 	mana_label = _add_bar_label(mana_bar, 20)
@@ -1056,6 +1068,19 @@ func _lb_cell(text: String, color: Color, expand := false) -> void:
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		l.clip_text = true
 	lb_grid.add_child(l)
+
+
+## Pause menu: end the current run quietly (no game over, nothing posted) and clear the screen.
+func _leave_run() -> void:
+	GameManager.abandon_run()
+	party_choice_panel.visible = false
+	card_panel.close()
+	game_over_panel.visible = false
+	cast_bar.visible = false
+	fallen_name = ""
+	round_label.modulate = Color.WHITE
+	_set_pose("idle")
+	await _clear_party_container()
 
 
 func _on_play_again_pressed() -> void:
