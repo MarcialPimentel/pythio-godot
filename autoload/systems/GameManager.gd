@@ -43,6 +43,14 @@ func new_game() -> void:
 	show_spec_choice.emit()
 
 
+## Leaves the current run without a game over (pause menu → Restart / Quit to title).
+## Ending the round makes every system drop its casts, bursts, bandage and boss state.
+func abandon_run() -> void:
+	if in_round:
+		in_round = false
+		EventBus.emit_signal("round_ended", current_round)
+
+
 ## After the specialization pick or a spell pick: on to choosing a contract.
 func continue_to_contracts() -> void:
 	show_party_choice.emit()
