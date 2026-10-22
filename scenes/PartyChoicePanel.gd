@@ -23,11 +23,33 @@ signal contract_chosen(contract: ContractData)
 
 
 func _ready() -> void:
+	# Lift the card clear of the build summary above the spell bar, and centre the title.
+	$ChoicesContainer.position.y -= 50
+	var title: Label = $PartyChoiceText
+	title.position.y -= 50
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.position.x -= 300
+	title.size.x += 600
 	left_button.pressed.connect(_on_left_chosen)
 	right_button.pressed.connect(_on_right_chosen)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	# Space or Enter takes the job (between rounds only; in a round Space is a bandage).
+	if visible and event is InputEventKey and event.pressed and not event.echo \
+			and event.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER] and not left_button.disabled:
+		get_viewport().set_input_as_handled()
+		_on_left_chosen()
+
+
 func setup_contracts(choices: Array[ContractData]) -> void:
+	# One party at a time: a single centred card with a Ready button.
+	var single := choices.size() == 1
+	$ChoicesContainer.alignment = BoxContainer.ALIGNMENT_CENTER
+	$ChoicesContainer/RightParty.visible = not single
+	left_button.text = "Ready  (Space)" if single else "Take the job"
+	if choices.size() > 0:
+		$PartyChoiceText.text = "The Crimson Baron sends for you" if choices[0].is_boss else "Next party"
 	if choices.is_empty():
 		left_name.text = "ERROR - No Contract"
 		right_name.text = "ERROR"
@@ -71,9 +93,11 @@ func _on_right_chosen() -> void:
 ## (Gold rewards are hidden for the MVP; the shop idea comes later.)
 func describe(c: ContractData) -> String:
 	var counts := {}
+	var armor := {}
 	for t in c.unit_templates:
 		counts[t.display_name] = counts.get(t.display_name, 0) + 1
+		armor[t.display_name] = t.armor_type.to_lower()
 	var parts: Array[String] = []
 	for n in counts:
-		parts.append("%d× %s" % [counts[n], n])
-	return "%s\nRISK %d / 5" % [", ".join(parts), c.risk_level]
+		parts.append("%d× %s (%s armor)" % [counts[n], n, armor[n]])
+	return "\n".join(parts)

@@ -411,7 +411,7 @@ func _show_party_choice() -> void:
 	var contracts = contract_selector.get_contracts_for_round(GameManager.current_round)
 	party_choice_panel.setup_contracts(contracts)
 	round_label.text = "Round %d" % GameManager.current_round
-	timer_label.text = "Choose your contract"
+	timer_label.text = "Get ready"
 
 
 func _on_contract_chosen(chosen: ContractData) -> void:
@@ -420,7 +420,7 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	await _clear_party_container()
 
 	contract_name_label.text = chosen.contract_name.replace("  ", " ")
-	contract_risk_label.text = "RISK %d / 5" % chosen.risk_level
+	contract_risk_label.text = "PARTY OF %d" % chosen.unit_templates.size()
 	contract_info.visible = true
 	round_label.text = ("Round %d · The Crimson Baron" if chosen.is_boss else "Round %d") % GameManager.current_round
 	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
