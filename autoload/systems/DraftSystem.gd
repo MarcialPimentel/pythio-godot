@@ -33,6 +33,10 @@ signal skipped
 @export var own_school_weight: float = 3.0
 @export var any_school_weight: float = 1.5
 @export var rank_up_weight: float = 2.0
+## Offers lean toward the tags you already own (#68): each owned tag a spell shares or
+## reacts to (up to 2) adds this much to its weight (1.0 → ×2 for one, ×3 for two).
+## Keeps a big pool from burying your combo pieces. 0 = off.
+@export var tag_affinity_weight: float = 1.0
 
 var specs: Array[SpecData] = []
 var current_spec: SpecData = null
@@ -158,7 +162,7 @@ func make_offers() -> Array[SpellData]:
 	# Off-school picks first (new spells from another school), then weighted for the rest.
 	var off: Array = c.fresh.filter(func(s): return mine != "" and s.school != mine and s.school != "ANY")
 	for i in mini(off_school_offers, off.size()):
-		var pick := _weighted(off, func(s): return s.offer_weight)
+		var pick := _weighted(off, func(s): return s.offer_weight * tag_affinity(s))
 		out.append(pick)
 		off.erase(pick)
 		pool.erase(pick)
@@ -216,11 +220,24 @@ func _weight_for(s: SpellData, upgrades: Array) -> float:
 	var w := s.offer_weight
 	if upgrades.has(s):
 		return w * rank_up_weight
+	w *= tag_affinity(s)
 	if s.school == school():
 		return w * own_school_weight
 	if s.school == "ANY":
 		return w * any_school_weight
 	return w
+
+
+## How strongly `spell` connects to the tags you own: 1 (none) up to 1 + 2 × tag_affinity_weight.
+func tag_affinity(spell: SpellData) -> float:
+	var owned := {}
+	for own in SpellSystem.all_owned():
+		for t in own.tags: owned[t] = true
+		for t in own.reacts_to_tags: owned[t] = true
+	var shared := {}
+	for t in spell.tags + spell.reacts_to_tags:
+		if owned.has(t): shared[t] = true
+	return 1.0 + tag_affinity_weight * mini(2, shared.size())
 
 
 func _weighted(list: Array, weight: Callable) -> SpellData:
