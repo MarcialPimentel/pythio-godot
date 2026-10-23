@@ -6,7 +6,7 @@ import sys, numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage
 A="/mnt/user-data/attachments/509c1316-aafa-55b0-a4af-a6fea7c3d593/"
-src={"idle":"9644192d","cast_shield":"cc676e6a","cast_heal":"4fb1b94c","cast_hot":"7ba4ad21"}
+src={"idle":"0dedf9f1","cast_shield":"cc676e6a","cast_heal":"4fb1b94c","cast_hot":"7ba4ad21"}
 out=sys.argv[1]
 imgs={k:np.array(Image.open(A+v+"-image.png").convert("RGB"))[:1428,:1101] for k,v in src.items()}
 # one shared crop window for every pose, so Pythio stands in the same spot in all of them
