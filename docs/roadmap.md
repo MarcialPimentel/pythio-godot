@@ -1,6 +1,6 @@
 # Pythio: roadmap
 
-_Last updated: 2026-10-24 (Phase D decisions). Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-24 (new-player feedback batch). Owner: Marz. Claude works through this list one pull request at a time._
 
 > **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
 > `docs/game-design.md`, which wins over every other design doc.
@@ -67,12 +67,21 @@ _Last updated: 2026-10-24 (Phase D decisions). Owner: Marz. Claude works through
 - **Phase D settled 2026-10-24 (owner):** keep everything: swap / upgrade / skip, the Skip
   reward (for now), tag-weighted offers, all 9 new spells and passives, 3 passive slots (for
   now). The Protection tag is renamed **Mitigation**.
-- **Next up:** owner's playtest feedback batch → Phase E (keystones after each Baron, #37).
+- **✅ New-player feedback batch merged 2026-10-24 (#80–#83):** Marz watched a first-time
+  player. **Choose your spell** replaces "Choose your school" (schools never shown; the first
+  spell still steers offers underneath) · one-sentence card text · big INSTANT / CAST badge
+  on cards, "inst"/"1.5s" on spell buttons · no build line above the spell bar · no flavour
+  line on Next party (#80) · **"Job finished"** screen after each round and a short input
+  guard on the next screens, so clicks can't skip ahead (#81) · **Pythio on the title screen**,
+  down on his luck; his story is in game-design.md section 2 (#82) · **first-time practice
+  round**: one knight, Heal only, three prompts, asked once per device, F1 can ask again (#83).
+- **Next up:** Marz watches/plays the new onboarding → Phase E (keystones after each Baron, #37).
 - **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
   low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the
   rogue, adventurer and Baron (knight and mercenary still stay standing when they die). Every image and what to make next:
   `docs/art-assets.md` (#75).
-- **Known rough spots:** knight and mercenary fallen poses, and the rest of the UI/effects are still stand-ins (new spells reuse 4 icons) · no sound · early rounds
+- **Known rough spots:** title art is a placeholder (Marz plans Pythio as a roadside
+  beggar: drop it over `pythio_title.png`) · knight and mercenary fallen poses, and the rest of the UI/effects are still stand-ins (new spells reuse 4 icons) · no sound · early rounds
   may now be on the easy side (re-check when picks speed up in Phase D, and when debuffs arrive in Phase F).
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label

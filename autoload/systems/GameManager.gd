@@ -27,6 +27,8 @@ var exhausted_regen_factor: float = 1.0
 var god_mode: bool = false
 ## Extra max mana earned this run (skipping a spell pick).
 var bonus_max_mana: float = 0.0
+## True during the first-time practice round (scenes/practice.gd): no timer, nothing counts.
+var practice: bool = false
 
 func _ready() -> void:
 	load_high_score()
@@ -44,6 +46,28 @@ func new_game() -> void:
 	round_time = DifficultySystem.get_round_time(current_round)
 	DraftSystem.reset()
 	show_spec_choice.emit()
+
+
+## The first-time practice round: round-1 mana and damage, no timer, nothing saved or posted.
+func start_practice() -> void:
+	practice = true
+	current_round = 1
+	score = 0
+	debug_used = true   # belt and braces: practice can never reach the leaderboard
+	mana = DifficultySystem.max_mana_base
+	max_mana = DifficultySystem.max_mana_base
+	bonus_max_mana = 0.0
+	regen_rate = DifficultySystem.regen_rate_base
+	exhausted_time = 0.0
+	round_time = 1.0e9
+	in_round = false
+
+
+func end_practice() -> void:
+	practice = false
+	if in_round:
+		in_round = false
+		EventBus.emit_signal("round_ended", current_round)
 
 
 ## Leaves the current run without a game over (pause menu → Restart / Quit to title).
