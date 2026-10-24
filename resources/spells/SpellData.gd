@@ -54,10 +54,13 @@ func description_raw() -> String:
 	for e in effects:
 		if e:
 			var d: String = e.describe()
-			if d != "" and not parts.is_empty() and d.begins_with("Heals "):
-				d = "Then heals " + d.substr(6)
-			if d != "":
+			if d == "":
+				continue
+			if parts.is_empty():
 				parts.append(d)
+			else:
+				# One sentence (owner, 2026-10-24): "Heals 20, then heals 15 over 5s."
+				parts[-1] = parts[-1].trim_suffix(".") + ", then " + d.left(1).to_lower() + d.substr(1)
 	return " ".join(parts)
 
 
@@ -67,6 +70,24 @@ func description_bb() -> String:
 
 func description_plain() -> String:
 	return SpellTags.fill_plain(description_raw())
+
+
+## The big badge on spell cards: "INSTANT" or "1.5s CAST" ("PASSIVE" for passives).
+## Owner, 2026-10-24: cast time should be the first thing you see.
+func cast_badge() -> String:
+	if is_passive():
+		return "PASSIVE"
+	return "INSTANT" if cast_time <= 0.0 else "%ss CAST" % _num(cast_time)
+
+
+## The line next to the badge: "12 mana · 6s cooldown", or "Works on its own" for passives.
+func cost_line() -> String:
+	if is_passive():
+		return "No key: works on its own"
+	var s := "%d mana" % int(mana_cost)
+	if cooldown > 0.0:
+		s += " · %ss cooldown" % _num(cooldown)
+	return s
 
 
 ## "12 mana · Instant · 6s cooldown", or "Passive".

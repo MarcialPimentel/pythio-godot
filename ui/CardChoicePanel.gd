@@ -15,6 +15,8 @@ signal back_pressed
 const CARD_SIZE := Vector2(380, 560)
 const BG := Color(0.07, 0.06, 0.06, 0.97)
 const FRAME := Color(0.85, 0.8, 0.72, 0.9)
+## The cast-time badge: bone white, outside the colour language (green/blue/gold/red).
+const CAST_COLOR := Color(0.93, 0.89, 0.8)
 
 var _title: Label
 var _subtitle: Label
@@ -169,16 +171,17 @@ func _build_card(i: int, d: Dictionary) -> Button:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(box)
 
-	var head := HBoxContainer.new()
-	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(head)
-	head.add_child(_label(d.get("header", ""), 17, d.get("header_color", accent)))
-	var fill := Control.new()
-	fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	head.add_child(fill)
-	if d.get("badge", "") != "":
-		head.add_child(_chip(d.badge, d.get("badge_color", SpellTags.COMBO_COLOR), true))
+	if d.get("header", "") != "" or d.get("badge", "") != "":
+		var head := HBoxContainer.new()
+		head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(head)
+		head.add_child(_label(d.get("header", ""), 17, d.get("header_color", accent)))
+		var fill := Control.new()
+		fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		head.add_child(fill)
+		if d.get("badge", "") != "":
+			head.add_child(_chip(d.badge, d.get("badge_color", SpellTags.COMBO_COLOR), true))
 
 	var title_row := HBoxContainer.new()
 	title_row.add_theme_constant_override("separation", 14)
@@ -200,7 +203,19 @@ func _build_card(i: int, d: Dictionary) -> Button:
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_row.add_child(t)
 
-	if d.get("stats", "") != "":
+	# Cast time first and big (owner, 2026-10-24): INSTANT / 1.5s CAST / PASSIVE, then the cost.
+	if d.get("cast", "") != "":
+		var cast_row := HBoxContainer.new()
+		cast_row.add_theme_constant_override("separation", 12)
+		cast_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var instant: bool = d.cast == "INSTANT"
+		cast_row.add_child(_chip(d.cast, CAST_COLOR, instant, 24))
+		if d.get("stats", "") != "":
+			var cost := _label(d.stats, 19, Color(1.0, 0.8, 0.35))
+			cost.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			cast_row.add_child(cost)
+		box.add_child(cast_row)
+	elif d.get("stats", "") != "":
 		box.add_child(_label(d.stats, 18, Color(1.0, 0.8, 0.35)))
 
 	var tags: Array = d.get("tags", [])
@@ -268,7 +283,7 @@ func _rich(bb: String, size: int) -> RichTextLabel:
 	return r
 
 
-func _chip(text: String, color: Color, strong: bool) -> PanelContainer:
+func _chip(text: String, color: Color, strong: bool, font_size: int = 15) -> PanelContainer:
 	var p := PanelContainer.new()
 	var s := StyleBoxFlat.new()
 	s.bg_color = Color(color, 0.85 if strong else 0.18)
@@ -278,7 +293,9 @@ func _chip(text: String, color: Color, strong: bool) -> PanelContainer:
 	s.content_margin_left = 8; s.content_margin_right = 8; s.content_margin_top = 2; s.content_margin_bottom = 2
 	p.add_theme_stylebox_override("panel", s)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var l := _label(text, 15, Color(0.08, 0.06, 0.05) if strong else color)
+	if font_size > 15:
+		s.content_margin_left = 12; s.content_margin_right = 12; s.content_margin_top = 3; s.content_margin_bottom = 3
+	var l := _label(text, font_size, Color(0.08, 0.06, 0.05) if strong else color)
 	l.add_theme_constant_override("outline_size", 0)
 	p.add_child(l)
 	return p

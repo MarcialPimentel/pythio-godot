@@ -62,6 +62,7 @@ func setup_contracts(choices: Array[ContractData]) -> void:
 	left_name.text = left_choice.contract_name
 	left_gold.text = describe(left_choice)
 	left_flavor.text = left_choice.flavor_text
+	left_flavor.visible = left_choice.flavor_text != ""
 	left_button.disabled = false
 	
 	# Right side only if we have 2+

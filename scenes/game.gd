@@ -64,7 +64,7 @@ const QUIPS := {
 	"low_mana": ["Running on fumes.", "Pace yourselves. I'm not a fountain."],
 	"death": ["Well. That's a refund I won't be getting.", "Should've ducked."],
 	"victory": ["Contract fulfilled. Nobody died. Mostly.", "Pay up. I take coin, not thanks."],
-	"spec": ["Every healer has a habit. Pick yours.", "Choose how you'll keep them breathing."],
+	"spec": ["Every healer starts somewhere. Pick your first spell.", "Choose how you'll keep them breathing."],
 	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
 	"combo": ["Now that's teamwork.", "Two spells, one invoice.", "Elegant. Expensive, but elegant.",
 		"Put that on the bill.", "That's how it's done."],
@@ -83,7 +83,6 @@ var _low_mana_warned := false
 var _quip_tween: Tween
 var _last_run := {"score": 0, "round": 1, "won": false}
 var card_panel: Control
-var _build_label: RichTextLabel
 var _passive_tray: HBoxContainer
 var _bandage_label: RichTextLabel
 var _rules_box: VBoxContainer
@@ -150,17 +149,6 @@ func _ready() -> void:
 	Leaderboard.fetch_top()
 
 	_add_build_label()
-	_build_label = RichTextLabel.new()
-	_build_label.bbcode_enabled = true
-	_build_label.fit_content = true
-	_build_label.scroll_active = false
-	_build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_build_label.add_theme_font_size_override("normal_font_size", 18)
-	_build_label.add_theme_font_size_override("bold_font_size", 18)
-	_build_label.position = Vector2(460, 812)
-	_build_label.size = Vector2(1000, 30)
-	game_ui.add_child(_build_label)
-	SpellSystem.spellbook_changed.connect(_update_build_summary)
 	_make_passive_tray()
 	_make_bandage_counter()
 	_make_rules_panel()
@@ -170,7 +158,6 @@ func _ready() -> void:
 	EventBus.rule_triggered.connect(func(kind, _t): if kind == "exhausted": _flash_exhausted())
 	SpellSystem.spellbook_changed.connect(_refresh_passive_tray)
 	EventBus.passive_triggered.connect(_pulse_passive)
-	DraftSystem.spec_chosen.connect(func(_s): _update_build_summary())
 	card_panel = preload("res://ui/CardChoicePanel.gd").new()
 	game_ui.add_child(card_panel)
 	card_panel.chosen.connect(_on_card_chosen)
@@ -253,13 +240,15 @@ func _show_spec_choice() -> void:
 	party_area.visible = false
 	contract_info.visible = false
 	round_label.text = "A new job"
-	timer_label.text = "Choose your school"
+	timer_label.text = "Choose your spell"
 	_card_mode = "spec"
 	_card_options = DraftSystem.specs.duplicate()
 	var cards: Array = []
 	for spec in _card_options:
 		cards.append(spec_card(spec))
-	card_panel.show_cards("Choose your school", "It decides your first spell and which spells you're offered most.", cards)
+	# Owner, 2026-10-24: players pick a spell, not a "school". The school still exists
+	# underneath (it steers which spells you're offered) but is never named on screen.
+	card_panel.show_cards("Choose your spell", "", cards)
 	_say("spec", 5.0)
 
 
@@ -346,21 +335,21 @@ func _on_card_chosen(index: int) -> void:
 	GameManager.continue_to_contracts()
 
 
-## Card data for a school on the specialization screen.
+## Card data for a starter spell on the first pick ("Choose your spell"). It reads like
+## any spell card: name, cast time, cost, one sentence.
 func spec_card(spec: SpecData) -> Dictionary:
 	var color: Color = SpellTags.SCHOOL_COLORS.get(spec.school, Color.WHITE)
 	var starter := spec.starter
-	var body := "[color=#%s]%s[/color]\n\n" % [Color(0.85, 0.82, 0.76).to_html(false), spec.description]
-	if starter:
-		body += "[b]Starts with %s[/b] — %s\n[color=#%s]%s[/color]" % [starter.display_name, starter.description_bb(),
-			Color(1.0, 0.8, 0.35).to_html(false), starter.stats_line()]
+	if not starter:
+		return {"title": spec.display_name, "accent": color}
 	return {
-		"header": "SCHOOL", "header_color": color, "accent": color,
-		"icon": spell_icon(starter) if starter else null,
-		"title": spec.display_name,
-		"stats": spec.tagline,
-		"tags": starter.tags if starter else [],
-		"body_bb": body,
+		"accent": color,
+		"icon": spell_icon(starter),
+		"title": starter.display_name,
+		"cast": starter.cast_badge(),
+		"stats": starter.cost_line(),
+		"tags": starter.tags,
+		"body_bb": starter.description_bb(),
 	}
 
 
@@ -381,7 +370,7 @@ func spell_card(spell: SpellData) -> Dictionary:
 	var school_color: Color = SpellTags.SCHOOL_COLORS.get(spell.school, Color.WHITE)
 	var owned := SpellSystem.owned_rank(spell.family())
 	var badge := ""
-	var header: String = str(SpellTags.SCHOOL_LABELS.get(spell.school, "")).to_upper()
+	var header := ""   # no school names on screen (owner, 2026-10-24)
 	if owned > 0:
 		badge = "RANK UP"
 		var old := SpellSystem.all_owned().filter(func(s): return s.family() == spell.family())
@@ -389,17 +378,14 @@ func spell_card(spell: SpellData) -> Dictionary:
 			header = "UPGRADES %s" % old[0].display_name.to_upper()
 	elif DraftSystem.needs_swap(spell):
 		badge = "SWAP"
-	elif DraftSystem.school() != "" and spell.school != DraftSystem.school() and spell.school != "ANY":
-		badge = "OTHER SCHOOL"
-	elif spell.is_passive():
-		badge = "PASSIVE"
 	return {
 		"header": header, "header_color": school_color, "accent": school_color,
 		"badge": badge,
 		"badge_color": SpellTags.COMBO_COLOR if badge == "RANK UP" else Color(0.7, 0.66, 0.6),
 		"icon": spell_icon(spell),
 		"title": spell.display_name,
-		"stats": spell.stats_line(),
+		"cast": spell.cast_badge(),
+		"stats": spell.cost_line(),
 		"tags": spell.tags,
 		"body_bb": spell.description_bb(),
 		"hint_bb": synergy_hint_bb(spell) + (("\n" if synergy_hint_bb(spell) != "" else "") + "[color=#c9c2b6][i]Your %s are full: you'll choose one to replace.[/i][/color]" % ("passives" if spell.is_passive() else "spells") if badge == "SWAP" else ""),
@@ -621,29 +607,6 @@ func _pulse_passive(spell: SpellData) -> void:
 	slot.scale = Vector2.ONE * 1.12
 	tw.tween_property(slot, "modulate", Color.WHITE, 0.45)
 	tw.tween_property(slot, "scale", Vector2.ONE, 0.45)
-
-
-## "BLOOM · Heal-over-Time ×2 · Shield ×1 · 3/5" above the spell bar.
-func _update_build_summary() -> void:
-	if not _build_label:
-		return
-	var school := DraftSystem.school()
-	if school == "":
-		_build_label.text = ""
-		return
-	var counts := {}
-	for s in SpellSystem.all_owned():
-		for t in s.tags:
-			counts[t] = counts.get(t, 0) + 1
-	var parts: Array[String] = []
-	var sc: Color = SpellTags.SCHOOL_COLORS.get(school, Color.WHITE)
-	parts.append("[color=#%s][b]%s[/b][/color]" % [sc.to_html(false), SpellTags.SCHOOL_LABELS.get(school, "").to_upper()])
-	for t in SpellTags.ALL:
-		if counts.has(t):
-			parts.append("%s ×%d" % [SpellTags.bb(t), counts[t]])
-	parts.append("[color=#a9a39a]%d/%d spells · %d/%d passives[/color]" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
-		SpellSystem.passives.size(), DraftSystem.passive_cap])
-	_build_label.text = "[center]%s[/center]" % "  ·  ".join(parts)
 
 
 # ── Rounds & contracts ─────────────────────────────────
@@ -888,6 +851,12 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 		btn.add_child(_slot_label("Cost", "passive", 16, Color(1.0, 0.8, 0.35), Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
 	else:
 		btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, Color(1.0, 0.8, 0.35), Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+		# Cast time on the button too (owner, 2026-10-24): "inst" or "1.5s", bottom left.
+		var cast_txt := "inst" if spell.cast_time <= 0.0 else "%ss" % SpellData._num(spell.cast_time)
+		var cast_lbl := _slot_label("Cast", cast_txt, 18, Color(0.93, 0.89, 0.8), Vector2(6, 84), HORIZONTAL_ALIGNMENT_LEFT)
+		cast_lbl.add_theme_constant_override("outline_size", 5)
+		cast_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+		btn.add_child(cast_lbl)
 	var name_lbl := _slot_label("Name", spell.display_name, 14, Color(0.92, 0.88, 0.8), Vector2(0, 116), HORIZONTAL_ALIGNMENT_CENTER)
 	name_lbl.size = Vector2(104, 22)
 	name_lbl.clip_text = true

@@ -99,7 +99,7 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 
 ## 3. The core loop
 
-**Run start.** Pick a school (Mending, Bloom or Ward). You start with that school's one spell.
+**Run start.** **Choose your spell:** Heal, Renew or Shield. That's your first spell.
 
 **Each round:**
 1. **Next party screen:** shows who you'll heal (how many fighters, which kinds, which
@@ -127,18 +127,25 @@ it to the online leaderboard, then play again.
 | Longest round | 25s | same (`round_time_max`) |
 | Mana top-up between rounds | 50% of max | same (`round_start_mana_refill`) |
 
-## 4. Schools and builds
+## 4. First spell, picks and builds (schools are hidden)
 
-**Schools [Decided].** Pick one at the start of a run. It decides your first spell and
-which spells you'll be offered most.
+**Your first spell, and the schools underneath [Decided 2026-10-24].** The player never
+sees the word "school". The run starts with **Choose your spell** (Heal, Renew or Shield),
+and the cards read like any spell card. Underneath, each starter belongs to a school
+(Mending, Bloom, Ward), and the school still decides which spells you're offered most.
+[Proposed by Claude, built 2026-10-24] Keep that hidden weighting: it's what lets a
+"master a build" player find their build again. Turning it off is one setting (school
+weights in `DraftSystem.gd`).
 
-| School | Starter | Plays like | File |
+| School (hidden) | Starter | Plays like | File |
 |---|---|---|---|
 | Mending | Heal | Direct heals. Big numbers, right now. React to every hit. | `resources/specs/mending.tres` |
 | Bloom | Renew | Heals over time. Plant early, reap later. Plan ahead. | `resources/specs/bloom.tres` |
 | Ward | Shield | Shields. Stop damage before it lands. Read what's coming. | `resources/specs/ward.tres` |
 
-Some spells belong to **Any school**: every school sees them as a home spell.
+Some spells belong to **Any school**: every school sees them as a home spell. No card,
+badge or HUD line names a school (the old "OTHER SCHOOL" badge and the school name above
+the spell bar are gone).
 
 **Picks [Decided 2026-10-22].** After round 1, then every other round (after rounds 3, 5,
 7 …), choose 1 of 3 cards, or Skip. A typical run (first deaths around rounds 6–8) sees about
@@ -252,7 +259,13 @@ generated from those numbers, so it always matches.
 37 entries in all: 21 spells you cast (with ranks), 12 passives.
 
 **Casting.** Each spell has a mana cost, a cast time (0 = instant) and sometimes a
-cooldown. You can only cast one thing at a time. A round ending cancels a cast in progress.
+cooldown. **Cast time is shown first** [Decided 2026-10-24]: every spell card has a big
+**INSTANT** or **1.5s CAST** badge (bone white, outside the colour language), and each spell
+button shows "inst" or "1.5s" in its corner.
+
+**Card text is one sentence [Decided 2026-10-24].** A new player should read a card in one
+breath: "Heals 30, and the fighters on each side for 15." Card text is generated from the
+effects (`resources/spells/effects/*.gd`, `describe()`), so this holds for new spells too. You can only cast one thing at a time. A round ending cancels a cast in progress.
 
 **Adding a spell is data [Decided 2026-10-22: the pool should grow easily].**
 - **A spell you cast** = a `.tres` file in `resources/spells/` listing its cost, cast time,
@@ -448,13 +461,13 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 - **Top:** round number and timer (centre); the party size (left); battlefield rules (right).
 - **Middle:** the fighters in one row. Each has a name, a health bar, an armour label, a
   shield bubble, a heal-over-time ring and status icons. The "INCOMING" warning shows above.
-- **Bottom:** Pythio and his speech bubble (left); the 4 spell buttons with key, cost and
-  cooldown; the passive tray; a build summary above the bar; the mana bar, cast bar and
-  bandage counter.
+- **Bottom:** Pythio and his speech bubble (left); the 4 spell buttons with key, cost, cast
+  time and cooldown; the passive tray; the mana bar, cast bar and bandage counter. (The
+  build summary line above the bar was removed on 2026-10-24.)
 - **Floating numbers** for heals, shields and combos (gold).
 
-**Between rounds:** the school pick, spell picks (3 cards with tags, cost and "Combos with
-your …" hints) and the Next party screen.
+**Between rounds:** Choose your spell (run start), spell picks (3 cards with cast time, cost,
+tags, one sentence and "Combos with your …" hints) and the Next party screen.
 
 Main files: `scenes/game.gd` (the screen), `ui/CardChoicePanel.gd` (pick cards),
 `ui/PartyChoicePanel.tscn` + `scenes/PartyChoicePanel.gd` (Next party), `ui/PauseMenu.gd`,
@@ -564,5 +577,6 @@ Listed so nobody "fixes" the wrong side.
 |---|---|---|
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
+| 2026-10-24 | Claude (for Marz) | From watching a new player: the run starts with **Choose your spell**, and "school" is never shown (it still steers offers underneath, proposed); card text is one sentence; cast time is a big badge on cards and shows on spell buttons; the build summary above the bar is gone. Sections 3, 4, 5 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Marz settled the Phase D questions: keep swap / upgrade / skip, the Skip reward (for now), tag-weighted offers, all 9 new spells and passives, and 3 passive slots (for now). The Protection tag is now called **Mitigation**. Sections 4, 5, 12 and 14 updated. |
 | 2026-10-22 | Claude (for Marz) | Phase D built: passives as data (generic tag trigger), picks every other round, 4 spell keys, swap / upgrade / skip when full, offers weighted toward your tags, debug "take any spell", spell batch 2 (Protection tag; Promise of Light, Hasten, Tranquility, Aegis of Light; Ripening, Lingering Light, Rising Tide, Sanctuary, Watchful Eye). Sections 3–6, 11, 12 and 14 updated. |
