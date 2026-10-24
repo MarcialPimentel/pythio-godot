@@ -479,4 +479,4 @@ theme_override_fonts/font = ExtResource("6_oswald_bold")
 theme_override_font_sizes/font_size = 30
 text = "Play Again"
 
-[connection signal="pressed" from="StartScreen/CenterContainer/StartButton" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="StartScreen/CenterContainer/StartButton" to="." method="_on_take_job_pressed"]

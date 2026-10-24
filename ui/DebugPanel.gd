@@ -160,6 +160,8 @@ func _build() -> void:
 	_add_button(fighter, "Heal to full", _heal_target)
 
 	_god_button = _add_button(box, "God mode: off", _toggle_god)
+	# First-time practice (owner, 2026-10-24): forget the answer so Take the Job asks again.
+	_add_button(box, "Ask \"First time on the job?\" again", _forget_first_time)
 
 	# Take any spell (#69): test a build without waiting for offers.
 	var tl := Label.new(); tl.text = "Take any spell (full bar: replaces the last slot)"
@@ -179,6 +181,13 @@ func _build() -> void:
 	note.add_theme_font_size_override("font_size", 13)
 	note.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
 	box.add_child(note)
+
+
+func _forget_first_time() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(PracticeRound.settings_path)
+	cfg.set_value("onboarding", "asked_first_time", false)
+	cfg.save(PracticeRound.settings_path)
 
 
 func _add_button(parent: Node, text: String, action: Callable) -> Button:

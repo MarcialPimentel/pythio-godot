@@ -103,6 +103,14 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 
 ## 3. The core loop
 
+**First time on the job [Decided 2026-10-24].** The first time someone presses Take the Job on
+a device, the game asks "First time on the job?" (once per device, whatever the answer).
+**Yes** starts a practice round: one Heavy Knight, Heal only, no timer, and three prompts
+(hover and press Q · cast time and mana · a warned INCOMING hit). The knight can't die and
+nothing counts toward stats or the leaderboard. Then the real run starts. **No** goes
+straight to the run. Script: `scenes/practice.gd`.
+
+**Run start.** Pick a school (Mending, Bloom or Ward). You start with that school's one spell.
 **Run start.** **Choose your spell:** Heal, Renew or Shield. That's your first spell.
 
 **Each round:**
@@ -465,7 +473,8 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 | Choose a pick card | Click, or keys 1–3 (4 = Skip) |
 | Back from "Replace which spell?" | The Back button, or Backspace |
 | Pause menu (Resume / Restart run / Quit to title) | Escape (during a run) |
-| Debug panel (+mana, skip or jump rounds, take any spell, reset build, god mode) | F1 or \` |
+| Start the real job (end of the practice round) | The button, or Enter |
+| Debug panel (+mana, skip or jump rounds, take any spell, reset build, god mode, ask "First time on the job?" again) | F1 or \` |
 
 **Combat screen**
 - **Top:** round number and timer (centre); the party size (left); battlefield rules (right).
@@ -587,6 +596,7 @@ Listed so nobody "fixes" the wrong side.
 |---|---|---|
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
+| 2026-10-24 | Claude (for Marz) | First-time practice round (Marz, after watching a new player): asked once per device after Take the Job; one knight, Heal only, three prompts, can't die, then the real run. Sections 3 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Title screen shows Pythio (head bowed) instead of the knight. Marz decided Pythio's story: he's down on his luck because he once failed a party. Section 2 updated. |
 | 2026-10-24 | Claude (for Marz) | "Job finished" screen after each cleared round, and a short input guard on the pick and Next party screens (Marz, after watching a new player click through by accident). Section 3 updated. |
 | 2026-10-24 | Claude (for Marz) | From watching a new player: the run starts with **Choose your spell**, and "school" is never shown (it still steers offers underneath, proposed); card text is one sentence; cast time is a big badge on cards and shows on spell buttons; the build summary above the bar is gone. Sections 3, 4, 5 and 11 updated. |

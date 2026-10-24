@@ -68,6 +68,8 @@ const QUIPS := {
 	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
 	"combo": ["Now that's teamwork.", "Two spells, one invoice.", "Elegant. Expensive, but elegant.",
 		"Put that on the bill.", "That's how it's done."],
+	"practice_start": ["One knight, one spell. Let's warm up."],
+	"practice_done": ["That's the trade. Now let's get paid."],
 	"cleared": ["Paid in full. Mostly.", "Everyone's still breathing. Invoice sent.",
 		"Another job done. Another ache.", "Nobody died. I'll take it."],
 	"skip": ["Saving it for later. Bold.", "Fine. More mana, fewer surprises."],
@@ -204,7 +206,7 @@ func _process(delta: float) -> void:
 	if not GameManager.in_round:
 		return
 
-	timer_label.text = "%.1fs" % GameManager.round_time
+	timer_label.text = "" if GameManager.practice else "%.1fs" % GameManager.round_time
 	GameManager.round_time -= delta
 	if GameManager.round_time <= 0:
 		GameManager.round_time = 0
@@ -424,6 +426,14 @@ func _on_card_chosen(index: int) -> void:
 		"swap":
 			DraftSystem.swap(choice, _pending_swap)
 			_pending_swap = null
+		"first_time":
+			_card_mode = ""
+			PracticeRound.mark_asked()
+			if index == 0:
+				_start_practice()
+			else:
+				_on_start_pressed()
+			return
 	_card_mode = ""
 	GameManager.continue_to_contracts()
 
@@ -1049,6 +1059,52 @@ func _say(kind: String, seconds: float = 3.5) -> void:
 
 # ── Start / game over ──────────────────────────────────
 
+# ── First time on the job? (owner, 2026-10-24) ─────────
+# Take the Job asks once per device. Yes → a practice round (scenes/practice.gd), then the
+# real run. Tests call _on_start_pressed() directly, so they never see the question.
+
+var _practice: PracticeRound
+
+
+func _on_take_job_pressed() -> void:
+	if PracticeRound.was_asked():
+		_on_start_pressed()
+		return
+	start_screen.visible = false
+	game_ui.visible = true
+	_set_pose("idle")
+	# Nothing from a previous run (or the scene's placeholders) behind the question.
+	SpellSystem.set_spellbook_ids(PackedStringArray([]))
+	_create_spell_buttons()
+	contract_info.visible = false
+	party_area.visible = false
+	round_label.text = ""
+	timer_label.text = ""
+	_card_mode = "first_time"
+	_card_options = ["yes", "no"]
+	card_panel.show_cards("First time on the job?", "", [
+		{"header": "PRACTICE", "header_color": Color(0.49, 0.95, 0.35), "accent": Color(0.49, 0.95, 0.35),
+			"title": "Yes, show me",
+			"body_bb": "A short practice round: one knight, one spell. Then the real job starts.",
+			"flavor": "Everybody bleeds their first day."},
+		{"header": "STRAIGHT IN", "header_color": Color(0.85, 0.82, 0.76), "accent": Color(0.85, 0.82, 0.76),
+			"title": "No, I know the work",
+			"body_bb": "Skip the practice and start a run.",
+			"flavor": "Suit yourself."},
+	])
+
+
+func _start_practice() -> void:
+	_practice = PracticeRound.new(self)
+	add_child(_practice)
+	_practice.finished.connect(func():
+		_practice = null
+		await _clear_party_container()
+		contract_info.visible = false
+		_on_start_pressed())
+	_practice.begin()
+
+
 func _on_start_pressed() -> void:
 	start_screen.visible = false
 	game_ui.visible = true
@@ -1194,6 +1250,9 @@ func _lb_cell(text: String, color: Color, expand := false) -> void:
 
 ## Pause menu: end the current run quietly (no game over, nothing posted) and clear the screen.
 func _leave_run() -> void:
+	if _practice:
+		_practice.cancel()
+		_practice = null
 	_cancel_job_finished()
 	GameManager.abandon_run()
 	party_choice_panel.visible = false
