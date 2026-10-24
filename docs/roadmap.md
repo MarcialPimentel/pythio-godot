@@ -1,6 +1,6 @@
 # Pythio: roadmap
 
-_Last updated: 2026-10-22 (direction update). Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-24 (Phase D decisions). Owner: Marz. Claude works through this list one pull request at a time._
 
 > **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
 > `docs/game-design.md`, which wins over every other design doc.
@@ -60,16 +60,19 @@ _Last updated: 2026-10-22 (direction update). Owner: Marz. Claude works through 
 - **✅ Phase D built 2026-10-22 (one PR, one commit per issue #65–#70), waiting for the owner's
   playtest:** passives are data (generic tag trigger) · picks after rounds 1, 3, 5, 7 … ·
   4 spell keys (Q–R) · full bar: swap, upgrade or Skip (+10 max mana) · offers lean toward
-  your tags · F1 "take any spell" · spell batch 2: Protection tag, Promise of Light, Hasten,
+  your tags · F1 "take any spell" · spell batch 2: Mitigation tag (was Protection), Promise of Light, Hasten,
   Tranquility, Aegis of Light, Ripening, Lingering Light, Rising Tide, Sanctuary, Watchful
   Eye (37 entries). Bot check: first deaths still around rounds 6–8 (a little later for Bloom).
   The leaderboard board didn't change (scoring is the same: rounds, then effective healing).
-- **Next up:** owner playtests Phase D and answers the open questions in
-  `docs/game-design.md` (section 14) → Phase E (keystones after each Baron, #37).
-- **Art (2026-10-24, #74 #76, part of #34):** high-res Pythio (idle + 3 casting poses), the
-  four fighters and the Crimson Baron are live. Every image and what to make next:
+- **Phase D settled 2026-10-24 (owner):** keep everything: swap / upgrade / skip, the Skip
+  reward (for now), tag-weighted offers, all 9 new spells and passives, 3 passive slots (for
+  now). The Protection tag is renamed **Mitigation**.
+- **Next up:** owner's playtest feedback batch → Phase E (keystones after each Baron, #37).
+- **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
+  low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the
+  rogue, adventurer and Baron (knight and mercenary still stay standing when they die). Every image and what to make next:
   `docs/art-assets.md` (#75).
-- **Known rough spots:** fallen poses and the rest of the UI/effects are still stand-ins (new spells reuse 4 icons) · no sound · early rounds
+- **Known rough spots:** knight and mercenary fallen poses, and the rest of the UI/effects are still stand-ins (new spells reuse 4 icons) · no sound · early rounds
   may now be on the easy side (re-check when picks speed up in Phase D, and when debuffs arrive in Phase F).
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label
@@ -119,7 +122,7 @@ One bullet ≈ one pull request.
   a new board for the new scoring; earlier boards stay browsable by build (◀ ▶ arrows).
 - ✅ #30 **Crimson Baron fight** with telegraphed phases.
 
-### Phase D: Faster builds and more spells — ✅ built 2026-10-22 (awaiting playtest)
+### Phase D: Faster builds and more spells — ✅ done 2026-10-22, owner kept all of it 2026-10-24
 - ✅ #65 **Passives as data:** one generic tag trigger, so most passives and keystones are
   numbers in a `.tres` file. Existing passives rebuilt on it, same numbers.
 - ✅ #66 **Picks every other round** (after 1, 3, 5, 7 …) and **4 spell keys (Q–R)**;

@@ -1,5 +1,5 @@
 extends SceneTree
-# Spell batch 2 (#70): new spells and passives with real casts, the Protection tag, offer
+# Spell batch 2 (#70): new spells and passives with real casts, the Mitigation tag (key PROTECT), offer
 # gating, and the tag census (every tag: at least 2 spells have it and 2 react to it).
 var game; var f := 0; var GM; var SS; var DS; var TS; var ES; var step := 0; var wait := 0.0
 var combos := []; var T := []
@@ -87,17 +87,17 @@ func _process(d):
 				glows.append(ES.would_combo(lib("chain_heal"), T[0]))
 				var m: float = GM.mana; ES.cast(lib("chain_heal"), T[0]); gains.append(roundi(GM.mana - m))
 			P("RESULT Rising Tide: 3 Chain Heals → mana gains %s (0, 0, 20), glow before each %s (only the 3rd)" % [gains, glows])
-			# Sanctuary: Protection spells add a 15 shield
+			# Sanctuary: Mitigation spells add a 15 shield
 			use(["divine_protection", "sanctuary"]); reset(40.0)
 			ES.cast(lib("divine_protection"), T[2])
 			P("RESULT Sanctuary: Divine Protection on #2 → shield %d (15) combos=%s" % [roundi(T[2].health_comp.shield_amount), combos])
-			# Watchful Eye: Protection on a fighter below 40% heals 25; it glows there
+			# Watchful Eye: Mitigation on a fighter below 40% heals 25; it glows there
 			use(["time_stop", "watchful_eye"]); reset(10.0)
 			P("glow: Time Stop on a fighter at 10 hp=%s; at full=%s" % [ES.would_combo(lib("time_stop"), T[0]), false])
 			ES.cast(lib("time_stop"), T[0])
 			T[1].health_comp.current_health = T[1].health_comp.max_health
 			P("RESULT Watchful Eye: Time Stop on #0 at 10 hp → %d (35) combos=%s; on a full fighter glow=%s" % [roundi(hp(T[0])), combos, ES.would_combo(lib("time_stop"), T[1])])
-			# Offer gating: Protection reactors only once you own a Protection spell
+			# Offer gating: Mitigation reactors only once you own a Mitigation spell
 			use(["heal"])
 			P("Sanctuary offered with only Heal=%s · after Divine Protection=%s" % [DS.requirements_met(lib("sanctuary")), (func(): use(["heal", "divine_protection"]); return DS.requirements_met(lib("sanctuary"))).call()])
 			P("Hasten / Ripening need Delayed: with Lifebloom=%s" % [(func(): use(["lifebloom"]); return DS.requirements_met(lib("hasten")) and DS.requirements_met(lib("ripening"))).call()])

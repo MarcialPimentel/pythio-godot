@@ -18,7 +18,7 @@ the same PR.
 | Binding Heal | Mending | Direct, Multi-target | 18 | 1.5s | — | Heals 30. Also heals your most injured other fighter for 20. | 2.8 |
 | Echo Healing | Mending | — | 12 | instant | 10s | For 8s, Direct heals on this fighter echo: 50% of each heal repeats 2s later. Offered once you own a Direct spell. | — |
 | Flash Heal | Mending | Direct | 20 | instant | — | Heals 32. | 1.6 |
-| Guardian Angel | Mending | Protection | 25 | instant | 25s | For 6s, a killing blow leaves the fighter at 1 health instead, then heals them for 30. | — |
+| Guardian Angel | Mending | Mitigation | 25 | instant | 25s | For 6s, a killing blow leaves the fighter at 1 health instead, then heals them for 30. | — |
 | Heal | Mending | Direct | 10 | 1.5s | — | Heals 30. | 3.0 |
 | Heal II *(rank 2)* | Mending | Direct | 13 | 1.5s | — | Heals 45. | 3.5 |
 | Heal III *(rank 3)* | Mending | Direct | 16 | 1.5s | — | Heals 62. | 3.9 |
@@ -37,15 +37,15 @@ the same PR.
 | Tranquility | Bloom | Heal-over-Time, Multi-target | 30 | 2s | — | Every fighter heals 2 each second for 6s (12 each). | 0.4 per fighter (2.4 with 6) |
 | Aegis of Light | Ward | Shield, Multi-target | 35 | 1.5s | — | Every fighter gets a 12 Shield for 6s. | 0.3 per fighter (2.1 with 6) |
 | Bulwark | Ward | — | passive | passive | — | Cancels Diminishing shields: your Shield effects stack at full strength and absorb 15% more. Offered once you own a Shield spell. | — |
-| Divine Protection | Ward | Protection | 20 | instant | 12s | The fighter takes 50% less damage for 5s. | — |
+| Divine Protection | Ward | Mitigation | 20 | instant | 12s | The fighter takes 50% less damage for 5s. | — |
 | Guardian Ward | Ward | Shield | 18 | instant | — | Absorbs the next 25 damage for 6s. When it breaks or fades, heals 20. | 2.5 |
-| Sanctuary | Ward | — | passive | passive | — | When you cast a Protection spell, that fighter gains a Shield of 15 for 6s. Offered once you own a Protection spell. | — |
+| Sanctuary | Ward | — | passive | passive | — | When you cast a Mitigation spell, that fighter gains a Shield of 15 for 6s. Offered once you own a Mitigation spell. | — |
 | Shield | Ward | Shield | 14 | instant | — | Absorbs the next 30 damage for 8s. | 2.1 |
 | Shield II *(rank 2)* | Ward | Shield | 17 | instant | — | Absorbs the next 45 damage for 8s. | 2.6 |
 | Spirit Surge | Ward | Direct | 10 | instant | 4s | Consumes the Shield effects on this fighter and heals for 150% of what they had left. Offered once you own a Shield spell. | — |
-| Time Stop | Ward | Protection | 25 | instant | 20s | The fighter takes no damage for 2.5s. | — |
+| Time Stop | Ward | Mitigation | 25 | instant | 20s | The fighter takes no damage for 2.5s. | — |
 | Vital Bond | Ward | — | passive | passive | — | When one of your Shield effects breaks, the fighters on each side gain a Shield of 10 for 5s. Offered once you own a Shield spell. | — |
-| Watchful Eye | Ward | — | passive | passive | — | When you cast a Protection spell on a fighter below 40% health, that fighter is healed for 25. Offered once you own a Protection spell. | — |
+| Watchful Eye | Ward | — | passive | passive | — | When you cast a Mitigation spell on a fighter below 40% health, that fighter is healed for 25. Offered once you own a Mitigation spell. | — |
 | Chain Heal | Any school | Direct, Multi-target | 26 | 2s | — | Heals 30. Also heals the fighters on each side for 15. | 2.3 |
 | Divine Channel | Any school | — | 0 | 3s | 30s | Restores 50 of your mana. | — |
 | Lingering Light | Any school | — | passive | passive | — | When you cast a Multi-target spell, that fighter gains a Heal-over-Time of 3 each second for 4s. Offered once you own a Multi-target spell. | — |
@@ -55,7 +55,7 @@ the same PR.
 
 New in Phase D (#70): Promise of Light, Hasten, Tranquility, Aegis of Light, Ripening,
 Lingering Light, Rising Tide, Sanctuary, Watchful Eye; Divine Protection, Time Stop and Guardian
-Angel gained the **Protection** tag. Every passive is now data on the generic tag trigger (#65).
+Angel gained the **Mitigation** tag (named Protection until 2026-10-24). Every passive is now data on the generic tag trigger (#65).
 Party-wide spells (Tranquility, Aegis of Light) are cheap per fighter and get better the bigger
 the party: big and efficient at scale, but slow.
 

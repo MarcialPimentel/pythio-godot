@@ -149,7 +149,7 @@ How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSys
   creative builds come from.
 - The rest favour **your school** (×3 weight), then Any-school spells (×1.5), then
   rank-ups (×2).
-- **Offers lean toward the tags you own** [Proposed by Claude, built in Phase D]: a card
+- **Offers lean toward the tags you own** [Decided 2026-10-24]: a card
   that shares or reacts to one of your tags is twice as likely, two of your tags three
   times. That keeps a big pool from burying your combo pieces, for the "master a build" player.
 - **At least one card combos with something you own,** when that's possible. A card that
@@ -161,7 +161,7 @@ How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSys
 **Two kinds of slot [Decided].**
 - **4 spells you cast,** on keys Q, W, E, R (was 5 until Phase D). Enough for the fast /
   efficient / big triangle plus a combo spell; every slot matters.
-- **3 passive slots** in a gold tray next to the spell bar. Passives work on their own.
+- **3 passive slots** in a gold tray next to the spell bar [Decided 2026-10-24: keep 3 for now]. Passives work on their own.
   Keystones will get their own slots (Phase E), not these.
 
 **Ranks, not duplicates [Decided].** Lesser/normal/greater versions are one spell with ranks.
@@ -169,11 +169,10 @@ A rank-up is a pick option and replaces the lower rank in the same slot, so "go 
 go wider?" is a real choice. Ranks today: Heal → Heal II → Heal III, Renew → Rejuvenation,
 Shield → Shield II.
 
-**When your bar is full: swap, upgrade or skip** [Proposed by Claude, built in Phase D;
-Marz is open either way]. New spells are still offered, marked **SWAP**. Taking one asks
+**When your bar is full: swap, upgrade or skip** [Decided 2026-10-24]. New spells are still offered, marked **SWAP**. Taking one asks
 "Replace which spell?" (with a Back button), and the new spell takes the old one's slot and
 key. Rank-ups work as before. Every pick screen has a **Skip** card: +10 max mana for the
-rest of the run. To go back to the old rule (rank-ups only, then nothing), turn off
+rest of the run [Decided 2026-10-24: keep for now]. To go back to the old rule (rank-ups only, then nothing), turn off
 `swap_when_full`.
 
 **Build complete [Decided].** When all spell and passive slots are full and no rank-ups are
@@ -205,7 +204,7 @@ new spell automatically combines with everything that shares its tag.
 | **Shield** | Absorbs damage before health | Shield (I–II), Guardian Ward, Aegis of Light |
 | **Delayed** | Heals later | Lifebloom, Promise of Light |
 | **Multi-target** | Also heals other fighters | Binding Heal, Chain Heal, Healing Plague, Tranquility, Aegis of Light |
-| **Protection** | Stops damage instead of healing it | Divine Protection, Time Stop, Guardian Angel |
+| **Mitigation** | Stops damage instead of healing it (named Protection until 2026-10-24) [Decided] | Divine Protection, Time Stop, Guardian Angel |
 | **Cleanse** | Removes a debuff | Planned for Phase F (the basic Cleanse ability, and spells that react to it) |
 
 Tag names and colours live in `resources/spells/SpellTags.gd`. **Rule of thumb [Proposed]:**
@@ -227,8 +226,8 @@ every tag has at least 2 spells with it and 2 that react to it (true since Phase
 | Delayed | Ripening (passive) | Delayed heals on a fighter below 50% health heal 50% more |
 | Multi-target | Lingering Light (passive) | Casting a Multi-target spell leaves a 3/s heal-over-time on the target for 4s |
 | Multi-target | Rising Tide (passive) | Every 3rd Multi-target spell you cast gives 20 mana |
-| Protection | Sanctuary (passive) | Casting a Protection spell also gives the fighter a 15 shield |
-| Protection | Watchful Eye (passive) | Casting a Protection spell on a fighter below 40% heals them for 25 |
+| Mitigation | Sanctuary (passive) | Casting a Mitigation spell also gives the fighter a 15 shield |
+| Mitigation | Watchful Eye (passive) | Casting a Mitigation spell on a fighter below 40% heals them for 25 |
 | Overheal | Overflow, Mana Conduit (passives) | Overhealing becomes a shield, or mana |
 
 **Readable combos [Decided].**
@@ -474,7 +473,7 @@ the fun we're trying to find.
 **Phase D: Faster builds and more spells ✅ built 2026-10-22** (PR for #65–#70; sections 4–6
 describe it): passives as data (generic tag trigger) · picks every other round · 4 spell keys ·
 swap / upgrade / skip when full · offers weighted toward your tags · debug "take any spell" ·
-spell batch 2 (Protection tag, 4 new spells, 5 new passives).
+spell batch 2 (Mitigation tag, 4 new spells, 5 new passives). **[Decided 2026-10-24]** Marz kept all of it after the playtest.
 
 **Phase E: Keystones [Decided 2026-10-22]**
 - **Beat the Baron, pick a keystone** (1 of 3): after rounds 5, 10, 15, capped at 3.
@@ -525,23 +524,21 @@ Parked on purpose [Decided]. Don't build these without Marz's OK.
 
 ## 14. Open questions for Marz
 
-1. **Full spell bar:** built as swap / upgrade / skip (section 4). Keep it, or go back to
-   rank-ups then build complete? Settle after the Phase D playtest.
-2. **Phase D's other proposals, now playable:** offers weighted toward your tags, the Skip
-   reward (+10 max mana), the Protection tag, and the 9 new spells and passives. Keep, tune
-   or cut each.
-3. **Cleanse key and the bandage's future.** Cleanse on F and the bandage on Space? Do we
+1. **Cleanse key and the bandage's future.** Cleanse on F and the bandage on Space? Do we
    keep the bandage once Cleanse exists? Should passives be able to improve either?
-4. **Passive slots.** Stay at 3 now that keystones have their own slots, or drop to 2 so
-   each passive pick weighs more? **[Proposed]** Keep 3 until the Phase D playtest.
-5. **The long game.** Damage, health and mana all grow in straight lines forever, and the
+2. **The long game.** Damage, health and mana all grow in straight lines forever, and the
    party caps at 8 by round 9. Past round ~15, what makes round 25 feel different from
    round 15, other than bigger numbers? **[Proposed]** "Escalating chaos" should come from
    new kinds of threat (debuffs, then mixed patterns and battlefield events) more than from
    bigger numbers. Revisit after Phase F.
-6. **Party-wide spells and party size.** Tranquility and Aegis of Light get stronger the
+3. **Party-wide spells and party size.** Tranquility and Aegis of Light get stronger the
    bigger the party. Fine now (8 max), but raid mode (#54) would need them capped or
    rescaled.
+
+**Settled 2026-10-24 (after the Phase D playtest):** keep swap / upgrade / skip when the
+bar is full; keep the Skip reward (+10 max mana) for now; keep tag-weighted offers; the
+Protection tag is renamed **Mitigation**; keep all 9 new spells and passives; keep 3
+passive slots for now (revisit once keystones exist).
 
 **Settled 2026-10-22:** pick pacing (every other round); keystone timing (after each Baron,
 own slots); tags with no payoff (handled in spell batch 2); 4 spell keys; Cleanse separate
@@ -567,4 +564,5 @@ Listed so nobody "fixes" the wrong side.
 |---|---|---|
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
+| 2026-10-24 | Claude (for Marz) | Marz settled the Phase D questions: keep swap / upgrade / skip, the Skip reward (for now), tag-weighted offers, all 9 new spells and passives, and 3 passive slots (for now). The Protection tag is now called **Mitigation**. Sections 4, 5, 12 and 14 updated. |
 | 2026-10-22 | Claude (for Marz) | Phase D built: passives as data (generic tag trigger), picks every other round, 4 spell keys, swap / upgrade / skip when full, offers weighted toward your tags, debug "take any spell", spell batch 2 (Protection tag; Promise of Light, Hasten, Tranquility, Aegis of Light; Ripening, Lingering Light, Rising Tide, Sanctuary, Watchful Eye). Sections 3–6, 11, 12 and 14 updated. |
