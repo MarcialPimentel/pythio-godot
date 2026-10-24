@@ -29,8 +29,8 @@ after each one.
 | `characters/pythio/pythio_cast_heal.png` | Casting a spell that isn't a Shield or Heal-over-Time spell (Heal, Flash Heal, Divine Protection, Time Stop…), and while bandaging. | High-res | 512 tall |
 | `characters/pythio/pythio_cast_hot.png` | Casting a spell with the **Heal-over-Time** tag (Renew, Healing Plague, Mend Wounds, Tranquility). | High-res | 512 tall |
 | `characters/pythio/pythio_cast_shield.png` | Casting a spell with the **Shield** tag (Shield, Guardian Ward, Aegis of Light). | High-res | 512 tall |
-| `characters/pythio/pythio_low_mana.png` | For 2 seconds the first time your mana drops below 20% in a round. | Stand-in | 512 tall |
-| `characters/pythio/pythio_hurt.png` | When a fighter dies (the end of the run). | Stand-in | 512 tall |
+| `characters/pythio/pythio_low_mana.png` | For 2 seconds the first time your mana drops below 20% in a round. Kneeling, staff raised. | High-res | 512 tall |
+| `characters/pythio/pythio_hurt.png` | When a fighter dies (the end of the run). Head bowed, staff ring dark. | High-res | 512 tall |
 | `characters/pythio/pythio_victory.png` | Winning a fixed-length run. **Never shown in endless mode** (there's no win). | Stand-in (effectively spare) | 512 tall |
 
 High-res poses must share one framing (same canvas, camera and foot position) so he
@@ -49,17 +49,19 @@ character; `_2`–`_5` are spare variants from the concept sheet.
 | `characters/mercenary/mercenary_1.png` | **Desperate Mercenary**, every medium-armour fighter. | High-res | 512 tall |
 | `characters/mercenary/mercenary_2.png` … `_5.png` | Not shown. | Spare | — |
 | `characters/rogue/rogue_1.png` | **Cursed Rogue**, half of the light-armour fighters (purple wisps). | High-res | 512 tall |
+| `characters/rogue/rogue_down.png` | A Cursed Rogue who has **died** (lying face down, daggers dropped). | High-res | 512 wide |
 | `characters/rogue/rogue_2.png` … `_5.png` | Not shown. | Spare | — |
 | `characters/adventurer/adventurer_1.png` | **Injured Adventurer**, the other half of the light-armour fighters. | High-res | 512 tall |
 | `characters/adventurer/adventurer_2.png` … `_5.png` | Not shown. | Spare | — |
-| `characters/adventurer/adventurer_down.png` | An Injured Adventurer who has **died** (lying down). Other characters have no fallen pose yet, so they keep standing when they die. | Stand-in | 512 wide |
+| `characters/adventurer/adventurer_down.png` | An Injured Adventurer who has **died** (lying down). | High-res | 512 wide |
 | `characters/baron/baron_1.png` | **The Crimson Baron**, every 5th round. | High-res | 768 tall |
 | `characters/baron/baron_2.png` … `_4.png` | Not shown. | Spare | — |
+| `characters/baron/baron_down.png` | The Crimson Baron when he **dies** (fallen, cape spread, sword dropped). | High-res | 512 wide |
 | `characters/baron/baron_5.png` | Bloodied Baron. Not shown yet (could be his phase 3 look). | Spare | 768 tall |
 
-**Missing, worth adding with the fighter art:** fallen poses for the knight, mercenary,
-rogue and Baron (`<character>_down.png`). The game already looks for them; it just finds
-only the adventurer's.
+**Still missing:** fallen poses for the **knight** and the **mercenary**
+(`knight_down.png`, `mercenary_down.png`). The game already looks for them; until they
+exist, those two stay standing when they die.
 
 ## Health, shield and mana bars
 
@@ -166,10 +168,10 @@ Font choices may change in Phase H (#61).
 
 What changes the screen most, in order:
 
-Done: Pythio's idle and casting poses, the four fighters and the Baron (2026-10-24).
+Done (2026-10-24): all of Pythio's poses in use, the four fighters, the Baron, and fallen
+poses for the rogue, adventurer and Baron.
 
-1. **Fallen poses** for all four fighters and the Baron (`<character>_down.png`): a death now swaps a high-res fighter for a stand-in (adventurer) or leaves them standing (everyone else).
-2. **Pythio's `low_mana` and `hurt` poses**, so his high-res set is complete.
-3. **The health bar frame and fill**: there's one on every fighter.
-4. **Distinct spell icons**: many spells share an icon today.
-5. **The bloodied Baron** (`baron_5`), for a phase-3 look later.
+1. **Fallen poses for the knight and mercenary** (`knight_down.png`, `mercenary_down.png`).
+2. **The health bar frame and fill**: there's one on every fighter.
+3. **Distinct spell icons**: many spells share an icon today.
+4. **The bloodied Baron** (`baron_5`), for a phase-3 look later.

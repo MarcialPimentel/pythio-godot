@@ -6,9 +6,20 @@ import sys, numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage
 A="/mnt/user-data/attachments/509c1316-aafa-55b0-a4af-a6fea7c3d593/"
-src={"idle":"0dedf9f1","cast_shield":"cc676e6a","cast_heal":"4fb1b94c","cast_hot":"7ba4ad21"}
+src={"idle":"0dedf9f1","cast_shield":"cc676e6a","cast_heal":"4fb1b94c","cast_hot":"7ba4ad21",
+     "low_mana":"47c4c061","hurt":"e523ab84"}
 out=sys.argv[1]
-imgs={k:np.array(Image.open(A+v+"-image.png").convert("RGB"))[:1428,:1101] for k,v in src.items()}
+CANVAS=(1101,1428); FEET_Y=1393   # every pose is fitted to this canvas with the feet on this line
+
+def load(path):
+    """Scale to the canvas width and shift so the lowest ink (the feet) sits on FEET_Y."""
+    im=Image.open(path).convert("RGB")
+    im=im.resize((CANVAS[0],round(im.height*CANVAS[0]/im.width)),Image.LANCZOS)
+    ink=np.where(np.array(im).astype(int).max(axis=2)<90)[0].max()
+    out=Image.new("RGB",CANVAS,(255,255,255)); out.paste(im,(0,FEET_Y-ink))
+    return np.array(out)
+
+imgs={k:load(A+v+"-image.png") for k,v in src.items()}
 # one shared crop window for every pose, so Pythio stands in the same spot in all of them
 x0=y0=10**9; x1=y1=0
 for a in imgs.values():
@@ -34,7 +45,7 @@ for k,a in imgs.items():
     rgba=rgba.crop((x0,y0,x1+1,y1+1))
     rgba=rgba.resize((round(rgba.width*512/rgba.height),512),Image.LANCZOS)
     rgba.save(f"{out}/pythio_{k}.png")
-sheet=Image.new("RGBA",(4*rgba.width+50,532),(35,22,24,255))
-for i,k in enumerate(["idle","cast_heal","cast_hot","cast_shield"]):
+sheet=Image.new("RGBA",(6*rgba.width+70,532),(35,22,24,255))
+for i,k in enumerate(["idle","cast_heal","cast_hot","cast_shield","low_mana","hurt"]):
     sheet.alpha_composite(Image.open(f"{out}/pythio_{k}.png"),(10+i*(rgba.width+10),10))
 sheet.save(f"{out}/sheet.png"); print(rgba.size)
