@@ -1,8 +1,9 @@
 extends SceneTree
 # First-time practice round (owner, 2026-10-24): Take the Job asks "First time on the job?"
-# once per device. Yes → one Heavy Knight, Heal only, prompts (Heal → mana and cast time →
-# a warned hit), the knight can't die, then the real run starts at the spell choice with
-# nothing carried over. No → straight to the spell choice. The next Take the Job never asks.
+# once per device. Yes → one Heavy Knight with Heal, Renew and Shield, prompts (Heal → mana →
+# Renew → a warned hit and Shield → free practice with random hits), the knight can't die,
+# and the real run starts (at the spell choice, nothing carried over) only from the button.
+# No → straight to the spell choice. The next Take the Job never asks.
 # Uses its own settings file, so it never touches the real "already asked" flag.
 # Pass a path to also save screenshots of each prompt:
 #   xvfb-run -a godot --rendering-driver opengl3 --script tools/tests/test_practice.gd -- /tmp/pr
@@ -53,17 +54,23 @@ func _process(d):
 			P("after a Heal: step=%d · prompt 2: %s" % [coach().step, prompt()])
 			wait = coach().mana_step_time + 0.3
 		4:
-			P("warned hit: step=%d warning on knight=%s · prompt 3: %s" % [coach().step, knight().pending_burst_time > 0.0, prompt()])
-			snap("step3")
-			wait = coach().burst_warning + 1.5
+			P("Renew prompt: step=%d keys=%s · %s" % [coach().step, SS.spells.map(func(s): return s.id), prompt()])
+			GM.mana = GM.max_mana
+			SS.request_cast(SS.get_library_spell("renew"), knight())
+			wait = coach().renew_watch_time + 0.5
 		5:
-			P("after the hit: step=%d hp=%d · button shown=%s · prompt 4: %s" % [coach().step, knight().health_comp.current_health, coach()._button.visible, prompt()])
+			P("warned hit: step=%d warning on knight=%s · prompt: %s" % [coach().step, knight().pending_burst_time > 0.0, prompt()])
+			snap("step3")
+			GM.mana = GM.max_mana
+			SS.request_cast(SS.get_library_spell("shield"), knight())
+			wait = coach().burst_warning + 1.5
+		6:
+			P("after the hit: step=%d shielded=%s · button shown=%s · random bursts back on=%s (interval %s) · prompt: %s" % [coach().step,
+				root.get_node("RunStats").absorbed > 0.0, coach()._button.visible, DS.burst_interval < 100.0, DS.burst_interval, prompt()])
 			snap("step4")
 			knight().health_comp.take_damage(99999.0)
-			wait = 0.3
-		6:
-			P("can't die: hp=%d game over=%s in_round=%s" % [knight().health_comp.current_health, game.game_over_panel.visible, GM.in_round])
-			P("random bursts off during practice: interval=%s" % DS.burst_interval)
+			P("can't die: hp=%d game over=%s in_round=%s · still practising until the button: practice=%s" % [knight().health_comp.current_health,
+				game.game_over_panel.visible, GM.in_round, GM.practice])
 			coach()._button.emit_signal("pressed")   # Start the real job
 			wait = 0.8
 		7:

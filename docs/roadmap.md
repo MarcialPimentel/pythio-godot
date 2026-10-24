@@ -75,6 +75,9 @@ _Last updated: 2026-10-24 (new-player feedback batch). Owner: Marz. Claude works
   guard on the next screens, so clicks can't skip ahead (#81) · **Pythio on the title screen**,
   down on his luck; his story is in game-design.md section 2 (#82) · **first-time practice
   round**: one knight, Heal only, three prompts, asked once per device, F1 can ask again (#83).
+- **✅ Follow-up merged 2026-10-24:** practice teaches Heal, Renew and Shield, then free
+  practice until Start the real job · pick cards line up (fixed-height rows) · hints read
+  "Combos with Renew".
 - **Next up:** Marz watches/plays the new onboarding → Phase E (keystones after each Baron, #37).
 - **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
   low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the

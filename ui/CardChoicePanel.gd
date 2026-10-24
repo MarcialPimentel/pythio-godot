@@ -13,6 +13,11 @@ signal chosen(index: int)
 signal back_pressed
 
 const CARD_SIZE := Vector2(380, 560)
+## Card row heights (px): header line, title (two lines), cast time and cost, tags.
+const ROW_HEAD := 26.0
+const ROW_TITLE := 112.0
+const ROW_CAST := 46.0
+const ROW_TAGS := 30.0
 const BG := Color(0.07, 0.06, 0.06, 0.97)
 const FRAME := Color(0.85, 0.8, 0.72, 0.9)
 ## The cast-time badge: bone white, outside the colour language (green/blue/gold/red).
@@ -189,28 +194,36 @@ func _build_card(i: int, d: Dictionary) -> Button:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(box)
 
+	# Fixed-height rows (owner, 2026-10-24): every card keeps the same layout whatever its
+	# title length or what it has, so the cost row, tags and text line up across cards.
+	var head := _slot(box, ROW_HEAD)
 	if d.get("header", "") != "" or d.get("badge", "") != "":
-		var head := HBoxContainer.new()
-		head.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		box.add_child(head)
-		head.add_child(_label(d.get("header", ""), 17, d.get("header_color", accent)))
+		var head_row := HBoxContainer.new()
+		head_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		head_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		head.add_child(head_row)
+		head_row.add_child(_label(d.get("header", ""), 17, d.get("header_color", accent)))
 		var fill := Control.new()
 		fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		head.add_child(fill)
+		head_row.add_child(fill)
 		if d.get("badge", "") != "":
-			head.add_child(_chip(d.badge, d.get("badge_color", SpellTags.COMBO_COLOR), true))
+			head_row.add_child(_chip(d.badge, d.get("badge_color", SpellTags.COMBO_COLOR), true))
 
+	# Title: room for two lines, so a long name ("Divine Protection") doesn't push the rest down.
+	var title_slot := _slot(box, ROW_TITLE)
 	var title_row := HBoxContainer.new()
 	title_row.add_theme_constant_override("separation", 14)
 	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(title_row)
+	title_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	title_slot.add_child(title_row)
 	if d.get("icon") is Texture2D:
 		var icon := TextureRect.new()
 		icon.texture = d.icon
 		icon.custom_minimum_size = Vector2(72, 72)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		title_row.add_child(icon)
 	var t := _label(d.get("title", ""), 44, Color(0.96, 0.93, 0.86))
@@ -218,33 +231,40 @@ func _build_card(i: int, d: Dictionary) -> Button:
 		t.add_theme_font_override("font", _font_title)
 	t.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	t.max_lines_visible = 2
+	t.add_theme_constant_override("line_spacing", -12)
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.size_flags_vertical = Control.SIZE_FILL
 	title_row.add_child(t)
 
 	# Cast time first and big (owner, 2026-10-24): INSTANT / 1.5s CAST / PASSIVE, then the cost.
+	var cast_slot := _slot(box, ROW_CAST)
+	var cast_row := HBoxContainer.new()
+	cast_row.add_theme_constant_override("separation", 12)
+	cast_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cast_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cast_slot.add_child(cast_row)
 	if d.get("cast", "") != "":
-		var cast_row := HBoxContainer.new()
-		cast_row.add_theme_constant_override("separation", 12)
-		cast_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var instant: bool = d.cast == "INSTANT"
-		cast_row.add_child(_chip(d.cast, CAST_COLOR, instant, 24))
-		if d.get("stats", "") != "":
-			var cost := _label(d.stats, 19, Color(1.0, 0.8, 0.35))
-			cost.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			cast_row.add_child(cost)
-		box.add_child(cast_row)
-	elif d.get("stats", "") != "":
-		box.add_child(_label(d.stats, 18, Color(1.0, 0.8, 0.35)))
+		var chip := _chip(d.cast, CAST_COLOR, instant, 24)
+		chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		cast_row.add_child(chip)
+	if d.get("stats", "") != "":
+		var cost := _label(d.stats, 19, Color(1.0, 0.8, 0.35))
+		cost.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		cast_row.add_child(cost)
 
+	var tag_slot := _slot(box, ROW_TAGS)
 	var tags: Array = d.get("tags", [])
 	if not tags.is_empty():
 		var flow := HFlowContainer.new()
 		flow.add_theme_constant_override("h_separation", 8)
 		flow.add_theme_constant_override("v_separation", 6)
 		flow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		flow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		for tag in tags:
 			flow.add_child(_chip(SpellTags.label(tag), SpellTags.COLORS.get(tag, Color.WHITE), false))
-		box.add_child(flow)
+		tag_slot.add_child(flow)
 
 	if d.get("body_bb", "") != "":
 		box.add_child(_rich(d.body_bb, 21))
@@ -299,6 +319,16 @@ func _rich(bb: String, size: int) -> RichTextLabel:
 	r.add_theme_color_override("default_color", Color(0.9, 0.87, 0.8))
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return r
+
+
+## A fixed-height box in the card's column; its contents never change the rows below it.
+func _slot(parent: Node, height: float) -> Control:
+	var c := Control.new()
+	c.custom_minimum_size = Vector2(0, height)
+	c.clip_contents = true
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(c)
+	return c
 
 
 func _chip(text: String, color: Color, strong: bool, font_size: int = 15) -> PanelContainer:
