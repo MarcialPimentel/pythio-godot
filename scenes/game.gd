@@ -187,7 +187,7 @@ func _ready() -> void:
 	mana_label.size = Vector2(336, 27)
 
 	quip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	quip_label.size = Vector2(quip_bubble.size.x - 84, quip_bubble.size.y - 60)
+	quip_label.size = Vector2(quip_bubble.size.x - 112, quip_bubble.size.y - 60)   # stay inside the inked border
 
 	score_label.text = GameManager.best_text()
 	game_ui.visible = false
