@@ -31,6 +31,7 @@ after each one.
 | `characters/pythio/pythio_cast_shield.png` | Casting a spell with the **Shield** tag (Shield, Guardian Ward, Aegis of Light). | High-res | 512 tall |
 | `characters/pythio/pythio_low_mana.png` | For 2 seconds the first time your mana drops below 20% in a round. Kneeling, staff raised. | High-res | 512 tall |
 | `characters/pythio/pythio_hurt.png` | When a fighter dies (the end of the run). Head bowed, staff ring dark. | High-res | 512 tall |
+| `characters/pythio/pythio_title.png` | The **title screen** (left of the logo). For now a copy of the hurt pose: head bowed, down on his luck. Marz plans new art here: Pythio as a beggar by the side of the road. Only the title screen uses this file, so replacing it changes nothing in a run. | High-res (placeholder) | 512 tall |
 | `characters/pythio/pythio_victory.png` | Winning a fixed-length run. **Never shown in endless mode** (there's no win). | Stand-in (effectively spare) | 512 tall |
 
 High-res poses must share one framing (same canvas, camera and foot position) so he
@@ -44,7 +45,7 @@ character; `_2`–`_5` are spare variants from the concept sheet.
 | File | When you see it | Status | Target |
 |---|---|---|---|
 | `characters/knight/knight_1.png` | **Heavy Knight**, every heavy-armour fighter (and the Baron's two guards). | High-res | 512 tall |
-| `characters/knight/knight_2.png` | The knight on the **start screen** (same image as `knight_1`). | High-res | 512 tall |
+| `characters/knight/knight_2.png` | Not shown since 2026-10-24 (the title screen shows Pythio now). Same image as `knight_1`. | Spare | — |
 | `characters/knight/knight_3.png` … `knight_5.png` | Not shown. | Spare | — |
 | `characters/mercenary/mercenary_1.png` | **Desperate Mercenary**, every medium-armour fighter. | High-res | 512 tall |
 | `characters/mercenary/mercenary_2.png` … `_5.png` | Not shown. | Spare | — |
