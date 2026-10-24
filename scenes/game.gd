@@ -68,6 +68,8 @@ const QUIPS := {
 	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
 	"combo": ["Now that's teamwork.", "Two spells, one invoice.", "Elegant. Expensive, but elegant.",
 		"Put that on the bill.", "That's how it's done."],
+	"cleared": ["Paid in full. Mostly.", "Everyone's still breathing. Invoice sent.",
+		"Another job done. Another ache.", "Nobody died. I'll take it."],
 	"skip": ["Saving it for later. Bold.", "Fine. More mana, fewer surprises."],
 	"build_complete": ["That's a full kit. From here, every new trick costs an old one.", "Bag's full. Now let's see how far it goes."],
 }
@@ -123,9 +125,11 @@ static func add_symbol_fallback() -> void:
 func _ready() -> void:
 	add_symbol_fallback()
 	GameManager.game_over.connect(_on_game_over)
-	GameManager.show_party_choice.connect(_show_party_choice)
+	# After a cleared round, "Job finished" holds first, then the next screen (owner, 2026-10-24).
+	GameManager.show_party_choice.connect(func(): _after_job_finished(_show_party_choice))
 	GameManager.show_spec_choice.connect(_show_spec_choice)
-	GameManager.show_spell_pick.connect(_show_spell_pick)
+	GameManager.show_spell_pick.connect(func(offers, r): _after_job_finished(_show_spell_pick.bind(offers, r)))
+	EventBus.round_cleared.connect(_on_round_cleared_transition)
 	DraftSystem.build_complete.connect(func(): _say("build_complete", 5.0))
 	EventBus.combo_fired.connect(_on_combo_fired)
 	EffectSystem.effect_applied.connect(func(kind, _t, _v, _c): if kind == "mana": _flash_mana())
@@ -231,6 +235,95 @@ func _on_combo_fired(_target, _label: String) -> void:
 		return
 	_last_combo_quip = now
 	_say("combo", 2.5)
+
+
+# ── "Job finished": the beat between a cleared round and the next screen ──
+# Owner, 2026-10-24: players clicking at the end of a round picked a card and started the
+# next round by accident. A short screen now holds (clicks and keys do nothing), then the
+# pick or Next party screen opens, and that screen also ignores input for a moment.
+
+var _job_finished: Control
+var _job_finished_active := false
+var _job_finished_next := Callable()
+var _job_finished_id := 0
+
+
+func _make_job_finished() -> void:
+	_job_finished = Control.new()
+	_job_finished.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_job_finished.mouse_filter = Control.MOUSE_FILTER_STOP   # swallow clicks
+	_job_finished.visible = false
+	var dim := ColorRect.new()
+	dim.color = Color(0.03, 0.02, 0.02, 0.72)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_job_finished.add_child(dim)
+	var box := VBoxContainer.new()
+	box.name = "Box"
+	box.custom_minimum_size = Vector2(1200, 0)
+	box.position = Vector2(360, 380)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_job_finished.add_child(box)
+	var title := Label.new()
+	title.name = "Title"
+	title.text = "Job finished"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", load("res://assets/fonts/pirata-one-latin-400-normal.woff2"))
+	title.add_theme_font_size_override("font_size", 128)
+	title.add_theme_color_override("font_color", Color(0.96, 0.93, 0.86))
+	title.add_theme_constant_override("outline_size", 12)
+	title.add_theme_color_override("font_outline_color", Color.BLACK)
+	box.add_child(title)
+	var sub := Label.new()
+	sub.name = "Sub"
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 34)
+	sub.add_theme_color_override("font_color", Color(0.75, 0.7, 0.62))
+	box.add_child(sub)
+	game_ui.add_child(_job_finished)
+
+
+func _on_round_cleared_transition(round_num: int) -> void:
+	if DifficultySystem.job_finished_time <= 0.0:
+		return   # no hold (tests that fast-forward set it to 0)
+	if not _job_finished:
+		_make_job_finished()
+	_job_finished_id += 1
+	var my_id := _job_finished_id
+	_job_finished_active = true
+	_job_finished_next = Callable()
+	_job_finished.get_node("Box/Sub").text = "Round %d cleared" % round_num
+	game_ui.move_child(_job_finished, game_ui.get_child_count() - 1)
+	_job_finished.visible = true
+	_job_finished.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(_job_finished, "modulate:a", 1.0, 0.2)
+	_say("cleared", DifficultySystem.job_finished_time + 1.0)
+	await get_tree().create_timer(DifficultySystem.job_finished_time).timeout
+	if my_id != _job_finished_id:
+		return   # the run was left or a new transition started
+	_job_finished_active = false
+	_job_finished.visible = false
+	var next := _job_finished_next
+	_job_finished_next = Callable()
+	if next.is_valid():
+		next.call()
+
+
+## Runs `next` now, or once the "Job finished" screen is done.
+func _after_job_finished(next: Callable) -> void:
+	if _job_finished_active:
+		_job_finished_next = next
+	else:
+		next.call()
+
+
+func _cancel_job_finished() -> void:
+	_job_finished_id += 1
+	_job_finished_active = false
+	_job_finished_next = Callable()
+	if _job_finished:
+		_job_finished.visible = false
 
 
 # ── Specialization and spell picks ─────────────────────
@@ -615,6 +708,7 @@ func _show_party_choice() -> void:
 	if GameManager.in_round:
 		return
 	party_choice_panel.visible = true
+	party_choice_panel.guard_input()
 	party_area.visible = false
 	contract_info.visible = false
 	var contracts = contract_selector.get_contracts_for_round(GameManager.current_round)
@@ -1100,6 +1194,7 @@ func _lb_cell(text: String, color: Color, expand := false) -> void:
 
 ## Pause menu: end the current run quietly (no game over, nothing posted) and clear the screen.
 func _leave_run() -> void:
+	_cancel_job_finished()
 	GameManager.abandon_run()
 	party_choice_panel.visible = false
 	card_panel.close()

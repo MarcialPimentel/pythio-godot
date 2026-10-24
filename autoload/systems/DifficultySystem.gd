@@ -7,6 +7,13 @@ extends Node
 ## The Crimson Baron shows up on every Nth round (5 → rounds 5, 10, 15 …).
 @export var boss_every: int = 5
 
+@export_group("Between rounds")
+## "Job finished" screen after a cleared round: how long it holds (owner, 2026-10-24).
+@export var job_finished_time: float = 1.6
+## After a pick or Next party screen appears, clicks and keys are ignored this long, so
+## a click from the round can't pick a card or start the next round by accident.
+@export var screen_input_guard: float = 0.5
+
 @export_group("Round Scaling")
 # Endless pacing (owner, 2026-10-21): rounds stay short and frantic, under 30s.
 @export var first_round_time: float = 15.0

@@ -20,6 +20,7 @@ func _process(_d):
 	if f == 80: snap("choice")
 	if f == 82:
 		DS.base_dps = 0.0; DS.dps_growth = 0.0; DS.burst_interval = 999.0
+		DS.job_finished_time = 0.0; DS.screen_input_guard = 0.0   # frame-timed shots: no hold
 		SS.set_spellbook_ids(PackedStringArray(["renew", "overgrowth", "shield", "aura_of_mending"]))
 		game.party_choice_panel._on_left_chosen()
 	if f == 90:

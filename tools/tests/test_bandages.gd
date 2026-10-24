@@ -22,6 +22,7 @@ func _process(d):
 			if f < 3: return false
 			GM = root.get_node("GameManager"); SS = root.get_node("SpellSystem"); BS = root.get_node("BandageSystem"); TS = root.get_node("TargetSystem")
 			var DS = root.get_node("DifficultySystem"); DS.base_dps = 0.0; DS.dps_growth = 0.0; DS.burst_interval = 999.0
+			DS.job_finished_time = 0.0; DS.screen_input_guard = 0.0   # instant screens (see test_job_finished.gd)
 			game._on_start_pressed(); wait = 0.8
 		1:
 			P("run start: charges=%d/%d label='%s'" % [BS.charges, BS.max_charges, game._bandage_label.get_parsed_text()])
