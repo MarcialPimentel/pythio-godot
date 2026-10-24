@@ -22,9 +22,10 @@ func would_heal(_spell: SpellData, _target: Node) -> bool:
 	return true
 
 func describe() -> String:
-	var s := "Heals %s." % n(amount)
+	# One sentence: a new player reads every card in one breath (owner, 2026-10-24).
+	var s := "Heals %s" % n(amount)
 	if neighbor_amount > 0.0:
-		s += " Also heals the fighters on each side for %s." % n(neighbor_amount)
+		s += ", and the fighters on each side for %s" % n(neighbor_amount)
 	if lowest_other_amount > 0.0:
-		s += " Also heals your most injured other fighter for %s." % n(lowest_other_amount)
-	return s
+		s += ", and your most injured other fighter for %s" % n(lowest_other_amount)
+	return s + "."

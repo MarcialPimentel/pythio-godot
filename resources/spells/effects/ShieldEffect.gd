@@ -22,5 +22,5 @@ func describe() -> String:
 	var s := ("Every fighter gets a %s {SHIELD} for %ss." % [n(amount), n(duration)]) if whole_party \
 		else "Absorbs the next %s damage for %ss." % [n(amount), n(duration)]
 	if heal_on_end > 0.0:
-		s += " When it breaks or fades, heals %s." % n(heal_on_end)
+		s = s.trim_suffix(".") + ", then heals %s when it ends." % n(heal_on_end)
 	return s

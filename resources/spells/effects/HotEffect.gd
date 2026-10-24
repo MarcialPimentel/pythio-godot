@@ -24,8 +24,7 @@ func would_heal(_spell: SpellData, _target: Node) -> bool:
 
 func describe() -> String:
 	if whole_party:
-		return "Every fighter heals %s each second for %ss (%s each)." % [n(per_second), n(duration), n(per_second * duration)]
-	var s := "Heals %s over %ss (%s each second)." % [n(per_second * duration), n(duration), n(per_second)]
+		return "Every fighter heals %s over %ss." % [n(per_second * duration), n(duration)]
 	if include_neighbors:
-		s += " Also on the fighters on each side."
-	return s
+		return "Heals this fighter and the ones on each side for %s over %ss." % [n(per_second * duration), n(duration)]
+	return "Heals %s over %ss." % [n(per_second * duration), n(duration)]

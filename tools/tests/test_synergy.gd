@@ -47,7 +47,8 @@ func _process(d):
 			P("RESULT tag-weighted offers: cards touching your tags %.0f%% with weighting off → %.0f%% on (higher=%s)" % [off * 100.0, on * 100.0, on > off])
 			P("affinity: Overgrowth=%.1f Mend Wounds=%.1f Spirit Surge=%.1f (Renew + Overgrowth owned: HoT)" % [DS.tag_affinity(SS.get_library_spell("overgrowth")), DS.tag_affinity(SS.get_library_spell("mend_wounds")), DS.tag_affinity(SS.get_library_spell("spirit_surge"))])
 			SS.add_spell(SS.get_library_spell("shield"))
-			P("build summary: '%s'" % strip(game._build_label.text))
+			# The build summary line above the bar was removed (owner, 2026-10-24).
+			P("RESULT no build summary label: %s" % (not "_build_label" in game))
 			quit()
 	step += 1
 	return false
