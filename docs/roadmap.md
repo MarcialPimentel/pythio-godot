@@ -66,7 +66,10 @@ _Last updated: 2026-10-22 (direction update). Owner: Marz. Claude works through 
   The leaderboard board didn't change (scoring is the same: rounds, then effective healing).
 - **Next up:** owner playtests Phase D and answers the open questions in
   `docs/game-design.md` (section 14) → Phase E (keystones after each Baron, #37).
-- **Known rough spots:** stand-in art (new spells reuse 4 icons) · no sound · early rounds
+- **Art (2026-10-24, #74 #76, part of #34):** high-res Pythio (idle + 3 casting poses), the
+  four fighters and the Crimson Baron are live. Every image and what to make next:
+  `docs/art-assets.md` (#75).
+- **Known rough spots:** fallen poses and the rest of the UI/effects are still stand-ins (new spells reuse 4 icons) · no sound · early rounds
   may now be on the easy side (re-check when picks speed up in Phase D, and when debuffs arrive in Phase F).
 
 **Tracked on GitHub:** each phase is a milestone and each bullet is an issue (label

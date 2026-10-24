@@ -1,7 +1,7 @@
 # Pythio: art asset list
 
 _Every image in the game, its file name, and when you see it. Last checked against the code
-on 2026-10-24._
+on 2026-10-24 (after the high-res Pythio and fighters, #74 and #76)._
 
 **How to use this list**
 - **Replacing art:** drop a new PNG with **exactly the same name and folder** over the old
@@ -25,10 +25,10 @@ after each one.
 
 | File | When you see it | Status | Target |
 |---|---|---|---|
-| `characters/pythio/pythio_idle.png` | Standing still: whenever he isn't casting or reacting. | High-res (PR #74) | 512 tall |
-| `characters/pythio/pythio_cast_heal.png` | Casting a spell that isn't a Shield or Heal-over-Time spell (Heal, Flash Heal, Divine Protection, Time Stop…), and while bandaging. | High-res (PR #74) | 512 tall |
-| `characters/pythio/pythio_cast_hot.png` | Casting a spell with the **Heal-over-Time** tag (Renew, Healing Plague, Mend Wounds, Tranquility). | High-res (PR #74) | 512 tall |
-| `characters/pythio/pythio_cast_shield.png` | Casting a spell with the **Shield** tag (Shield, Guardian Ward, Aegis of Light). | High-res (PR #74) | 512 tall |
+| `characters/pythio/pythio_idle.png` | Standing still: whenever he isn't casting or reacting. | High-res | 512 tall |
+| `characters/pythio/pythio_cast_heal.png` | Casting a spell that isn't a Shield or Heal-over-Time spell (Heal, Flash Heal, Divine Protection, Time Stop…), and while bandaging. | High-res | 512 tall |
+| `characters/pythio/pythio_cast_hot.png` | Casting a spell with the **Heal-over-Time** tag (Renew, Healing Plague, Mend Wounds, Tranquility). | High-res | 512 tall |
+| `characters/pythio/pythio_cast_shield.png` | Casting a spell with the **Shield** tag (Shield, Guardian Ward, Aegis of Light). | High-res | 512 tall |
 | `characters/pythio/pythio_low_mana.png` | For 2 seconds the first time your mana drops below 20% in a round. | Stand-in | 512 tall |
 | `characters/pythio/pythio_hurt.png` | When a fighter dies (the end of the run). | Stand-in | 512 tall |
 | `characters/pythio/pythio_victory.png` | Winning a fixed-length run. **Never shown in endless mode** (there's no win). | Stand-in (effectively spare) | 512 tall |
@@ -43,17 +43,17 @@ character; `_2`–`_5` are spare variants from the concept sheet.
 
 | File | When you see it | Status | Target |
 |---|---|---|---|
-| `characters/knight/knight_1.png` | **Heavy Knight**, every heavy-armour fighter (and the Baron's two guards). | Stand-in | 512 tall |
-| `characters/knight/knight_2.png` | The knight on the **start screen**. | Stand-in | 512 tall |
+| `characters/knight/knight_1.png` | **Heavy Knight**, every heavy-armour fighter (and the Baron's two guards). | High-res | 512 tall |
+| `characters/knight/knight_2.png` | The knight on the **start screen** (same image as `knight_1`). | High-res | 512 tall |
 | `characters/knight/knight_3.png` … `knight_5.png` | Not shown. | Spare | — |
-| `characters/mercenary/mercenary_1.png` | **Desperate Mercenary**, every medium-armour fighter. | Stand-in | 512 tall |
+| `characters/mercenary/mercenary_1.png` | **Desperate Mercenary**, every medium-armour fighter. | High-res | 512 tall |
 | `characters/mercenary/mercenary_2.png` … `_5.png` | Not shown. | Spare | — |
-| `characters/rogue/rogue_1.png` | **Cursed Rogue**, half of the light-armour fighters (purple wisps). | Stand-in | 512 tall |
+| `characters/rogue/rogue_1.png` | **Cursed Rogue**, half of the light-armour fighters (purple wisps). | High-res | 512 tall |
 | `characters/rogue/rogue_2.png` … `_5.png` | Not shown. | Spare | — |
-| `characters/adventurer/adventurer_1.png` | **Injured Adventurer**, the other half of the light-armour fighters. | Stand-in | 512 tall |
+| `characters/adventurer/adventurer_1.png` | **Injured Adventurer**, the other half of the light-armour fighters. | High-res | 512 tall |
 | `characters/adventurer/adventurer_2.png` … `_5.png` | Not shown. | Spare | — |
 | `characters/adventurer/adventurer_down.png` | An Injured Adventurer who has **died** (lying down). Other characters have no fallen pose yet, so they keep standing when they die. | Stand-in | 512 wide |
-| `characters/baron/baron_1.png` | **The Crimson Baron**, every 5th round. | Stand-in | 768 tall |
+| `characters/baron/baron_1.png` | **The Crimson Baron**, every 5th round. | High-res | 768 tall |
 | `characters/baron/baron_2.png` … `_4.png` | Not shown. | Spare | — |
 | `characters/baron/baron_5.png` | Bloodied Baron. Not shown yet (could be his phase 3 look). | Spare | 768 tall |
 
@@ -166,9 +166,10 @@ Font choices may change in Phase H (#61).
 
 What changes the screen most, in order:
 
-1. **The four fighters' `_1` images** (knight, mercenary, rogue, adventurer): they're on screen all the time, next to the new Pythio.
-2. **The Baron** (`baron_1`, and `baron_5` if we want a bloodied phase-3 look).
+Done: Pythio's idle and casting poses, the four fighters and the Baron (2026-10-24).
+
+1. **Fallen poses** for all four fighters and the Baron (`<character>_down.png`): a death now swaps a high-res fighter for a stand-in (adventurer) or leaves them standing (everyone else).
+2. **Pythio's `low_mana` and `hurt` poses**, so his high-res set is complete.
 3. **The health bar frame and fill**: there's one on every fighter.
 4. **Distinct spell icons**: many spells share an icon today.
-5. **Pythio's `low_mana` and `hurt` poses**, so the high-res set is complete.
-6. **Fallen poses** for the knight, mercenary, rogue and Baron.
+5. **The bloodied Baron** (`baron_5`), for a phase-3 look later.
