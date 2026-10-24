@@ -41,16 +41,6 @@ extends Node
 
 var rng := RandomNumberGenerator.new()
 
-## What Pythio's handler says when the next party shows up.
-const NEXT_PARTY_LINES: PackedStringArray = [
-	"Another party needs you. They always do.",
-	"We got another invite. Bring bandages.",
-	"Time for the next group. Same blood, new faces.",
-	"Someone paid in advance. Try to earn it.",
-	"Fresh customers. Mostly in one piece.",
-]
-
-
 func _ready() -> void:
 	rng.randomize()   # or use a seed for testing: rng.seed = 42
 
@@ -96,7 +86,7 @@ func generate_contract(round_num: int) -> ContractData:
 	# ── Metadata ──
 	contract.is_boss = false
 	contract.contract_name = "%d %s %s" % [target_units, flavor_prefixes[rng.randi() % flavor_prefixes.size()], flavor_suffixes[rng.randi() % flavor_suffixes.size()]]
-	contract.flavor_text = NEXT_PARTY_LINES[rng.randi() % NEXT_PARTY_LINES.size()]
+	contract.flavor_text = ""   # no flavour line on the Next party screen (owner, 2026-10-24); the Baron keeps his
 	
 	# ── Reward & Risk ──
 	contract.reward_gold = gold_base_per_round + gold_per_unit * target_units
