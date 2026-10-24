@@ -16,6 +16,8 @@ any death ends the run.
 - `docs/spells.md` is the spell catalog with real numbers. `docs/design-direction.md` is
   the frozen record of the 2026-10-21 design review (the *why*). `docs/design.md` is the
   original web game's doc: ideas only.
+  `docs/art-assets.md` lists every image, its file name and when it appears; `docs/art.md`
+  has the style guide and prompt pack.
 - Act as a game design veteran: push back when something weakens a pillar and suggest a
   better option. The owner makes the final call.
 
