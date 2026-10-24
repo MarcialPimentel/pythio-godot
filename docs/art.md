@@ -1,6 +1,12 @@
 # Pythio art: stand-ins, file names, and the high-res prompt pack
 
 ## Where the art comes from today
+**High-res so far (2026-10-23):** Pythio's idle and three casting poses (`pythio_idle`,
+`pythio_cast_heal`, `pythio_cast_hot`, `pythio_cast_shield`), made by the owner in ChatGPT
+from the prompt pack below and cut out with `tools/art/cutout_white_bg.py` (white background
+removed, one shared crop so he stands in the same spot in every pose, 512 tall).
+Still stand-ins: his hurt / low mana / victory poses, the fighters, the Baron, UI and effects.
+
 Everything in `assets/art/` was cut from the owner's AI-generated concept sheet
 (`assets/art/_source/pythio_concept_sheet_2x.png`) by `tools/art/slice_concept_sheet.py`.
 These are **stand-ins**. They have the right style, but they're small (characters are about
