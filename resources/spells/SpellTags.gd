@@ -10,7 +10,8 @@ const HOT := "HOT"
 const SHIELD := "SHIELD"
 const DELAYED := "DELAYED"
 const MULTI := "MULTI"
-## Damage prevention: Divine Protection, Time Stop, Guardian Angel (#70).
+## Damage prevention: Divine Protection, Time Stop, Guardian Angel (#70). Shown as
+## "Mitigation" (owner, 2026-10-24; was "Protection"). The key stays PROTECT.
 const PROTECT := "PROTECT"
 
 const ALL: Array[String] = [DIRECT, HOT, SHIELD, DELAYED, MULTI, PROTECT]
@@ -21,7 +22,7 @@ const LABELS := {
 	SHIELD: "Shield",
 	DELAYED: "Delayed",
 	MULTI: "Multi-target",
-	PROTECT: "Protection",
+	PROTECT: "Mitigation",
 }
 
 const COLORS := {
