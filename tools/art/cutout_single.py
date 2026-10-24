@@ -3,13 +3,14 @@
 # to the figure, scaled to a target height. For single images (fighters, the Baron).
 # For a character with several poses that must line up, use cutout_white_bg.py instead.
 # Usage: python3 tools/art/cutout_single.py <input.png> <output.png> [height, default 512]
+#        (size "w512" = 512 wide instead, for landscape art like fallen poses)
 import sys
 import numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage
 
 src, dst = sys.argv[1], sys.argv[2]
-height = int(sys.argv[3]) if len(sys.argv) > 3 else 512
+size = sys.argv[3] if len(sys.argv) > 3 else "512"
 a = np.array(Image.open(src).convert("RGB"))
 whiteness = a.astype(int).min(axis=2)
 white = whiteness >= 225
@@ -26,6 +27,11 @@ img.putalpha(Image.fromarray(alpha.astype("uint8")).filter(ImageFilter.GaussianB
 x0, y0, x1, y1 = img.getbbox()
 pad = 6
 img = img.crop((max(0, x0 - pad), max(0, y0 - pad), min(a.shape[1], x1 + pad), min(a.shape[0], y1 + pad)))
-img = img.resize((round(img.width * height / img.height), height), Image.LANCZOS)
+if size.startswith("w"):
+    width = int(size[1:])
+    img = img.resize((width, round(img.height * width / img.width)), Image.LANCZOS)
+else:
+    height = int(size)
+    img = img.resize((round(img.width * height / img.height), height), Image.LANCZOS)
 img.save(dst)
 print(dst, img.size)

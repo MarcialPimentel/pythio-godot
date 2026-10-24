@@ -1,8 +1,8 @@
 # Pythio art: stand-ins, file names, and the high-res prompt pack
 
 ## Where the art comes from today
-**High-res so far (2026-10-24):** Pythio's idle and three casting poses, the four fighters
-and the Crimson Baron, made by the owner in ChatGPT from the prompt pack below. Pythio's
+**High-res so far (2026-10-24):** all of Pythio's poses in use (idle, three casting, low mana,
+hurt), the four fighters, the Crimson Baron, and fallen poses for the rogue, adventurer and Baron, made by the owner in ChatGPT from the prompt pack below. Pythio's
 poses were cut out with `tools/art/cutout_white_bg.py` (one shared crop so he stands in the
 same spot in every pose); single images with `tools/art/cutout_single.py`. Everything else
 is still a stand-in; `docs/art-assets.md` has the full list and what to make next.
