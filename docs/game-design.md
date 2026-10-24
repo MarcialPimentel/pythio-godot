@@ -79,6 +79,10 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 **[Decided]**
 - **Tone:** darkly humorous noir. Pythio speaks in dry, understated one-liners (round start,
   the Baron, low mana, combos, death, picks). He's a professional who charges by the hour.
+- **Pythio's story [Decided 2026-10-24]:** he's down on his luck *because* he once failed to
+  keep a party alive. Every run is him taking work again and trying not to lose another one,
+  which is why a death ends the run, and why the roguelite loop fits. The title screen shows
+  him beaten down (today the hurt pose; later, a beggar by the side of the road).
 - **Look:** gritty inked-comic noir. Heavy black linework, grey and sepia figures, dark
   high-contrast UI. Colour appears only where it means something.
 - **Colour language** (one meaning per colour, so a glance is enough):
@@ -583,6 +587,7 @@ Listed so nobody "fixes" the wrong side.
 |---|---|---|
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
+| 2026-10-24 | Claude (for Marz) | Title screen shows Pythio (head bowed) instead of the knight. Marz decided Pythio's story: he's down on his luck because he once failed a party. Section 2 updated. |
 | 2026-10-24 | Claude (for Marz) | "Job finished" screen after each cleared round, and a short input guard on the pick and Next party screens (Marz, after watching a new player click through by accident). Section 3 updated. |
 | 2026-10-24 | Claude (for Marz) | From watching a new player: the run starts with **Choose your spell**, and "school" is never shown (it still steers offers underneath, proposed); card text is one sentence; cast time is a big badge on cards and shows on spell buttons; the build summary above the bar is gone. Sections 3, 4, 5 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Marz settled the Phase D questions: keep swap / upgrade / skip, the Skip reward (for now), tag-weighted offers, all 9 new spells and passives, and 3 passive slots (for now). The Protection tag is now called **Mitigation**. Sections 4, 5, 12 and 14 updated. |

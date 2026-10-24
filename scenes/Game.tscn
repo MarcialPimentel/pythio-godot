@@ -14,7 +14,7 @@
 [ext_resource type="Texture2D" path="res://assets/art/ui/bars/mana_bar_fill.png" id="12_mana_fill"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/bars/mana_orb_4.png" id="13_orb"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/frames/portrait.png" id="14_portrait"]
-[ext_resource type="Texture2D" path="res://assets/art/characters/knight/knight_2.png" id="15_knight"]
+[ext_resource type="Texture2D" path="res://assets/art/characters/pythio/pythio_title.png" id="15_knight"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bg"]
 shader = ExtResource("4_bg")
@@ -89,7 +89,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="StartKnight" type="TextureRect" parent="StartScreen"]
+[node name="StartPythio" type="TextureRect" parent="StartScreen"]
 modulate = Color(0.75, 0.72, 0.7, 1)
 layout_mode = 0
 offset_left = 230.0
