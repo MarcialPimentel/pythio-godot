@@ -26,38 +26,10 @@ drop a better PNG with **the same name** over the old one. No code change is nee
   was the main problem with the concept sheet.
 - **No text** baked into images.
 
-## MVP asset list
-Sizes are what the high-res versions should be (2–4× the stand-ins). ★ = used by the
-combat screen right now.
-
-| File (under `assets/art/`) | What it is | Stand-in | Target |
-|---|---|---|---|
-| ★ `characters/pythio/pythio_idle.png` | Pythio, back view, idle | ~110×160 | 512 tall |
-| `characters/pythio/pythio_cast_heal.png` / `_cast_shield` / `_cast_hot` | Back view, casting (green / blue / green swirl) | ~120×170 | 512 tall |
-| `characters/pythio/pythio_hurt.png` / `_low_mana` / `_victory` | Back view reactions | ~110×150 | 512 tall |
-| ★ `characters/knight/knight_1.png` (…`_5`) | Heavy Knight (HEAVY armor) | ~130×200 | 512 tall |
-| ★ `characters/mercenary/mercenary_1.png` (…`_5`) | Desperate Mercenary (MEDIUM) | ~125×170 | 512 tall |
-| ★ `characters/rogue/rogue_1.png` (…`_5`) | Cursed Rogue (LIGHT), purple wisps | ~130×180 | 512 tall |
-| ★ `characters/adventurer/adventurer_1.png` (…`_5`) | Injured Adventurer (LIGHT) | ~120×155 | 512 tall |
-| `characters/adventurer/adventurer_down.png` | Fallen pose | ~190×85 | 512 wide |
-| ★ `characters/baron/baron_1.png` (…`_5`, `_5` = bloodied) | Crimson Baron, boss | ~150×300 | 768 tall |
-| ★ `ui/bars/health_bar_under.png` + `health_bar_fill.png` | Comic health bar frame (heart, empty interior) + red fill strip | 375×59 | 1024 wide |
-| ★ `ui/bars/shield_bar_fill.png` | Blue fill strip for shields | 290×22 | match health fill |
-| ★ `ui/bars/mana_bar_under.png` + `mana_bar_fill.png` | Gold mana bar frame + fill strip | 360×51 | 1024 wide |
-| ★ `ui/bars/mana_orb_1.png` (…`_4`, empty → full) | Mana orb | ~90×95 | 256 |
-| ★ `ui/icons/spell_flash_heal.png`, `spell_hot.png`, `spell_shield.png`, `spell_instant_heal.png` | Spell icons, framed | ~130×140 | 256 |
-| `ui/icons/status_buff_1..4.png`, `status_debuff_1..5.png` | Small buff/debuff icons | ~60×80 | 128 |
-| ★ `ui/frames/portrait.png` | Pythio portrait in sketch frame | ~250×235 | 512 |
-| ★ `ui/frames/dialogue_box.png` | Speech bubble for quips | ~250×150 | 512 wide |
-| `ui/frames/tooltip_frame.png` | Dark tooltip frame | ~210×140 | 512 wide |
-| ★ `ui/frames/wanted_poster.png` | Contract card | ~175×220 | 512 tall |
-| `vfx/heal/heal_burst_1..6.png`, `hot_circle_1..5.png`, `healing_particles.png` | Heal effects (green) | ~90–120 | 256 per frame |
-| `vfx/shield/shield_impact_1..4.png`, `shield_loop_1..5.png`, `shield_break_1..5.png` | Shield effects (blue) | ~90–120 | 256 per frame |
-| `vfx/danger/danger_telegraph_1..5.png`, `danger_spikes_1..5.png`, `blood_burst_1..4.png` | Burst warning and hits (red) | ~100–130 | 256 per frame |
-| `vfx/mana/mana_sparkles_1..5.png`, `mana_orb_flow_1..6.png` | Mana effects (gold) | ~60–100 | 256 per frame |
-| `props/*.png` | Medic bag, elixir, bottle, torch, blood splat, crates, barrel, wall poster | ~70–170 | 256 |
-
-**Doing the ★ items first** covers everything currently on the combat screen: about 20 images.
+## Asset list
+Every image, its file name, when it appears in the game, whether it's high-res yet and its
+target size: **`docs/art-assets.md`**. That list, including what to make next, replaces the
+table that used to be here.
 
 ## Prompt pack for regenerating at high resolution
 Generate **one asset per image**, and attach the concept sheet as a style/image reference
