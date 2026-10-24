@@ -30,7 +30,7 @@ extends Resource
 @export var rank: int = 1
 ## Only offered once you own a spell with at least one of these tags.
 @export var requires_tags: Array[String] = []
-## Tags this spell combos with (used for "Combos with your …" hints on pick cards).
+## Tags this spell combos with (used for "Combos with …" hints on pick cards).
 @export var reacts_to_tags: Array[String] = []
 ## Relative chance to be offered (1 = normal).
 @export var offer_weight: float = 1.0

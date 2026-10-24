@@ -496,14 +496,14 @@ func spell_card(spell: SpellData) -> Dictionary:
 	}
 
 
-## Gold "★ Combos with your Renew" lines for a pick card (empty if it doesn't connect).
+## Gold "★ Combos with Renew" lines for a pick card (empty if it doesn't connect).
 func synergy_hint_bb(spell: SpellData) -> String:
 	var syn := DraftSystem.synergy(spell)
 	var gold := SpellTags.COMBO_COLOR.to_html(false)
 	var tag_words := ", ".join(syn.tags.map(func(t): return SpellTags.label(t)))
 	var lines: Array[String] = []
 	if not syn.with.is_empty():
-		lines.append("★ Combos with your [b]%s[/b]" % ", ".join(syn.with.map(func(s): return s.display_name)))
+		lines.append("★ Combos with [b]%s[/b]" % ", ".join(syn.with.map(func(s): return s.display_name)))
 	if not syn.from.is_empty():
 		lines.append("★ Your [b]%s[/b] combos with this" % ", ".join(syn.from.map(func(s): return s.display_name)))
 	if lines.is_empty():

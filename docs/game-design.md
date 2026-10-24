@@ -105,10 +105,12 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 
 **First time on the job [Decided 2026-10-24].** The first time someone presses Take the Job on
 a device, the game asks "First time on the job?" (once per device, whatever the answer).
-**Yes** starts a practice round: one Heavy Knight, Heal only, no timer, and three prompts
-(hover and press Q · cast time and mana · a warned INCOMING hit). The knight can't die and
-nothing counts toward stats or the leaderboard. Then the real run starts. **No** goes
-straight to the run. Script: `scenes/practice.gd`.
+**Yes** starts a practice round: one Heavy Knight, all three starting spells (Heal, Renew,
+Shield), no timer, and four prompts (hover and press Q for Heal · cast time and mana · W for
+Renew · a warned INCOMING hit, E for Shield). Then free practice with random hits for as long
+as the player likes; the real run starts only when they press **Start the real job**. The
+knight can't die and nothing counts toward stats or the leaderboard. **No** goes straight to
+the run. Script: `scenes/practice.gd`.
 
 **Run start.** Pick a school (Mending, Bloom or Ward). You start with that school's one spell.
 **Run start.** **Choose your spell:** Heal, Renew or Shield. That's your first spell.
@@ -178,7 +180,7 @@ How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSys
   that shares or reacts to one of your tags is twice as likely, two of your tags three
   times. That keeps a big pool from burying your combo pieces, for the "master a build" player.
 - **At least one card combos with something you own,** when that's possible. A card that
-  combos says so ("Combos with your …").
+  combos says so ("Combos with …").
 - **Combo spells and most passives only appear once you own the tag they react to.** For
   example, Overgrowth needs a Heal-over-Time spell.
 - You're never offered a spell you already own (only its next rank).
@@ -486,7 +488,7 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 - **Floating numbers** for heals, shields and combos (gold).
 
 **Between rounds:** Choose your spell (run start), spell picks (3 cards with cast time, cost,
-tags, one sentence and "Combos with your …" hints) and the Next party screen.
+tags, one sentence and "Combos with …" hints) and the Next party screen.
 
 Main files: `scenes/game.gd` (the screen), `ui/CardChoicePanel.gd` (pick cards),
 `ui/PartyChoicePanel.tscn` + `scenes/PartyChoicePanel.gd` (Next party), `ui/PauseMenu.gd`,
@@ -597,6 +599,7 @@ Listed so nobody "fixes" the wrong side.
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
 | 2026-10-24 | Claude (for Marz) | First-time practice round (Marz, after watching a new player): asked once per device after Take the Job; one knight, Heal only, three prompts, can't die, then the real run. Sections 3 and 11 updated. |
+| 2026-10-24 | Claude (for Marz) | Practice round teaches all three starting spells and ends in free practice until Start the real job (Marz). Pick cards use fixed-height rows so titles, costs, tags and text line up; hints read "Combos with Renew". Sections 3 and 4 updated. |
 | 2026-10-24 | Claude (for Marz) | Title screen shows Pythio (head bowed) instead of the knight. Marz decided Pythio's story: he's down on his luck because he once failed a party. Section 2 updated. |
 | 2026-10-24 | Claude (for Marz) | "Job finished" screen after each cleared round, and a short input guard on the pick and Next party screens (Marz, after watching a new player click through by accident). Section 3 updated. |
 | 2026-10-24 | Claude (for Marz) | From watching a new player: the run starts with **Choose your spell**, and "school" is never shown (it still steers offers underneath, proposed); card text is one sentence; cast time is a big badge on cards and shows on spell buttons; the build summary above the bar is gone. Sections 3, 4, 5 and 11 updated. |
