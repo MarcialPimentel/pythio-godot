@@ -18,6 +18,7 @@ func _process(d):
 			GM = root.get_node("GameManager"); DS = root.get_node("DraftSystem"); SS = root.get_node("SpellSystem")
 			DS.build_complete.connect(func(): complete += 1)
 			root.get_node("DifficultySystem").base_dps = 0.0; root.get_node("DifficultySystem").burst_interval = 999.0
+			root.get_node("DifficultySystem").job_finished_time = 0.0; root.get_node("DifficultySystem").screen_input_guard = 0.0   # instant screens (see test_job_finished.gd)
 			game._on_start_pressed(); wait = 0.2
 		1:
 			P("school screen: visible=%s mode=%s schools=%s spellbook=%s" % [game.card_panel.visible, game._card_mode, DS.specs.map(func(s): return s.display_name), ids(SS.spells)])

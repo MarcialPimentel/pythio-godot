@@ -108,6 +108,10 @@ system has to make a new spell easy to add: numbers and effects, not new code.
    one fighter gets a **burst warning** (red ring, "INCOMING"), then takes a big hit. You
    heal, shield and protect with spells (mana) and bandages (charges).
 3. **Survive the timer** and the round is cleared. **Any fighter dies** and the run is over.
+   A cleared round shows **"Job finished"** for a moment (Pythio quips; clicks and keys do
+   nothing), then the next screen opens. Pick and Next party screens ignore input for their
+   first half second, so a click left over from the round can't pick a card or start the
+   next round [Decided 2026-10-24, after watching a new player].
 4. **Between rounds:** after round 1 and then every other round (3, 5, 7 …), you pick a
    new spell or passive (1 of 3), or skip. Your mana carries over and tops up by half your max pool. Cooldowns
    reset. A new party comes in at full health.
@@ -126,6 +130,8 @@ it to the online leaderboard, then play again.
 | Seconds added per round | 1s | same (`round_time_growth`) |
 | Longest round | 25s | same (`round_time_max`) |
 | Mana top-up between rounds | 50% of max | same (`round_start_mana_refill`) |
+| "Job finished" hold | 1.6s | same (`job_finished_time`) |
+| Pick / Next party screens ignore input for | 0.5s | same (`screen_input_guard`) |
 
 ## 4. First spell, picks and builds (schools are hidden)
 
@@ -577,6 +583,7 @@ Listed so nobody "fixes" the wrong side.
 |---|---|---|
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
+| 2026-10-24 | Claude (for Marz) | "Job finished" screen after each cleared round, and a short input guard on the pick and Next party screens (Marz, after watching a new player click through by accident). Section 3 updated. |
 | 2026-10-24 | Claude (for Marz) | From watching a new player: the run starts with **Choose your spell**, and "school" is never shown (it still steers offers underneath, proposed); card text is one sentence; cast time is a big badge on cards and shows on spell buttons; the build summary above the bar is gone. Sections 3, 4, 5 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Marz settled the Phase D questions: keep swap / upgrade / skip, the Skip reward (for now), tag-weighted offers, all 9 new spells and passives, and 3 passive slots (for now). The Protection tag is now called **Mitigation**. Sections 4, 5, 12 and 14 updated. |
 | 2026-10-22 | Claude (for Marz) | Phase D built: passives as data (generic tag trigger), picks every other round, 4 spell keys, swap / upgrade / skip when full, offers weighted toward your tags, debug "take any spell", spell batch 2 (Protection tag; Promise of Light, Hasten, Tranquility, Aegis of Light; Ripening, Lingering Light, Rising Tide, Sanctuary, Watchful Eye). Sections 3–6, 11, 12 and 14 updated. |

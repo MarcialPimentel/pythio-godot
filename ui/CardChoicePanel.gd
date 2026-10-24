@@ -84,6 +84,7 @@ func _ready() -> void:
 
 ## `back_text`: show a button under the cards (Backspace works too); "" = none.
 func show_cards(title: String, subtitle: String, cards: Array, back_text: String = "") -> void:
+	_input_open_at = Time.get_ticks_msec() + int(DifficultySystem.screen_input_guard * 1000.0)
 	if _tween:
 		_tween.kill()   # a choice still fading out must not land on the new cards
 	_title.text = title
@@ -104,12 +105,29 @@ func show_cards(title: String, subtitle: String, cards: Array, back_text: String
 	_tween.tween_property(self, "modulate:a", 1.0, 0.25)
 
 
+## Clicks and keys are ignored until this time (ms), so a click left over from the round
+## can't pick a card the moment the screen appears.
+var _input_open_at := 0
+
+
+func guarded() -> bool:
+	return Time.get_ticks_msec() < _input_open_at
+
+
+func _on_card_pressed(i: int) -> void:
+	if not guarded():
+		_choose(i)
+
+
 func close() -> void:
 	visible = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or not (event is InputEventKey) or not event.pressed or event.echo:
+		return
+	if guarded():
+		get_viewport().set_input_as_handled()
 		return
 	if event.keycode == KEY_BACKSPACE and _back.visible:
 		_on_back()
@@ -157,7 +175,7 @@ func _build_card(i: int, d: Dictionary) -> Button:
 	style.shadow_size = 14
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		btn.add_theme_stylebox_override(state, style)
-	btn.pressed.connect(_choose.bind(i))
+	btn.pressed.connect(_on_card_pressed.bind(i))
 	btn.mouse_entered.connect(_set_hover.bind(i, true))
 	btn.mouse_exited.connect(_set_hover.bind(i, false))
 	_cards.append(btn)

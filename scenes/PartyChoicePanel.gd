@@ -30,8 +30,20 @@ func _ready() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.position.x -= 300
 	title.size.x += 600
-	left_button.pressed.connect(_on_left_chosen)
-	right_button.pressed.connect(_on_right_chosen)
+	left_button.pressed.connect(func(): if not guarded(): _on_left_chosen())
+	right_button.pressed.connect(func(): if not guarded(): _on_right_chosen())
+
+
+## Clicks and keys are ignored until this time (ms); set each time the screen opens.
+var _input_open_at := 0
+
+
+func guard_input() -> void:
+	_input_open_at = Time.get_ticks_msec() + int(DifficultySystem.screen_input_guard * 1000.0)
+
+
+func guarded() -> bool:
+	return Time.get_ticks_msec() < _input_open_at
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -39,7 +51,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if visible and event is InputEventKey and event.pressed and not event.echo \
 			and event.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER] and not left_button.disabled:
 		get_viewport().set_input_as_handled()
-		_on_left_chosen()
+		if not guarded():
+			_on_left_chosen()
 
 
 func setup_contracts(choices: Array[ContractData]) -> void:
