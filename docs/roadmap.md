@@ -1,6 +1,6 @@
 # Pythio: roadmap
 
-_Last updated: 2026-10-25 (Phase E). Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-25 (Phase F). Owner: Marz. Claude works through this list one pull request at a time._
 
 > **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
 > `docs/game-design.md`, which wins over every other design doc.
@@ -87,7 +87,13 @@ _Last updated: 2026-10-25 (Phase E). Owner: Marz. Claude works through this list
   hard to your tags, no Skip; swaps or a spell pick once your 3 passives are full) · six new
   data passives: Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction, Bastion
   (43 entries). Bot check: first deaths still ~rounds 6–8.
-- **Next up:** Marz playtests Phase E → Phase F (debuffs and cleanse, #23, #53).
+- **✅ Phase E merged 2026-10-25 (#86, Build 86).**
+- **✅ Phase F built 2026-10-25 (one PR, #23 #53):** from round 6, Poison, Bleed, Hex and Dread
+  (Marz's: a line on the health bar that kills), warnings above fighters like "! INCOMING",
+  violet = Cleanse it · **Cleanse on F** (2 charges, refill in the round), Purify rank-up,
+  Mend Wounds removes Poison, Purging Light and Clean Slate · bandages stop Bleed · F1 can put
+  any debuff on a fighter. Bot check: first deaths average round 6.5 (6.8 before).
+- **Next up:** Marz playtests Phase E and F → Phase G (sound, art, mana bar off gold).
 - **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
   low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the
   rogue, adventurer and Baron (knight and mercenary still stay standing when they die). Every image and what to make next:
@@ -159,11 +165,11 @@ One bullet ≈ one pull request.
   spells only. Six new data passives. (Was "Keystones after each Baron … in their own 3
   slots"; folded into passives by the owner, 2026-10-25.)
 
-### Phase F: Debuffs and cleanse
-- ⬜ #23 **Debuffs from round 6:** Poison (stacking DoT), Hex (−50% healing taken), Bleed
-  (ends when healed above ~80% or bandaged); maybe Doom later.
-- ⬜ #53 **Cleanse, a basic ability every school has:** own key and charges, removes
-  debuffs only; new Cleanse tag. The bandage stays separate.
+### Phase F: Debuffs and cleanse — ✅ built 2026-10-25
+- ✅ #23 **Debuffs from round 6:** Poison (stacks), Bleed (heal above 80% or bandage), Hex
+  (heals halved), Dread (a line on the health bar that kills); warnings like "! INCOMING".
+- ✅ #53 **Cleanse on F**, a basic ability every run has (charges); Purify rank-up; Mend
+  Wounds removes Poison; Cleanse tag with two passives.
 
 ### Phase G: Readability and feel
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).

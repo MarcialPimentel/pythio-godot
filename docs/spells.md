@@ -56,8 +56,17 @@ the same PR.
 | Divine Channel | Any school | — | 0 | 3s | 30s | Restores 50 of your mana. | — |
 | Lingering Light | Any school | — | passive | passive | — | When you cast a Multi-target spell, that fighter gains a Heal-over-Time of 3 each second for 4s. Offered once you own a Multi-target spell. | — |
 | Mana Conduit | Any school | — | passive | passive | — | Overhealing isn't wasted: you get 20% of it back as mana. | — |
-| Mend Wounds | Any school | Direct, Heal-over-Time | 16 | 1s | — | Heals 20, then heals 15 over 5s. | 2.2 |
+| Mend Wounds | Any school | Direct, Heal-over-Time, Cleanse | 16 | 1s | — | Heals 20, then heals 15 over 5s, then removes Poison from the fighter. | 2.2 |
+| Cleanse *(key F, everyone has it)* | Any school | Cleanse | free | instant | 2 charges, one back every 8s | Removes Poison, Hex and Dread from the fighter. | — |
+| Purify *(rank 2 of Cleanse)* | Any school | Cleanse | free | instant | 3 charges, one back every 8s | Removes Poison, Hex and Dread from the fighter; no new debuffs for 3s. Offered from round 6. | — |
+| Purging Light | Any school | — | passive | passive | — | When you Cleanse a debuff, that fighter is healed for 20. Offered once you own a Cleanse spell (everyone does). | — |
+| Clean Slate | Any school | — | passive | passive | — | When you Cleanse a debuff, that fighter gains a Shield of 15 for 6s. Offered once you own a Cleanse spell. | — |
 | Second Wind | Any school | — | passive | passive | — | Cancels Exhaustion: running your mana dry restores 30 mana instead (once every 20s). | — |
+
+New in Phase F (2026-10-25): Cleanse on F (everyone has it) and its rank-up Purify; Mend Wounds
+also removes Poison; two passives react to a cleanse (Purging Light, Clean Slate). 47 entries:
+25 spells you cast (counting ranks), Cleanse and Purify, 20 passives. The debuffs themselves are in
+`docs/game-design.md` section 8.
 
 New in Phase E (2026-10-25): passives now come only from beating the Baron, and six
 "Baron-worthy" passives joined (Double Down, Wildgrowth, Harvest, Shatterpoint, Bastion,
@@ -71,7 +80,7 @@ Party-wide spells (Tranquility, Aegis of Light) are cheap per fighter and get be
 the party: big and efficient at scale, but slow.
 
 ### Not in the game yet
-Cleanse (Phase F) · Harmonize, Decoy,
+Harmonize, Decoy,
 Healing Spirit, Soulbond, Hallowed Ground (pets / positioning, parked) · Shadow Strike
 (name doesn't match the effect; rename first) · Vital Bond and Lifebloom follow the reworked
 versions above, not the original wording below.

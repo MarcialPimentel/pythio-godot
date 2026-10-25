@@ -46,6 +46,9 @@ var _icon_danger: TextureRect
 var _icon_protect: TextureRect
 var _icon_delayed: TextureRect
 var _icon_saturated: TextureRect
+## Phase F: debuff warnings above the fighter (like "! INCOMING") and Dread's line on the bar.
+var _debuff_label: RichTextLabel
+var _dread_line: ColorRect
 
 
 func _ready() -> void:
@@ -73,6 +76,10 @@ func _ready() -> void:
 	EventBus.burst_landed.connect(_on_burst_landed)
 	EventBus.combo_fired.connect(_on_combo_fired)
 	EventBus.rule_triggered.connect(_on_rule_triggered)
+	_setup_debuff_ui()
+	EventBus.debuff_applied.connect(_on_debuff_applied)
+	EventBus.cleansed.connect(func(t, count, _sp): if t == self and count > 0: _float_text("Cleansed", DebuffStatus.VIOLET, 0.85))
+	EventBus.dread_struck.connect(func(t): if t == self: _float_text("DREAD", DebuffStatus.VIOLET, 1.3, 40.0))
 
 	hp_bar.max_value = health_comp.max_health
 	shield_bar.max_value = health_comp.max_health
@@ -95,6 +102,57 @@ func _setup_sprite() -> void:
 	if is_boss:
 		status_icons.position.y = _feet_y - h - 80   # icons above the warning text
 		incoming_label.position.y = _feet_y - h - 40
+
+
+func _setup_debuff_ui() -> void:
+	_debuff_label = RichTextLabel.new()
+	_debuff_label.bbcode_enabled = true
+	_debuff_label.scroll_active = false
+	_debuff_label.fit_content = true
+	_debuff_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_debuff_label.add_theme_font_override("normal_font", incoming_label.get_theme_font("font"))
+	_debuff_label.add_theme_font_size_override("normal_font_size", 22)
+	_debuff_label.add_theme_constant_override("outline_size", 6)
+	_debuff_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_debuff_label.position = Vector2(-20, incoming_label.position.y - 30)   # just above "! INCOMING"
+	_debuff_label.size = Vector2(size.x + 40, 30)
+	add_child(_debuff_label)
+	_dread_line = ColorRect.new()
+	_dread_line.color = DebuffStatus.VIOLET
+	_dread_line.size = Vector2(4, 30)
+	_dread_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dread_line.visible = false
+	add_child(_dread_line)
+
+
+## Where `health` sits on the health bar, in this fighter's coordinates (x).
+func _bar_x(health: float) -> float:
+	var tex := hp_bar.texture_progress
+	var fill_w: float = tex.get_width() if tex else 300.0
+	var frac := clampf(health / maxf(1.0, health_comp.max_health), 0.0, 1.0)
+	return hp_bar.position.x + (hp_bar.texture_progress_offset.x + fill_w * frac) * hp_bar.scale.x
+
+
+func _on_debuff_applied(t: Node, status) -> void:
+	if t != self:
+		return
+	var words := {"POISON": "Poisoned", "BLEED": "Bleeding", "HEX": "Hexed", "DREAD": "Dread"}
+	_float_text(words.get(status.debuff, status.debuff.capitalize()), status.color(), 0.9, 30.0)
+
+
+func _update_debuff_ui() -> void:
+	var list: Array = health_comp.debuffs() if not health_comp.is_dead else []
+	var parts: Array[String] = []
+	for d in list:
+		parts.append("[color=#%s]%s[/color]" % [d.color().to_html(false), d.warning_text()])
+	_debuff_label.text = "[center]%s[/center]" % "   ".join(parts) if not parts.is_empty() else ""
+	var dread := health_comp.get_debuff("DREAD") if not health_comp.is_dead else null
+	_dread_line.visible = dread != null
+	if dread:
+		var tex := hp_bar.texture_progress
+		var h: float = (tex.get_height() if tex else 20.0) * hp_bar.scale.y
+		_dread_line.size = Vector2(4, h + 8)
+		_dread_line.position = Vector2(_bar_x(dread.threshold) - 2, hp_bar.position.y + hp_bar.texture_progress_offset.y * hp_bar.scale.y - 4)
 
 
 func _setup_status_icons() -> void:
@@ -264,6 +322,8 @@ func _process(delta: float) -> void:
 		var pulse := sin(t * 10.0) * 0.5 + 0.5
 		telegraph.scale = Vector2.ONE * (0.9 + 0.15 * pulse)
 		telegraph.pivot_offset = telegraph.size / 2.0
+
+	_update_debuff_ui()
 
 	# Buff visuals
 	var has_hot := health_comp.hot_time > 0.0 and not dead

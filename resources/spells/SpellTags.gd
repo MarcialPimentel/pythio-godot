@@ -13,8 +13,10 @@ const MULTI := "MULTI"
 ## Damage prevention: Divine Protection, Time Stop, Guardian Angel (#70). Shown as
 ## "Mitigation" (owner, 2026-10-24; was "Protection"). The key stays PROTECT.
 const PROTECT := "PROTECT"
+## Removes debuffs (Phase F): the Cleanse ability, Purify, Mend Wounds.
+const CLEANSE := "CLEANSE"
 
-const ALL: Array[String] = [DIRECT, HOT, SHIELD, DELAYED, MULTI, PROTECT]
+const ALL: Array[String] = [DIRECT, HOT, SHIELD, DELAYED, MULTI, PROTECT, CLEANSE]
 
 const LABELS := {
 	DIRECT: "Direct",
@@ -23,6 +25,7 @@ const LABELS := {
 	DELAYED: "Delayed",
 	MULTI: "Multi-target",
 	PROTECT: "Mitigation",
+	CLEANSE: "Cleanse",
 }
 
 const COLORS := {
@@ -32,6 +35,7 @@ const COLORS := {
 	DELAYED: Color(0.78, 0.66, 1.0),
 	MULTI: Color(0.92, 0.86, 0.75),
 	PROTECT: Color(0.8, 0.86, 0.96),   # pale steel: the shield family, but not a shield
+	CLEANSE: Color(0.72, 0.45, 1.0),   # violet: debuffs and what removes them (Phase F)
 }
 
 # ── Schools (the three specializations) ──

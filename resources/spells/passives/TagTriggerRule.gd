@@ -16,7 +16,8 @@ extends PassiveRule
 ## SHIELD_BOOST: a shield is about to be put on (action BOOST makes it bigger)
 ## CAST: you finish casting a spell (value = 0)
 ## MANA_EMPTY: a cast leaves you too little mana for any spell
-@export_enum("HEALED", "HEAL_BOOST", "HOT_TICK", "OVERHEAL", "SHIELD_BROKEN", "SHIELD_BOOST", "CAST", "MANA_EMPTY") var event: String = "HEALED"
+## CLEANSED: a cleanse removed at least one debuff (value = how many)
+@export_enum("HEALED", "HEAL_BOOST", "HOT_TICK", "OVERHEAL", "SHIELD_BROKEN", "SHIELD_BOOST", "CAST", "MANA_EMPTY", "CLEANSED") var event: String = "HEALED"
 ## Only when the heal/spell/shield has one of these tags (empty = any).
 @export var tags: Array[String] = []
 ## Only on a fighter below this share of their health (0 = any health).
@@ -108,6 +109,14 @@ func on_cast(spell: SpellData, target: Node) -> void:
 func on_mana_empty() -> void:
 	if event == "MANA_EMPTY":
 		_do(null, 0.0)
+
+
+func on_cleansed(target: Node, count: int, spell: SpellData) -> void:
+	if event != "CLEANSED" or not _health_ok(target):
+		return
+	if not tags.is_empty() and not _tags_ok(spell.tags if spell else [SpellTags.CLEANSE]):
+		return
+	_do(target, float(count))
 
 
 ## Spell buttons glow gold when this would fire on the hovered fighter.
@@ -323,6 +332,8 @@ func _auto_text() -> String:
 			when = ("When you cast a %s spell%s" % [_tag_words(), low]) if not tags.is_empty() else "When you cast a spell%s" % low
 		"MANA_EMPTY":
 			when = "When you run your mana dry"
+		"CLEANSED":
+			when = "When you {CLEANSE} a debuff%s" % low
 		"HEAL_BOOST":
 			var subject := ("Your %s heals" % _tag_words()) if not tags.is_empty() else "Your heals"
 			return "%s%s heal %s more%s." % [subject, low, _pct(share), _limits_text()]

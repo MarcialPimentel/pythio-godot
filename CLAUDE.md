@@ -26,14 +26,14 @@ any death ends the run.
 - Main scene: `scenes/Game.tscn` (script `scenes/game.gd`).
 - Global systems are autoloads (see `project.godot`): GameManager, SpellSystem,
   DraftSystem, BandageSystem, RunStats, BossDirector, EffectSystem, TargetSystem,
-  ContractGenerator, DifficultySystem, EventBus, PartyChoicePanel.
+  ContractGenerator, DifficultySystem, EventBus, PartyChoicePanel, CleanseSystem, DebuffSystem.
 - Data lives in Resources: spells in `resources/spells/*.tres`, schools in
   `resources/specs/*.tres`, contracts and units in `data/`.
 
 **How spells work (the building blocks):**
 - A spell (`SpellData`) = cost + cast time + cooldown + **tags** + a list of **effects**
   (`resources/spells/effects/`: heal, heal-over-time, shield, delayed heal, protection,
-  death save, extend HoTs, echo mark, consume shields, mana). Card text is generated from
+  death save, extend HoTs, echo mark, consume shields, mana, cleanse). Card text is generated from
   the effects, so it always matches the numbers.
 - What an effect leaves on a fighter is a **status** (`components/statuses/`), held by
   `HealthComponent`, which reports ticks and endings to `EffectSystem`.
@@ -49,6 +49,9 @@ any death ends the run.
 - **Battlefield rules** are `PassiveRule`s in `resources/rules/`, active for everyone unless a
   passive you own lists their `rule_id` in `negates`. `EffectSystem.active_rules()` = rules
   in force + your passives. Effects and passives can answer `would_combo()` (spell glow).
+- **Debuffs (Phase F):** `DebuffStatus` (Poison, Bleed, Hex, Dread) put on by `DebuffSystem` from
+  round 6; `CleanseSystem` is the F key (charges; the spell on F is `SpellSystem.utility`,
+  Cleanse → Purify). Numbers in DifficultySystem.
 - `BandageSystem` (Space channel, charges), `RunStats` (effective healing for the summary and
   leaderboard), `BossDirector` (the Crimson Baron's phases; uses `TargetSystem.telegraph()`).
 

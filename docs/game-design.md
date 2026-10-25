@@ -66,7 +66,7 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 - **Fast, efficient, big: pick two.** No spell is better than another on every axis.
   Slow casts are the mana-efficient ones; instant or big heals cost more per point healed.
 - **Every spell needs a threat that asks for it.** Shields ↔ warned bursts;
-  heals-over-time and Chain Heal ↔ party-wide damage; Cleanse ↔ debuffs (Phase F);
+  heals-over-time and Chain Heal ↔ party-wide damage; Cleanse ↔ debuffs (Poison, Hex, Dread), a big heal or bandage ↔ Bleed;
   Guardian Angel ↔ execution moments. Spells and damage patterns are designed together.
 - **Every spell is good on its own and better with friends.** That's how "no bad pick" holds up.
 - **High APM comes from many short decisions, not long casts.** Most spells are instant
@@ -93,7 +93,8 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 | Emerald green | Healing |
 | Electric blue | Shields |
 | Gold | Combos and powerful effects: a gold flash always means a combo fired |
-| Blood red | Danger: bursts, warnings, wounds |
+| Blood red | Danger: bursts, warnings, wounds (and Bleed: heal it) |
+| Violet | Debuffs you can Cleanse (Poison, Hex, Dread) and the Cleanse ability [Decided 2026-10-25, can change later] |
 
 - **Gold means combos only [Decided 2026-10-22].** Today the mana bar is also gold. It will
   move to another colour in Phase G (see Planned features).
@@ -258,7 +259,7 @@ new spell automatically combines with everything that shares its tag.
 | **Delayed** | Heals later | Lifebloom, Promise of Light |
 | **Multi-target** | Also heals other fighters | Binding Heal, Chain Heal, Healing Plague, Tranquility, Aegis of Light |
 | **Mitigation** | Stops damage instead of healing it (named Protection until 2026-10-24) [Decided] | Divine Protection, Time Stop, Guardian Angel |
-| **Cleanse** | Removes a debuff | Planned for Phase F (the basic Cleanse ability, and spells that react to it) |
+| **Cleanse** | Removes debuffs | Cleanse / Purify (the basic ability on F), Mend Wounds (Poison only) |
 
 Tag names and colours live in `resources/spells/SpellTags.gd`. **Rule of thumb [Proposed]:**
 every tag has at least 2 spells with it and 2 that react to it (true since Phase D; the
@@ -282,6 +283,8 @@ every tag has at least 2 spells with it and 2 that react to it (true since Phase
 | Mitigation | Sanctuary (passive) | Casting a Mitigation spell also gives the fighter a 15 shield |
 | Mitigation | Watchful Eye (passive) | Casting a Mitigation spell on a fighter below 40% heals them for 25 |
 | Overheal | Overflow, Mana Conduit (passives) | Overhealing becomes a shield, or mana |
+| Cleanse | Purging Light (passive, Phase F) | A cleanse that removes a debuff also heals that fighter for 20 |
+| Cleanse | Clean Slate (passive, Phase F) | A cleanse that removes a debuff also gives that fighter a 15 shield |
 | Direct | Double Down (passive, Phase E) | Every 4th Direct heal lands twice |
 | Heal-over-Time | Wildgrowth (passive, Phase E) | Casting a Heal-over-Time spell makes every heal-over-time on the party last 2s longer |
 | Shield | Shatterpoint (passive, Phase E) | A breaking shield heals every fighter for 40% of what it held (up to 12) |
@@ -306,9 +309,9 @@ generated from those numbers, so it always matches.
 | Mending | Heal (I–III), Flash Heal, Binding Heal, Echo Healing, Guardian Angel, Promise of Light | Seraphic Blessing, Overflow, Rising Tide, Double Down |
 | Bloom | Renew → Rejuvenation, Lifebloom, Healing Plague, Overgrowth, Hasten, Tranquility | Aura of Mending, Ripening, Wildgrowth, Harvest |
 | Ward | Shield (I–II), Guardian Ward, Spirit Surge, Divine Protection, Time Stop, Aegis of Light | Bulwark, Vital Bond, Sanctuary, Watchful Eye, Shatterpoint, Bastion |
-| Any school | Chain Heal, Mend Wounds, Divine Channel | Mana Conduit, Second Wind, Lingering Light, Chain Reaction |
+| Any school | Chain Heal, Mend Wounds, Divine Channel; Cleanse → Purify (on F, everyone has it) | Mana Conduit, Second Wind, Lingering Light, Chain Reaction, Purging Light, Clean Slate |
 
-43 entries in all: 21 spells you cast (with ranks), 18 passives.
+47 entries in all: 25 spells you cast (counting ranks), Cleanse and Purify (on F), 20 passives.
 
 **Casting.** Each spell has a mana cost, a cast time (0 = instant) and sometimes a
 cooldown. **Cast time is shown first** [Decided 2026-10-24]: every spell card has a big
@@ -354,7 +357,7 @@ X% health), **do** [action] to [who].
 
 | Part | Choices |
 |---|---|
-| Event | a heal lands · a heal is about to land (boost it) · a heal-over-time ticks · overheal · a shield breaks · a shield is about to go on (boost it) · you cast a spell · you run your mana dry |
+| Event | a cleanse removes a debuff (Phase F) · a heal lands · a heal is about to land (boost it) · a heal-over-time ticks · overheal · a shield breaks · a shield is about to go on (boost it) · you cast a spell · you run your mana dry |
 | Conditions | tags · below X% health · a minimum amount · ignore quiet heals or echoes · every Nth time · a cooldown |
 | Action | heal · shield · mana · heal-over-time · extend heals-over-time · boost (+%) |
 | Who | that fighter · the fighters on each side · your most injured fighter · every fighter |
@@ -383,12 +386,24 @@ A panic button on its own resource, separate from mana [Decided].
 - Owner note (after Phase C): fine for now; maybe later a universal spell, or a shop
   consumable if a shop arrives.
 
-**Cleanse is its own plate [Decided 2026-10-22, coming in Phase F].** Healing and cleansing
-stay separate identities. Every school gets **Cleanse** as a basic ability with its own key
-and its own charges or cooldown, and it only removes debuffs (no heal). The bandage stays a
-healing panic button. Later decisions: whether to keep the bandage, and whether passives
-can improve Cleanse or the bandage. **[Proposed]** Cleanse on **F** (next to Q–R), with the
-bandage staying on Space.
+**Cleanse is its own plate [Decided 2026-10-22, built in Phase F].** Healing and cleansing
+stay separate identities. Every run has **Cleanse on F** [Decided 2026-10-25]: point at a
+fighter and press F. It's instant and free, removes **Poison, Hex and Dread** (never Bleed),
+and uses **2 charges** that come back one every 8s during the round. It works mid-cast, not
+while bandaging. The counter sits above the bandages and glows violet when F on the fighter
+under your mouse would remove something. It isn't on Q–R and never costs a pick.
+- **Purify** is its rank-up, offered on spell picks from round 6: 3 charges, and the fighter
+  can't get a new debuff for 3s.
+- **Other ways to cleanse** [Decided 2026-10-25: more can come from passives or spell
+  upgrades]: Mend Wounds also removes Poison. Purging Light and Clean Slate (Baron passives)
+  add a heal or a shield when a cleanse removes something.
+- The bandage stays the healing panic button, and a finished bandage also stops a Bleed.
+
+| Tunable | Value | File |
+|---|---|---|
+| Cleanse charges / one back every | 2 / 8s | `resources/spells/cleanse.tres` (`charges`, `charge_time`) |
+| Purify charges / no-debuff time / offered from | 3 / 3s / round 6 | `resources/spells/purify.tres` |
+| Key | F | `autoload/systems/CleanseSystem.gd` (`key`) |
 
 | Tunable | Value | File |
 |---|---|---|
@@ -422,6 +437,36 @@ damage they take. Half of all fighters are light.
 
 **Bursts.** Every 5s one random fighter (never the Baron) gets a red "INCOMING" warning, and
 the hit lands 1.5s later. Shields absorb it first [Decided: bursts always land after their warning].
+
+**Debuffs [Decided 2026-10-25, Phase F].** From **round 6**, a debuff lands on a random
+fighter (never the Baron) every few seconds, with no warning: bursts are the "see it coming"
+threat, debuffs the "react" threat. The fighter shows it above his head like "! INCOMING"
+("☠ POISON ×2"): **violet = Cleanse it, red = heal it**. The first time each kind shows up in
+a run, Pythio says what to do. Each asks a different question:
+
+| Debuff | What it does | Answer |
+|---|---|---|
+| Poison | Damage over time; each new dose adds a stack (up to 3); 15s | Cleanse (or Mend Wounds), or heal through it |
+| Bleed | Opens a wound (down to 70%), then bleeds until he's healed above 80% | A big heal or a bandage. Cleanse doesn't work |
+| Hex | Heals on him are 50% weaker for 8s | Cleanse, or shields (Hex doesn't weaken them) |
+| Dread | A violet line at 30% on his health bar for 15s: fall to it and he dies | Cleanse, or keep him above the line. A death save (Guardian Angel) still saves him. Never put on a fighter already near the line |
+
+Debuffs are statuses like heals-over-time and shields (`components/statuses/DebuffStatus.gd`),
+put on by `autoload/systems/DebuffSystem.gd`.
+
+| Tunable | Value | File |
+|---|---|---|
+| First debuff round | 6 | `DifficultySystem.gd` (`debuff_start_round`) |
+| Time between debuffs | 9s, −0.5s per round, at least 4s (the first after half) | same (`debuff_interval_first`, `debuff_interval_step`, `debuff_interval_min`) |
+| Debuff damage growth | +8% per round after round 6 | same (`debuff_growth`) |
+| How often each kind | equal | same (`debuff_weights`) |
+| Poison | 1.2/s per stack, 3 stacks, 15s | same (`poison_dps`, `poison_max_stacks`, `poison_time`) |
+| Bleed | 2/s, wound to 70%, ends above 80%, 30s max | same (`bleed_dps`, `bleed_wound_to`, `bleed_end_above`, `bleed_time`) |
+| Hex | heals ×0.5, 8s | same (`hex_heal_taken`, `hex_time`) |
+| Dread | line at 30%, 15s | same (`dread_threshold`, `dread_time`) |
+
+Bot check (4 runs per start, it cleanses Dread → Hex → Poison): first deaths average round
+6.5 (6.8 before debuffs), inside the 6–8 target.
 
 | Tunable | Value | File |
 |---|---|---|
@@ -505,6 +550,7 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 | Cast a spell | Hover a fighter, press Q / W / E / R. With nothing hovered, it goes to the last fighter you clicked. |
 | Cast by mouse | Click a spell button, then click a fighter |
 | Bandage | Space while hovering a fighter (during a round) |
+| Cleanse | F while hovering a fighter (during a round) |
 | Ready on the Next party screen | Space or Enter |
 | Choose a pick card | Click, or keys 1–3 (4 = Skip) |
 | Back from "Replace which spell?" | The Back button, or Backspace |
@@ -518,9 +564,11 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
   shield bubble, a heal-over-time ring and status icons. Under the health bar, **every**
   heal-over-time on the fighter gets its own line with its time left ("RENEW 5.8s",
   "HEALING PLAGUE 5.5s"). Different heals-over-time stack and all heal; recasting the same
-  one refreshes it. The "INCOMING" warning shows above.
+  one refreshes it. The "INCOMING" warning shows above, and debuff warnings above that
+  (violet or red). Dread draws a violet line on the health bar.
 - **Bottom:** Pythio and his speech bubble (left); the 4 spell buttons with key, cost, cast
-  time and cooldown; the passive tray; the mana bar, cast bar and bandage counter. (The
+  time and cooldown; the passive tray; the mana bar, cast bar, Cleanse counter (F) and
+  bandage counter. (The
   build summary line above the bar was removed on 2026-10-24.)
 - **Floating numbers** for heals, shields and combos (gold).
 
@@ -558,16 +606,12 @@ spell batch 2 (Mitigation tag, 4 new spells, 5 new passives). **[Decided 2026-10
 - Later, if wanted: passives that need a new verb (e.g. "heals-over-time tick twice as fast
   but last half as long").
 
-**Phase F: Debuffs and cleanse [Decided]**
-- From round 6, debuffs that each need a different answer:
-  - **Poison:** stacking damage over time → Cleanse.
-  - **Hex:** −50% healing taken → Cleanse (or a stronger cleanse: Purify could return as
-    an upgrade).
-  - **Bleed:** ends when the fighter is healed above ~80%, or bandaged.
-  - Maybe **Doom** later.
-- **Cleanse as a basic ability** every school has (section 7), with a new **Cleanse** tag
-  so spells and passives can react to it.
-- Debuffs use the same rule system as passives (a debuff is a buff with the sign flipped).
+**Phase F: Debuffs and cleanse ✅ built 2026-10-25 [Decided 2026-10-25]**
+- From round 6: Poison, Bleed, Hex and **Dread** (Marz's name and idea: a line on the health
+  bar that kills), all four from round 6, warnings like "! INCOMING" (section 8).
+- **Cleanse on F** for every run, Purify as its rank-up, Mend Wounds removes Poison, two
+  Cleanse passives; new Cleanse tag and violet colour (sections 2, 5, 7).
+- Debuffs are statuses on the same system as heals-over-time and shields.
 
 **Phase G: Readability and feel [Decided]**
 - Basic sound: casts, combos, bursts, death.
@@ -599,8 +643,8 @@ Parked on purpose [Decided]. Don't build these without Marz's OK.
 
 ## 14. Open questions for Marz
 
-1. **Cleanse key and the bandage's future.** Cleanse on F and the bandage on Space? Do we
-   keep the bandage once Cleanse exists? Should passives be able to improve either?
+1. **The bandage's future.** Keep it now that Cleanse exists? (It's also the answer to
+   Bleed.) More passives or upgrades that improve Cleanse or the bandage?
 2. **The long game.** Damage, health and mana all grow in straight lines forever, and the
    party caps at 8 by round 9. Past round ~15, what makes round 25 feel different from
    round 15, other than bigger numbers? **[Proposed]** "Escalating chaos" should come from
@@ -614,6 +658,10 @@ Parked on purpose [Decided]. Don't build these without Marz's OK.
 bar is full; keep the Skip reward (+10 max mana) for now; keep tag-weighted offers; the
 Protection tag is renamed **Mitigation**; keep all 9 new spells and passives; keep 3
 passive slots for now.
+
+**Settled 2026-10-25 (Phase F):** all four debuffs from round 6 (Poison, Bleed, Hex, Dread),
+warnings like "! INCOMING"; Cleanse on F; Bleed can't be cleansed; violet = debuffs;
+Mend Wounds removes Poison.
 
 **Settled 2026-10-25 (Phase E):** keystones folded into passives; spells from picks,
 passives from the Baron; 3 passive slots stay.
@@ -643,6 +691,7 @@ Listed so nobody "fixes" the wrong side.
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
 | 2026-10-24 | Claude (for Marz) | First-time practice round (Marz, after watching a new player): asked once per device after Take the Job; one knight, Heal only, three prompts, can't die, then the real run. Sections 3 and 11 updated. |
+| 2026-10-25 | Claude (for Marz) | Phase F: debuffs from round 6 (Poison, Bleed, Hex, Dread), shown above the fighter like "! INCOMING", violet = cleanse it; Cleanse on F (2 charges, Purify rank-up), Mend Wounds removes Poison, Purging Light and Clean Slate; bandages stop Bleed; new Cleanse tag and violet colour. Fixed the spell count (25 spells you cast with ranks, not 21). Sections 1, 2, 5, 6, 7, 8, 11, 12, 14 updated. |
 | 2026-10-25 | Claude (for Marz) | Phase E: Marz decided keystones and passives are one thing. Spell picks offer only spells; each Baron pays a passive (the Baron's bounty: no Skip, leaning to your tags; swaps or a spell pick when full). Six new data passives: Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction, Bastion. Sections 1, 3, 4, 5, 6, 9, 12 and 14 updated. |
 | 2026-10-24 | Claude (for Marz) | Marz thought Renew and Healing Plague didn't stack: they did, but the fighter only showed the longest heal-over-time. Now every one is listed. The timer flashes and pops in the last 5 seconds. Sections 3 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Practice round teaches all three starting spells and ends in free practice until Start the real job (Marz). Pick cards use fixed-height rows so titles, costs, tags and text line up; hints read "Combos with Renew". Sections 3 and 4 updated. |

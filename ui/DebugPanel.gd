@@ -73,6 +73,13 @@ func _hit_target() -> void:
 	_target.health_comp.take_damage(HIT_AMOUNT)
 
 
+func _debuff_target(kind: String) -> void:
+	if not is_instance_valid(_target) or not GameManager.in_round:
+		return
+	GameManager.debug_used = true
+	DebuffSystem.apply(_target, kind)
+
+
 func _heal_target() -> void:
 	if not is_instance_valid(_target):
 		return
@@ -158,6 +165,11 @@ func _build() -> void:
 	box.add_child(fighter)
 	_add_button(fighter, "Hit %d" % HIT_AMOUNT, _hit_target)
 	_add_button(fighter, "Heal to full", _heal_target)
+	# Phase F: put a debuff on the selected fighter (any round).
+	var debuffs := HBoxContainer.new()
+	box.add_child(debuffs)
+	for kind in ["POISON", "BLEED", "HEX", "DREAD"]:
+		_add_button(debuffs, kind.capitalize(), _debuff_target.bind(kind))
 
 	_god_button = _add_button(box, "God mode: off", _toggle_god)
 	# First-time practice (owner, 2026-10-24): forget the answer so Take the Job asks again.

@@ -42,6 +42,10 @@ func would_combo(_spell: SpellData, _target: Node) -> bool:
 func on_cast(_spell: SpellData, _target: Node) -> void:
 	pass
 
+## After a Cleanse removed `count` debuffs from `target` (Phase F).
+func on_cleansed(_target: Node, _count: int, _spell: SpellData) -> void:
+	pass
+
 ## Forget per-run counters and cooldowns (called when a new run starts).
 func reset_state() -> void:
 	pass
