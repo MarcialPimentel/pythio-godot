@@ -34,6 +34,7 @@ func _process(d):
 		EB.spell_cast.connect(func(_s, _t): stat.casts += 1)
 		EB.round_ended.connect(_on_round_end)
 		EB.target_died.connect(func(t): print("SIM     death: %s (%s, max %.0f) at %.1fs left · statuses %s · recent bursts on them: %s" % [t.display_name, t.armor_type, t.health_comp.max_health, GM.round_time, t.health_comp.statuses.map(func(s): return s.kind), t.get_meta("bursts", 0)]))
+		EB.dread_struck.connect(func(t): print("SIM     dread kill: %s" % t.display_name))
 		EB.burst_landed.connect(func(t, _a, dealt): t.set_meta("bursts", t.get_meta("bursts", 0) + 1))
 		Engine.time_scale = scale
 		return false
@@ -87,6 +88,13 @@ func _act():
 			var def := _castable(func(s): return s.tags.has("SHIELD") or s.id in ["divine_protection", "time_stop"])
 			if not def.is_empty():
 				SS.request_cast(def[0], t); return
+	# 1b) Phase F: cleanse Dread first, then Hex, then Poison (F, free, charges)
+	var CL = root.get_node("CleanseSystem")
+	if CL.charges > 0:
+		for kind in ["DREAD", "HEX", "POISON"]:
+			for t in alive:
+				if t.health_comp.get_debuff(kind) and CL.try_cleanse(t):
+					_note("cleanse " + kind.to_lower()); return
 	# 2) someone below 30% and a bandage left → bandage them (panic button)
 	var BS = root.get_node("BandageSystem")
 	for t in alive:
