@@ -53,6 +53,14 @@ func add_status(status: Status) -> void:
 	if is_dead:
 		return
 	status.target = fighter()
+	if status is DebuffStatus:
+		if has_status("IMMUNE"):
+			return   # Purify: no new debuffs for a moment
+		for s in statuses:
+			if s is DebuffStatus and s.debuff == status.debuff:
+				s.stack_from(status)   # a second Poison adds a stack; others refresh
+				_changed(s)
+				return
 	for s in statuses.duplicate():
 		if s.key() == status.key():
 			statuses.erase(s)   # recast refreshes rather than stacks (no end effects)
@@ -66,6 +74,30 @@ func remove_status(status: Status, expired: bool) -> void:
 	statuses.erase(status)
 	status.on_end(self, expired)
 	_changed(status)
+
+
+## Debuffs on this fighter (optionally only those that can be cleansed).
+func debuffs(only_cleansable: bool = false) -> Array[DebuffStatus]:
+	var out: Array[DebuffStatus] = []
+	for s in statuses:
+		if s is DebuffStatus and (not only_cleansable or s.cleansable):
+			out.append(s)
+	return out
+
+
+func get_debuff(debuff: String) -> DebuffStatus:
+	for s in statuses:
+		if s is DebuffStatus and s.debuff == debuff:
+			return s
+	return null
+
+
+## Hex: heals on this fighter are multiplied by this (1 = normal).
+func heal_taken_multiplier() -> float:
+	var m := 1.0
+	for d in debuffs():
+		m *= d.heal_taken
+	return m
 
 
 func get_statuses(kind: String) -> Array[Status]:
@@ -143,6 +175,21 @@ func take_damage(amount: float) -> Dictionary:
 			EffectSystem.death_prevented(fighter(), save)
 			return result
 	current_health -= incoming
+	# Dread (Phase F): falling to its line is a killing blow. A death save still works.
+	var dread := get_debuff("DREAD")
+	if dread and current_health > 0.0 and current_health <= dread.threshold:
+		statuses.erase(dread)
+		_changed(dread)
+		var saves := get_statuses("SAVE")
+		if not saves.is_empty():
+			current_health = maxf(1.0, current_health)
+			var save := saves[0] as SaveStatus
+			statuses.erase(save)
+			_changed(save)
+			EffectSystem.death_prevented(fighter(), save)
+			return result
+		EventBus.dread_struck.emit(fighter())
+		current_health = 0.0
 	if current_health <= 0.0 and not is_dead:
 		is_dead = true
 		statuses.clear()

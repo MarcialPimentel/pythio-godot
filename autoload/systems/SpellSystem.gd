@@ -29,6 +29,8 @@ const PASSIVE_SLOTS := 3
 var library: Array[SpellData] = []       # every spell in the game
 var spells: Array[SpellData] = []        # spells you cast, in key order (Q–R)
 var passives: Array[SpellData] = []      # passive tray
+## Cleanse (Phase F): a basic ability on F, owned from the start; Purify is its rank-up.
+var utility: SpellData = null
 var cooldowns: Dictionary = {}           # spell_id -> seconds remaining
 
 # Current cast
@@ -86,7 +88,9 @@ func set_spellbook(new_spells: Array[SpellData]) -> void:
 	spells.clear()
 	passives.clear()
 	for s in new_spells:
-		if s.is_passive():
+		if s.utility:
+			utility = s
+		elif s.is_passive():
 			if passives.size() < PASSIVE_SLOTS:
 				passives.append(s)
 		elif spells.size() < SLOTS:
@@ -95,11 +99,13 @@ func set_spellbook(new_spells: Array[SpellData]) -> void:
 	spellbook_changed.emit()
 
 
-## Everything you own: spells you cast, then passives.
+## Everything you own: spells you cast, then passives, then Cleanse.
 func all_owned() -> Array[SpellData]:
 	var out: Array[SpellData] = []
 	out.append_array(spells)
 	out.append_array(passives)
+	if utility:
+		out.append(utility)
 	return out
 
 
@@ -115,6 +121,10 @@ func set_spellbook_ids(ids: PackedStringArray) -> void:
 ## Adds a spell. A higher rank of a spell you own replaces it in the same slot.
 ## Returns the slot used, or -1 if the spellbook is full.
 func add_spell(spell: SpellData) -> int:
+	if spell.utility:
+		utility = spell   # Purify replaces Cleanse on F
+		spellbook_changed.emit()
+		return 0
 	var row := passives if spell.is_passive() else spells
 	var cap := PASSIVE_SLOTS if spell.is_passive() else SLOTS
 	for i in row.size():

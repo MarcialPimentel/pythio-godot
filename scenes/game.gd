@@ -75,6 +75,11 @@ const QUIPS := {
 	"practice_done": ["That's the trade. Now let's get paid."],
 	"cleared": ["Paid in full. Mostly.", "Everyone's still breathing. Invoice sent.",
 		"Another job done. Another ache.", "Nobody died. I'll take it."],
+	# First time each debuff shows up in a run (Phase F): Pythio says what to do.
+	"debuff_POISON": ["Poison. Press F to Cleanse it before it stacks."],
+	"debuff_BLEED": ["A bleeder. Cleanse won't help: heal him above 80%, or bandage."],
+	"debuff_HEX": ["Hexed. Heals do half on him. Cleanse it (F), or shield him."],
+	"debuff_DREAD": ["Dread. If he drops to that line, he's gone. Cleanse it (F)."],
 	"skip": ["Saving it for later. Bold.", "Fine. More mana, fewer surprises."],
 	"build_complete": ["That's a full kit. From here, every new trick costs an old one.", "Bag's full. Now let's see how far it goes."],
 }
@@ -92,6 +97,7 @@ var _last_run := {"score": 0, "round": 1, "won": false}
 var card_panel: Control
 var _passive_tray: HBoxContainer
 var _bandage_label: RichTextLabel
+var _cleanse_label: RichTextLabel
 var _rules_box: VBoxContainer
 var _banner: VBoxContainer
 var _banner_tween: Tween
@@ -160,6 +166,7 @@ func _ready() -> void:
 	_add_build_label()
 	_make_passive_tray()
 	_make_bandage_counter()
+	_make_cleanse_counter()
 	_make_rules_panel()
 	_make_banner()
 	EventBus.boss_phase.connect(_on_boss_phase)
@@ -226,6 +233,7 @@ func _process(delta: float) -> void:
 		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
 		cast_label.text = "Casting %s  %.1fs" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
 	_update_spell_ui()
+	_pulse_cleanse()
 
 
 ## Mana came back (Divine Channel, Mana Conduit): a quick electric-blue pulse on the bar.
@@ -687,6 +695,53 @@ func _on_bandage_failed(reason: String) -> void:
 		var tw := create_tween()
 		_bandage_label.modulate = Color(1.0, 0.3, 0.3)
 		tw.tween_property(_bandage_label, "modulate", Color.WHITE, 0.4)
+
+
+# ── Cleanse (Phase F): counter above the bandages; F on a hovered fighter ──
+const VIOLET_HEX := "b873ff"
+
+func _make_cleanse_counter() -> void:
+	_cleanse_label = RichTextLabel.new()
+	_cleanse_label.bbcode_enabled = true
+	_cleanse_label.fit_content = true
+	_cleanse_label.scroll_active = false
+	_cleanse_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	_cleanse_label.add_theme_font_size_override("normal_font_size", 20)
+	_cleanse_label.add_theme_font_size_override("bold_font_size", 20)
+	_cleanse_label.position = Vector2(1420, 970)
+	_cleanse_label.size = Vector2(320, 34)
+	game_ui.add_child(_cleanse_label)
+	CleanseSystem.charges_changed.connect(func(_c, _m): _update_cleanse())
+	SpellSystem.spellbook_changed.connect(_update_cleanse)
+	CleanseSystem.cleanse_failed.connect(func(reason):
+		if reason == "no_charges":
+			var tw := create_tween()
+			_cleanse_label.modulate = Color(1.0, 0.3, 0.3)
+			tw.tween_property(_cleanse_label, "modulate", Color.WHITE, 0.4))
+	DebuffSystem.first_seen.connect(func(kind): _say("debuff_" + kind, 5.0))
+	_update_cleanse()
+
+
+func _update_cleanse() -> void:
+	var sp := CleanseSystem.spell()
+	if not sp:
+		_cleanse_label.text = ""
+		return
+	var full := "◆".repeat(CleanseSystem.charges)
+	var empty := "◇".repeat(maxi(0, CleanseSystem.max_charges() - CleanseSystem.charges))
+	_cleanse_label.text = "[b]%s[/b]  [color=#%s]%s[/color][color=#5a554e]%s[/color]  [color=#a9a39a]F[/color]" % [
+		sp.display_name.to_upper(), VIOLET_HEX, full, empty]
+	_cleanse_label.tooltip_text = "%s: point at a fighter and press F. %s\nFree and instant; charges come back during the round (one every %ss)." % [
+		sp.display_name, sp.description_plain(), str(sp.charge_time)]
+
+
+## The counter glows violet when F on the hovered fighter would remove something.
+func _pulse_cleanse() -> void:
+	if not _cleanse_label:
+		return
+	var helps := GameManager.in_round and CleanseSystem.would_help(SpellSystem.hovered_target)
+	var t := Time.get_ticks_msec() / 1000.0
+	_cleanse_label.modulate = Color(1.25 + 0.35 * sin(t * 8.0), 0.95, 1.45) if helps else Color.WHITE
 
 
 # ── Passive tray: 3 gold slots next to the spell bar ───

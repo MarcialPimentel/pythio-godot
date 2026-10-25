@@ -129,6 +129,7 @@ func heal(target: Node, amount: float, spell: SpellData = null, tags: Array = []
 		return 0.0
 	for rule in active_rules():
 		amount = rule.modify_heal(amount, target, tags, opts)
+	amount *= hc.heal_taken_multiplier()   # Hex (Phase F): heals on this fighter are weaker
 	var restored := hc.heal(amount)
 	var overheal := maxf(0.0, amount - restored)
 	if not opts.get("quiet", false):
@@ -153,6 +154,37 @@ func _echo(target: Node, amount: float, spell: SpellData, tags: Array, opts: Dic
 		echo.label = "Echo"
 		hc.add_status(echo)
 		combo(target, "Echo")
+
+
+# ── Debuffs and Cleanse (Phase F) ──────────────────────
+
+## Puts a debuff on `target` (a second Poison stacks). Announced for the fighter's warning.
+func add_debuff(target: Node, debuff: DebuffStatus) -> void:
+	var hc := _hc(target)
+	if not hc or hc.is_dead:
+		return
+	hc.add_status(debuff)
+	var on := hc.get_debuff(debuff.debuff)
+	if on:
+		EventBus.debuff_applied.emit(target, on)
+
+
+## Removes cleansable debuffs from `target` (`only` = just these kinds, e.g. ["POISON"]).
+## Passives with the CLEANSED trigger react when something was actually removed.
+func cleanse(target: Node, spell: SpellData = null, only: Array = []) -> int:
+	var hc := _hc(target)
+	if not hc or hc.is_dead:
+		return 0
+	var removed := 0
+	for d in hc.debuffs(true):
+		if only.is_empty() or only.has(d.debuff):
+			hc.remove_status(d, false)
+			removed += 1
+	EventBus.cleansed.emit(target, removed, spell)
+	if removed > 0:
+		for rule in active_rules():
+			rule.on_cleansed(target, removed, spell)
+	return removed
 
 
 # ── Statuses report here ───────────────────────────────

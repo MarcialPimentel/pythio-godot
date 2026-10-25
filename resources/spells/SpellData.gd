@@ -23,6 +23,13 @@ extends Resource
 ## If set, this is a passive: it takes a spellbook slot but is never cast.
 @export var passive: PassiveRule
 
+@export_group("Utility (Cleanse)")
+## A basic ability on its own key (Cleanse on F), not on Q–R; it never takes a pick slot.
+@export var utility: bool = false
+## Utility abilities use charges instead of mana: how many, and seconds to refill one.
+@export var charges: int = 0
+@export var charge_time: float = 0.0
+
 @export_group("Spell picks")
 ## Spells in the same family are ranks of one spell (Heal → Heal II → Heal III).
 ## Picking a higher rank replaces the lower one in the same slot.
@@ -34,6 +41,8 @@ extends Resource
 @export var reacts_to_tags: Array[String] = []
 ## Relative chance to be offered (1 = normal).
 @export var offer_weight: float = 1.0
+## Not offered before this round (0 = any time). Purify waits for the debuffs (round 6).
+@export var offer_from_round: int = 0
 
 @export_multiline var flavor: String = ""
 
@@ -77,6 +86,8 @@ func description_plain() -> String:
 func cast_badge() -> String:
 	if is_passive():
 		return "PASSIVE"
+	if utility:
+		return "KEY F"
 	return "INSTANT" if cast_time <= 0.0 else "%ss CAST" % _num(cast_time)
 
 
@@ -84,6 +95,8 @@ func cast_badge() -> String:
 func cost_line() -> String:
 	if is_passive():
 		return "No key: works on its own"
+	if utility:
+		return "Instant · free · %d charges, one back every %ss" % [charges, _num(charge_time)]
 	var s := "%d mana" % int(mana_cost)
 	if cooldown > 0.0:
 		s += " · %ss cooldown" % _num(cooldown)

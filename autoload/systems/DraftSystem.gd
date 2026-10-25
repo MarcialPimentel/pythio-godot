@@ -151,11 +151,15 @@ func candidates(kind: String = "any") -> Dictionary:
 	for s in SpellSystem.library:
 		if (kind == "spell" and s.is_passive()) or (kind == "passive" and not s.is_passive()):
 			continue
+		if s.offer_from_round > 0 and GameManager.current_round < s.offer_from_round:
+			continue
 		var owned := SpellSystem.owned_rank(s.family())
 		if owned > 0:
 			if s.rank == owned + 1:
 				upgrades.append(s)
 			continue
+		if s.utility:
+			continue   # Cleanse is owned from the start; only its rank-up (Purify) is offered
 		var no_room := passives_full() if s.is_passive() else spells_full()
 		if s.rank != 1 or (no_room and not swap_when_full) or not requirements_met(s):
 			continue

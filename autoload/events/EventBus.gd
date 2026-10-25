@@ -44,3 +44,11 @@ signal burst_landed(target: Node, absorbed: float, dealt: float)
 # Helper methods to emit (optional, for consistency)
 func emit_round_started(round: int) -> void:
 	round_started.emit(round)
+
+# ── Debuffs and Cleanse (Phase F) ──
+## A debuff went on (or stacked) on `target`. `status` is the DebuffStatus.
+signal debuff_applied(target: Node, status)
+## Cleanse removed `count` debuffs from `target` (count 0 = nothing to remove).
+signal cleansed(target: Node, count: int, spell: SpellData)
+## A fighter fell to Dread's line.
+signal dread_struck(target: Node)

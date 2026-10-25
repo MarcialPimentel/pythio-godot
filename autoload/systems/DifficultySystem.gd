@@ -17,6 +17,36 @@ extends Node
 ## The last N seconds of a round: the timer flashes and pops each second (owner, 2026-10-24).
 @export var final_countdown_time: float = 5.0
 
+@export_group("Debuffs (Phase F)")
+## Debuffs start on this round (owner, 2026-10-25: round 6, all four kinds).
+@export var debuff_start_round: int = 6
+## Seconds between debuffs in the first debuff round, minus this per later round, never
+## below the minimum. The first one comes after half an interval.
+@export var debuff_interval_first: float = 9.0
+@export var debuff_interval_step: float = 0.5
+@export var debuff_interval_min: float = 4.0
+## Debuff damage grows this much per round after the first debuff round (0.08 = +8%).
+@export var debuff_growth: float = 0.08
+## How often each kind is picked (relative).
+@export var debuff_weights: Dictionary = {"POISON": 1.0, "BLEED": 1.0, "HEX": 1.0, "DREAD": 1.0}
+## Poison: damage per second per stack, stacks, seconds.
+@export var poison_dps: float = 1.2
+@export var poison_max_stacks: int = 3
+@export var poison_time: float = 15.0
+## Bleed: damage per second until healed above this share of max health (or bandaged).
+@export var bleed_dps: float = 2.0
+@export var bleed_end_above: float = 0.8
+@export var bleed_time: float = 30.0
+## Bleed opens a wound: a fighter above this share of max health is hit down to it first
+## (a shield can absorb the wound, and then the bleed stops at once).
+@export var bleed_wound_to: float = 0.7
+## Hex: heals on the fighter are multiplied by this, for this long.
+@export var hex_heal_taken: float = 0.5
+@export var hex_time: float = 8.0
+## Dread: falling to this share of max health kills; lasts this long.
+@export var dread_threshold: float = 0.3
+@export var dread_time: float = 15.0
+
 @export_group("Round Scaling")
 # Endless pacing (owner, 2026-10-21): rounds stay short and frantic, under 30s.
 @export var first_round_time: float = 15.0
@@ -80,6 +110,18 @@ func get_burst_damage(round: int, armor_type: String, is_boss: bool) -> float:
 
 func get_base_dps(round: int) -> float:
 	return (base_dps + (round - 1) * dps_growth) * damage_scale(round)
+
+
+## Seconds between debuffs in `round` (0 = no debuffs yet).
+func get_debuff_interval(round: int) -> float:
+	if debuff_start_round <= 0 or round < debuff_start_round:
+		return 0.0
+	return maxf(debuff_interval_min, debuff_interval_first - debuff_interval_step * (round - debuff_start_round))
+
+
+## Debuff damage multiplier for `round`.
+func get_debuff_scale(round: int) -> float:
+	return 1.0 + debuff_growth * maxi(0, round - debuff_start_round)
 
 
 func damage_scale(round: int) -> float:

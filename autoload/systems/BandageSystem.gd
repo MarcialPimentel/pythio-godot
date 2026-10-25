@@ -102,6 +102,11 @@ func _end(completed: bool) -> void:
 	var t := target
 	target = null
 	SpellSystem.external_busy = false
+	# A finished bandage stops a Bleed (Phase F).
+	if completed and is_instance_valid(t):
+		var bleed: DebuffStatus = t.health_comp.get_debuff("BLEED")
+		if bleed:
+			t.health_comp.remove_status(bleed, false)
 	channel_ended.emit(t, completed)
 
 
