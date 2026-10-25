@@ -26,6 +26,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_pause.gd` | Escape menu: ignored on the title screen; pauses mid-round (timer and damage stop); Escape resumes; Quit to title and Restart (even mid-Baron) end the run cleanly with no game over; pass a path for a screenshot |
 | `test_practice.gd` | first-time practice: Take the Job asks once per device; Yes → one Heavy Knight with Heal, Renew and Shield (Q/W/E), no timer; prompts advance (Heal lands → mana and cast time → Renew cast → a warned hit, Shield soaks it → free practice with random hits back on); the knight can't die; only Start the real job leaves (spell choice, nothing carried over); No → straight to the run; Quit mid-practice cleans up; uses its own settings file; pass a path for screenshots |
 | `test_job_finished.gd` | "Job finished" holds after a cleared round and ignores input; then the pick or Next party screen opens; clicks and keys right as a screen opens do nothing, and work after the guard; quitting to title during the hold leaves nothing behind; pass a path for a screenshot |
+| `test_countdown.gd` | Renew + Healing Plague on one fighter: both listed under the health bar and both heal (18 over 2s); the timer flashes and pops on each of the last 5 seconds and resets when the round ends; pass a path for screenshots |
 | `screenshots.gd` | saves real screenshots of start, contract choice, boss, game over |
 
 ```bash
@@ -47,6 +48,7 @@ godot --headless --script tools/tests/test_stats.gd
 godot --headless --script tools/tests/test_baron.gd
 godot --headless --script tools/tests/test_debug_panel.gd
 godot --headless --script tools/tests/test_practice.gd
+godot --headless --script tools/tests/test_countdown.gd
 godot --headless --script tools/tests/test_job_finished.gd
 timeout 180 godot --headless --script tools/tests/test_full_run.gd   # fast-forwarded; quits on its own after Play Again
 # screenshots need a (virtual) display:

@@ -278,11 +278,11 @@ func _process(delta: float) -> void:
 	_icon_delayed.visible = not dead and (health_comp.has_status("DELAYED") or health_comp.has_status("ECHO"))
 	_icon_saturated.visible = not dead and health_comp.has_status("SATURATED")
 	if has_hot:
-		var longest: Status = null
-		for s in health_comp.get_statuses("HOT"):
-			if longest == null or s.time_left > longest.time_left:
-				longest = s
-		info_label.text = "%s %.1fs" % [longest.label.to_upper(), longest.time_left]
+		# Every heal-over-time gets its own line (owner, 2026-10-24: with only the longest one
+		# shown, Renew + Healing Plague looked like they didn't stack; they do, and both heal).
+		var hots := health_comp.get_statuses("HOT")
+		hots.sort_custom(func(x, y): return x.time_left > y.time_left)
+		info_label.text = "\n".join(hots.map(func(s): return "%s %.1fs" % [s.label.to_upper(), s.time_left]))
 		info_label.add_theme_color_override("font_color", FLOAT_HEAL)
 	elif not dead:
 		info_label.text = ("BOSS · " if is_boss else "") + "%s ARMOR" % armor_type

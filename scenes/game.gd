@@ -207,6 +207,7 @@ func _process(delta: float) -> void:
 		return
 
 	timer_label.text = "" if GameManager.practice else "%.1fs" % GameManager.round_time
+	_update_countdown()
 	GameManager.round_time -= delta
 	if GameManager.round_time <= 0:
 		GameManager.round_time = 0
@@ -777,7 +778,37 @@ func _clear_party_container() -> void:
 	await get_tree().process_frame
 
 
+# ── Final seconds: the timer flashes and pops on each second (owner, 2026-10-24) ──
+var _countdown_sec := -1
+
+
+func _update_countdown() -> void:
+	var left := GameManager.round_time
+	if GameManager.practice or left > DifficultySystem.final_countdown_time or left <= 0.0:
+		_reset_countdown()
+		return
+	timer_label.pivot_offset = timer_label.size / 2.0
+	# Flash: bright for the first half of each second, normal for the second half.
+	var bright := fmod(left, 1.0) > 0.5
+	timer_label.modulate = Color(1.9, 1.7, 1.7) if bright else Color.WHITE
+	var sec := ceili(left)
+	if sec != _countdown_sec:
+		_countdown_sec = sec
+		timer_label.scale = Vector2.ONE * 1.6
+		var tw := create_tween()
+		tw.tween_property(timer_label, "scale", Vector2.ONE * 1.15, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+
+func _reset_countdown() -> void:
+	if _countdown_sec == -1:
+		return
+	_countdown_sec = -1
+	timer_label.scale = Vector2.ONE
+	timer_label.modulate = Color.WHITE
+
+
 func _on_round_ended(_round_num: int) -> void:
+	_reset_countdown()
 	cast_bar.visible = false
 	# Keep the party on screen after a loss so you can see who fell
 	await get_tree().process_frame
