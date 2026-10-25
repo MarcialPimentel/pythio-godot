@@ -1,7 +1,8 @@
 # autoload/systems/DraftSystem.gd
-# Builds come from picks: a specialization at the start of a run, then a new spell
-# (1 of N) on a schedule, until the spellbook is full. After that, only rank-ups are
-# offered; once none are left, the build is complete. All of it is settings.
+# Builds come from picks: a starting spell, then picks on a schedule. Phase E (owner,
+# 2026-10-25): ordinary pick rounds offer spells; beating the Crimson Baron offers a passive
+# (1 of 3, leaning toward the tags you own), so passives are the rare, bigger moments.
+# When a row is full, picks offer swaps and rank-ups. All of it is settings.
 extends Node
 
 signal spec_chosen(spec: SpecData)
@@ -15,6 +16,9 @@ signal skipped
 @export var first_pick_after_round: int = 1
 ## …then every Nth round after that (owner, 2026-10-22: 2 → after rounds 1, 3, 5, 7 …).
 @export var pick_every: int = 2
+## Phase E (owner, 2026-10-25): spell picks on pick rounds, a passive pick after each Baron.
+## Off = the Phase D rule (any pick can offer spells or passives).
+@export var passives_from_baron: bool = true
 
 @export_group("Offers")
 @export var offer_count: int = 3
@@ -33,6 +37,9 @@ signal skipped
 @export var own_school_weight: float = 3.0
 @export var any_school_weight: float = 1.5
 @export var rank_up_weight: float = 2.0
+## Baron passive picks lean harder toward your tags: they should make your spells better.
+## Each owned tag a passive reacts to or shares (up to 2) adds this much (2.0 → ×3, ×5).
+@export var passive_tag_weight: float = 2.0
 ## Offers lean toward the tags you already own (#68): each owned tag a spell shares or
 ## reacts to (up to 2) adds this much to its weight (1.0 → ×2 for one, ×3 for two).
 ## Keeps a big pool from burying your combo pieces. 0 = off.
@@ -91,20 +98,33 @@ func school() -> String:
 # ── Spell picks ────────────────────────────────────────
 
 func is_pick_round(round_cleared: int) -> bool:
+	return pick_kind(round_cleared) != ""
+
+
+## What the pick after `round_cleared` offers: "spell", "passive" (after a Baron) or "" (none).
+func pick_kind(round_cleared: int) -> String:
 	if round_cleared <= 0:
-		return false
-	if round_cleared == first_pick_after_round:
-		return true
-	return pick_every > 0 and round_cleared > first_pick_after_round \
-		and (round_cleared - first_pick_after_round) % pick_every == 0
+		return ""
+	if passives_from_baron and DifficultySystem.is_boss_round(round_cleared):
+		return "passive"
+	var scheduled := round_cleared == first_pick_after_round or (pick_every > 0
+		and round_cleared > first_pick_after_round
+		and (round_cleared - first_pick_after_round) % pick_every == 0)
+	if not scheduled:
+		return ""
+	return "spell" if passives_from_baron else "any"
 
 
 ## Offers for after `round_cleared` (empty if it isn't a pick round or nothing is left).
+## A Baron pick with no passive left to offer falls back to a spell pick.
 func offers_after_round(round_cleared: int) -> Array[SpellData]:
 	var none: Array[SpellData] = []
-	if not is_pick_round(round_cleared):
+	var kind := pick_kind(round_cleared)
+	if kind == "":
 		return none
-	var offers := make_offers()
+	var offers := make_offers(kind)
+	if offers.is_empty() and kind == "passive":
+		offers = make_offers("spell")
 	var settled: bool = is_full() and candidates().upgrades.is_empty()
 	if (offers.is_empty() or settled) and not _complete_announced:
 		_complete_announced = true
@@ -125,10 +145,12 @@ func passives_full() -> bool:
 
 
 ## Spells you could be offered right now: new spells (if there's room) and rank-ups.
-func candidates() -> Dictionary:
+func candidates(kind: String = "any") -> Dictionary:
 	var fresh: Array[SpellData] = []
 	var upgrades: Array[SpellData] = []
 	for s in SpellSystem.library:
+		if (kind == "spell" and s.is_passive()) or (kind == "passive" and not s.is_passive()):
+			continue
 		var owned := SpellSystem.owned_rank(s.family())
 		if owned > 0:
 			if s.rank == owned + 1:
@@ -150,8 +172,11 @@ func requirements_met(spell: SpellData) -> bool:
 	return false
 
 
-func make_offers() -> Array[SpellData]:
-	var c := candidates()
+## `kind`: "spell" (spells you cast), "passive" or "any" (both, the Phase D rule).
+func make_offers(kind: String = "spell") -> Array[SpellData]:
+	if not passives_from_baron and kind == "spell":
+		kind = "any"
+	var c := candidates(kind)
 	var pool: Array[SpellData] = []
 	pool.append_array(c.fresh)
 	pool.append_array(c.upgrades)
@@ -161,8 +186,12 @@ func make_offers() -> Array[SpellData]:
 	var mine := school()
 	# Off-school picks first (new spells from another school), then weighted for the rest.
 	var off: Array = c.fresh.filter(func(s): return mine != "" and s.school != mine and s.school != "ANY")
-	for i in mini(off_school_offers, off.size()):
-		var pick := _weighted(off, func(s): return s.offer_weight * tag_affinity(s))
+	# Baron passive picks: no off-school slot, and a strong lean toward your tags.
+	var off_n := 0 if kind == "passive" else off_school_offers
+	var affinity := (func(s): return s.offer_weight * tag_affinity(s, passive_tag_weight)) if kind == "passive" \
+		else (func(s): return s.offer_weight * tag_affinity(s))
+	for i in mini(off_n, off.size()):
+		var pick := _weighted(off, affinity)
 		out.append(pick)
 		off.erase(pick)
 		pool.erase(pick)
@@ -170,11 +199,11 @@ func make_offers() -> Array[SpellData]:
 	var home: Array = pool.filter(func(s): return mine == "" or s.school == mine or s.school == "ANY" or c.upgrades.has(s))
 	while out.size() < offer_count and not pool.is_empty():
 		var from: Array = home if not home.is_empty() else pool
-		var pick := _weighted(from, _weight_for.bind(c.upgrades))
+		var pick := _weighted(from, affinity if kind == "passive" else _weight_for.bind(c.upgrades))
 		out.append(pick)
 		pool.erase(pick)
 		home.erase(pick)
-	_ensure_a_synergy(out, pool, off_school_offers)
+	_ensure_a_synergy(out, pool, off_n)
 	out.shuffle()
 	return out
 
@@ -229,7 +258,9 @@ func _weight_for(s: SpellData, upgrades: Array) -> float:
 
 
 ## How strongly `spell` connects to the tags you own: 1 (none) up to 1 + 2 × tag_affinity_weight.
-func tag_affinity(spell: SpellData) -> float:
+func tag_affinity(spell: SpellData, per_tag: float = -1.0) -> float:
+	if per_tag < 0.0:
+		per_tag = tag_affinity_weight
 	var owned := {}
 	for own in SpellSystem.all_owned():
 		for t in own.tags: owned[t] = true
@@ -237,7 +268,7 @@ func tag_affinity(spell: SpellData) -> float:
 	var shared := {}
 	for t in spell.tags + spell.reacts_to_tags:
 		if owned.has(t): shared[t] = true
-	return 1.0 + tag_affinity_weight * mini(2, shared.size())
+	return 1.0 + per_tag * mini(2, shared.size())
 
 
 func _weighted(list: Array, weight: Callable) -> SpellData:
