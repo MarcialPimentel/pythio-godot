@@ -133,7 +133,8 @@ the run. Script: `scenes/practice.gd`.
 **Endless [Decided].** Rounds never stop until someone dies. Your score is how far you got.
 
 **Round length [Decided: stay under 30s].** Round 1 lasts 15s, and each round adds 1s up to
-a 25s cap. The pace stays frantic.
+a 25s cap. The pace stays frantic. In the **last 5 seconds** the timer flashes and pops on
+each second, so the finish line reads at a glance [Decided 2026-10-24].
 
 **Losing.** The game-over screen names who fell and shows your run summary. You can post
 it to the online leaderboard, then play again.
@@ -145,6 +146,7 @@ it to the online leaderboard, then play again.
 | Longest round | 25s | same (`round_time_max`) |
 | Mana top-up between rounds | 50% of max | same (`round_start_mana_refill`) |
 | "Job finished" hold | 1.6s | same (`job_finished_time`) |
+| Final countdown (timer flashes and pops each second) | last 5s | same (`final_countdown_time`) |
 | Pick / Next party screens ignore input for | 0.5s | same (`screen_input_guard`) |
 
 ## 4. First spell, picks and builds (schools are hidden)
@@ -481,7 +483,10 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 **Combat screen**
 - **Top:** round number and timer (centre); the party size (left); battlefield rules (right).
 - **Middle:** the fighters in one row. Each has a name, a health bar, an armour label, a
-  shield bubble, a heal-over-time ring and status icons. The "INCOMING" warning shows above.
+  shield bubble, a heal-over-time ring and status icons. Under the health bar, **every**
+  heal-over-time on the fighter gets its own line with its time left ("RENEW 5.8s",
+  "HEALING PLAGUE 5.5s"). Different heals-over-time stack and all heal; recasting the same
+  one refreshes it. The "INCOMING" warning shows above.
 - **Bottom:** Pythio and his speech bubble (left); the 4 spell buttons with key, cost, cast
   time and cooldown; the passive tray; the mana bar, cast bar and bandage counter. (The
   build summary line above the bar was removed on 2026-10-24.)
@@ -599,6 +604,7 @@ Listed so nobody "fixes" the wrong side.
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
 | 2026-10-24 | Claude (for Marz) | First-time practice round (Marz, after watching a new player): asked once per device after Take the Job; one knight, Heal only, three prompts, can't die, then the real run. Sections 3 and 11 updated. |
+| 2026-10-24 | Claude (for Marz) | Marz thought Renew and Healing Plague didn't stack: they did, but the fighter only showed the longest heal-over-time. Now every one is listed. The timer flashes and pops in the last 5 seconds. Sections 3 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Practice round teaches all three starting spells and ends in free practice until Start the real job (Marz). Pick cards use fixed-height rows so titles, costs, tags and text line up; hints read "Combos with Renew". Sections 3 and 4 updated. |
 | 2026-10-24 | Claude (for Marz) | Title screen shows Pythio (head bowed) instead of the knight. Marz decided Pythio's story: he's down on his luck because he once failed a party. Section 2 updated. |
 | 2026-10-24 | Claude (for Marz) | "Job finished" screen after each cleared round, and a short input guard on the pick and Next party screens (Marz, after watching a new player click through by accident). Section 3 updated. |

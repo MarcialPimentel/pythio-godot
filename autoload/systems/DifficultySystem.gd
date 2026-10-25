@@ -14,6 +14,9 @@ extends Node
 ## a click from the round can't pick a card or start the next round by accident.
 @export var screen_input_guard: float = 0.5
 
+## The last N seconds of a round: the timer flashes and pops each second (owner, 2026-10-24).
+@export var final_countdown_time: float = 5.0
+
 @export_group("Round Scaling")
 # Endless pacing (owner, 2026-10-21): rounds stay short and frantic, under 30s.
 @export var first_round_time: float = 15.0
