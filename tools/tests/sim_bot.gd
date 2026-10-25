@@ -127,7 +127,7 @@ func _on_over(round_reached: int, _score: int):
 	var key: String = SCHOOLS[school_i]
 	if not results.has(key): results[key] = []
 	results[key].append("R%d %s" % [round_reached, SS.spells.map(func(s): return s.id)])
-	print("SIM: %s run %d → fell in round %d · spellbook %s" % [key, run_i + 1, round_reached, SS.spells.map(func(s): return s.id)])
+	print("SIM: %s run %d → fell in round %d · spellbook %s · passives %s" % [key, run_i + 1, round_reached, SS.spells.map(func(s): return s.id), SS.passives.map(func(s): return s.id)])
 	run_i += 1
 	if run_i >= runs:
 		run_i = 0; school_i += 1

@@ -41,6 +41,8 @@ const ART := "res://assets/art/"
 const SPELL_SLOTS := 4
 ## Marks the Skip card among the pick options.
 const SKIP := "__skip__"
+## Baron pick with full passive slots: keep your passives and take a spell pick instead.
+const BONUS_SPELL := "__bonus_spell__"
 ## Spell icon by spell id; other spells use the icon for their main tag (stand-in art).
 const SPELL_ICONS := {
 	"flash_heal": "ui/icons/spell_flash_heal.png",
@@ -66,6 +68,7 @@ const QUIPS := {
 	"victory": ["Contract fulfilled. Nobody died. Mostly.", "Pay up. I take coin, not thanks."],
 	"spec": ["Every healer starts somewhere. Pick your first spell.", "Choose how you'll keep them breathing."],
 	"pick": ["New trick. Try not to waste it.", "The job pays in spells. Pick one."],
+	"bounty": ["The Baron pays well. Spend it wisely.", "He lived. Now I get paid properly.", "Hazard pay. Make it count."],
 	"combo": ["Now that's teamwork.", "Two spells, one invoice.", "Elegant. Expensive, but elegant.",
 		"Put that on the bill.", "That's how it's done."],
 	"practice_start": ["One knight, one spell. Let's warm up."],
@@ -358,20 +361,59 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	_last_pick_round = round_cleared
 	_card_options = []   # untyped: it also holds the Skip marker
 	_card_options.append_array(offers)
-	var title := pick_title(_card_options)
-	timer_label.text = title.replace("Add", "Pick")
+	# Phase E (owner, 2026-10-25): beating the Baron pays a passive. No Skip; with full
+	# passive slots, a card lets you keep them and take a spell pick instead.
+	var bounty := not offers.is_empty() and offers.all(func(o): return o.is_passive()) \
+		and DraftSystem.pick_kind(round_cleared) == "passive"
+	var title := "The Baron's bounty" if bounty else pick_title(_card_options)
+	timer_label.text = "Choose a passive" if bounty else title.replace("Add", "Pick")
 	var cards: Array = []
 	for spell in _card_options:
 		cards.append(spell_card(spell))
-	_card_options.append(SKIP)
-	cards.append(skip_card())
-	var sub := "Spells %d / %d · Passives %d / %d" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap,
-		SpellSystem.passives.size(), DraftSystem.passive_cap]
-	if DraftSystem.spells_full() or DraftSystem.passives_full():
-		sub += " — full: a new one replaces one of yours."
-	sub += " Next pick after round %d." % _next_pick_round(round_cleared)
+	if bounty:
+		if DraftSystem.passives_full():
+			_card_options.append(BONUS_SPELL)
+			cards.append(bonus_spell_card())
+	else:
+		_card_options.append(SKIP)
+		cards.append(skip_card())
+	var sub := ""
+	if bounty:
+		sub = "A passive works on its own for the rest of the run. Passives %d / %d" % [
+			SpellSystem.passives.size(), DraftSystem.passive_cap]
+		if DraftSystem.passives_full():
+			sub += " — full: a new one replaces one of yours"
+		sub += "."
+	else:
+		sub = "Spells %d / %d" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap]
+		if DraftSystem.spells_full():
+			sub += " — full: a new one replaces one of yours."
+		sub += "."
+	sub += " " + next_pick_text(round_cleared)
 	card_panel.show_cards(title, sub, cards)
-	_say("pick", 4.0)
+	_say("bounty" if bounty else "pick", 4.0)
+
+
+## "Next: a spell after round 7." / "Next: the Baron's passive after round 10."
+static func next_pick_text(after: int) -> String:
+	var r := after + 1
+	while DraftSystem.pick_kind(r) == "" and r < after + 1000:
+		r += 1
+	if DraftSystem.pick_kind(r) == "passive":
+		return "Next: the Baron's passive after round %d." % r
+	return "Next pick after round %d." % r
+
+
+## The Baron pick's extra card when your passive slots are full.
+func bonus_spell_card() -> Dictionary:
+	var grey := Color(0.7, 0.66, 0.6)
+	return {
+		"header": "INSTEAD", "header_color": grey, "accent": grey,
+		"title": "A spell instead",
+		"stats": "Keep your passives",
+		"body_bb": "Keep the passives you have and pick a new spell (or a rank-up) instead.",
+		"flavor": "Cash, not credit.",
+	}
 
 
 ## Second step when your bar is full: which spell does the new one replace?
@@ -416,7 +458,12 @@ func _on_card_chosen(index: int) -> void:
 		"spec":
 			DraftSystem.choose_spec(choice)
 		"spell":
-			if typeof(choice) == TYPE_STRING and choice == SKIP:
+			if typeof(choice) == TYPE_STRING and choice == BONUS_SPELL:
+				var spells := DraftSystem.make_offers("spell")
+				if not spells.is_empty():
+					_show_spell_pick(spells, _last_pick_round)
+					return
+			elif typeof(choice) == TYPE_STRING and choice == SKIP:
 				DraftSystem.skip()
 				_say("skip", 3.0)
 			elif DraftSystem.needs_swap(choice):

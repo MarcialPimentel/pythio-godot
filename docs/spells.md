@@ -46,12 +46,23 @@ the same PR.
 | Time Stop | Ward | Mitigation | 25 | instant | 20s | The fighter takes no damage for 2.5s. | — |
 | Vital Bond | Ward | — | passive | passive | — | When one of your Shield effects breaks, the fighters on each side gain a Shield of 10 for 5s. Offered once you own a Shield spell. | — |
 | Watchful Eye | Ward | — | passive | passive | — | When you cast a Mitigation spell on a fighter below 40% health, that fighter is healed for 25. Offered once you own a Mitigation spell. | — |
+| Double Down | Mending | — | passive | passive | — | When one of your Direct heals lands, that fighter is healed for 100% of it (every 4th time). Offered once you own a Direct spell. | — |
+| Wildgrowth | Bloom | — | passive | passive | — | When you cast a Heal-over-Time spell, the Heal-over-Time effects on every fighter last 2s longer. Offered once you own a Heal-over-Time spell. | — |
+| Harvest | Bloom | — | passive | passive | — | When one of your Delayed heals lands, your most injured fighter is healed for 50% of it. Offered once you own a Delayed spell. | — |
+| Shatterpoint | Ward | — | passive | passive | — | When one of your Shield effects breaks, every fighter is healed for 40% of what it could absorb (up to 12). Offered once you own a Shield spell. | — |
+| Bastion | Ward | — | passive | passive | — | When you cast a Mitigation spell, every fighter gains a Shield of 8 for 5s. Offered once you own a Mitigation spell. | — |
+| Chain Reaction | Any school | — | passive | passive | — | When you cast a Multi-target spell, your most injured fighter is healed for 15. Offered once you own a Multi-target spell. | — |
 | Chain Heal | Any school | Direct, Multi-target | 26 | 2s | — | Heals 30, and the fighters on each side for 15. | 2.3 |
 | Divine Channel | Any school | — | 0 | 3s | 30s | Restores 50 of your mana. | — |
 | Lingering Light | Any school | — | passive | passive | — | When you cast a Multi-target spell, that fighter gains a Heal-over-Time of 3 each second for 4s. Offered once you own a Multi-target spell. | — |
 | Mana Conduit | Any school | — | passive | passive | — | Overhealing isn't wasted: you get 20% of it back as mana. | — |
 | Mend Wounds | Any school | Direct, Heal-over-Time | 16 | 1s | — | Heals 20, then heals 15 over 5s. | 2.2 |
 | Second Wind | Any school | — | passive | passive | — | Cancels Exhaustion: running your mana dry restores 30 mana instead (once every 20s). | — |
+
+New in Phase E (2026-10-25): passives now come only from beating the Baron, and six
+"Baron-worthy" passives joined (Double Down, Wildgrowth, Harvest, Shatterpoint, Bastion,
+Chain Reaction), all data on the generic tag trigger. 43 entries: 21 spells you cast (with
+ranks), 18 passives. The original list's "keystone spells" below became passives.
 
 New in Phase D (#70): Promise of Light, Hasten, Tranquility, Aegis of Light, Ripening,
 Lingering Light, Rising Tide, Sanctuary, Watchful Eye; Divine Protection, Time Stop and Guardian
@@ -60,7 +71,7 @@ Party-wide spells (Tranquility, Aegis of Light) are cheap per fighter and get be
 the party: big and efficient at scale, but slow.
 
 ### Not in the game yet
-Cleanse (Phase F) · Keystones (Phase E) · Harmonize, Decoy,
+Cleanse (Phase F) · Harmonize, Decoy,
 Healing Spirit, Soulbond, Hallowed Ground (pets / positioning, parked) · Shadow Strike
 (name doesn't match the effect; rename first) · Vital Bond and Lifebloom follow the reworked
 versions above, not the original wording below.

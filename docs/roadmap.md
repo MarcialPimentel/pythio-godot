@@ -1,6 +1,6 @@
 # Pythio: roadmap
 
-_Last updated: 2026-10-24 (new-player feedback batch). Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-25 (Phase E). Owner: Marz. Claude works through this list one pull request at a time._
 
 > **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
 > `docs/game-design.md`, which wins over every other design doc.
@@ -78,7 +78,16 @@ _Last updated: 2026-10-24 (new-player feedback batch). Owner: Marz. Claude works
 - **✅ Follow-up merged 2026-10-24:** practice teaches Heal, Renew and Shield, then free
   practice until Start the real job · pick cards line up (fixed-height rows) · hints read
   "Combos with Renew".
-- **Next up:** Marz watches/plays the new onboarding → Phase E (keystones after each Baron, #37).
+- **✅ Merged 2026-10-25 (#85):** every heal-over-time shows on the fighter (Renew + Healing
+  Plague always stacked; only the longest was shown) · the timer flashes in the last 5 seconds.
+- **Phase E rethought (owner, 2026-10-25):** keystones and passives were the same thing, so
+  keystones are folded into passives. **Spells come from picks, passives from the Baron.**
+- **✅ Phase E built 2026-10-25 (one PR, #37):** spell picks after 1, 3, 7, 9 … offer only
+  spells · each Baron (5, 10, 15 …) pays a passive on "The Baron's bounty" (1 of 3, leaning
+  hard to your tags, no Skip; swaps or a spell pick once your 3 passives are full) · six new
+  data passives: Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction, Bastion
+  (43 entries). Bot check: first deaths still ~rounds 6–8.
+- **Next up:** Marz playtests Phase E → Phase F (debuffs and cleanse, #23, #53).
 - **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
   low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the
   rogue, adventurer and Baron (knight and mercenary still stay standing when they die). Every image and what to make next:
@@ -145,9 +154,10 @@ One bullet ≈ one pull request.
 - ✅ #70 **Spell batch 2:** more spells and passives from tags, incl. payoffs for Delayed and
   Multi-target; owner reviews them in the Phase D playtest (he asked for the whole phase built).
 
-### Phase E: Keystones
-- ⬜ #37 **Keystones after each Baron** (rounds 5, 10, 15; max 3), 1 of 3, in their own 3
-  slots; each bends a tag or flips a battlefield rule.
+### Phase E: Spells from picks, passives from the Baron — ✅ built 2026-10-25
+- ✅ #37 **Passives from the Baron** (rounds 5, 10, 15 …; 3 slots), 1 of 3; ordinary picks are
+  spells only. Six new data passives. (Was "Keystones after each Baron … in their own 3
+  slots"; folded into passives by the owner, 2026-10-25.)
 
 ### Phase F: Debuffs and cleanse
 - ⬜ #23 **Debuffs from round 6:** Poison (stacking DoT), Hex (−50% healing taken), Bleed

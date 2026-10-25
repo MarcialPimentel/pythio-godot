@@ -11,7 +11,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_bursts.gd` | bursts land after their warning for the right damage, shields absorb them, nothing lands between rounds |
 | `test_debug_panel.gd` | F1 toggles the panel; jump to round, +mana, take any spell and reset the build (#69), god mode, hit/heal, skip round; debug runs can't be posted; Play Again starts clean |
 | `test_effects.gd` | every effect and status (heal, neighbours, most injured, heal-over-time, shields incl. heal-on-end, protection, death save, delayed heal, Overgrowth, Echo, Spirit Surge, mana), passive hooks, tag text |
-| `test_picks.gd` | school pick, pick schedule (after rounds 1, 3, 5 …), offer rules (no owned/duplicate spells, one other-school card), rank-ups replace in place, cap → rank-ups only → build complete once, the real school → round → pick → contracts flow |
+| `test_picks.gd` | school pick, pick schedule (spells after 1, 3, 7 …; the Baron's passive after 5, 10 …), offer rules (no owned/duplicate spells, one other-school card), rank-ups replace in place, cap → rank-ups only → build complete once, the real school → round → pick → contracts flow |
 | `test_swap.gd` | full spell bar (#67): new spells still offered, "Replace which spell?" screen with Back, the new spell takes the old one's slot and key, rank-ups skip the swap screen, Skip gives +10 max mana that lasts the run, build complete still fires once |
 | `test_combos.gd` | real casts of Renew → Overgrowth, Echo Healing → Heal, Shield → Spirit Surge; gold combo text, Pythio's quip, combo spells only offered once you own the tag they react to |
 | `test_passives.gd` | Seraphic Blessing, Aura of Mending, Vital Bond (incl. no chaining), Mana Conduit; Binding Heal, Healing Plague, Guardian Angel, Time Stop, Divine Channel with real casts |
@@ -27,6 +27,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_practice.gd` | first-time practice: Take the Job asks once per device; Yes → one Heavy Knight with Heal, Renew and Shield (Q/W/E), no timer; prompts advance (Heal lands → mana and cast time → Renew cast → a warned hit, Shield soaks it → free practice with random hits back on); the knight can't die; only Start the real job leaves (spell choice, nothing carried over); No → straight to the run; Quit mid-practice cleans up; uses its own settings file; pass a path for screenshots |
 | `test_job_finished.gd` | "Job finished" holds after a cleared round and ignores input; then the pick or Next party screen opens; clicks and keys right as a screen opens do nothing, and work after the guard; quitting to title during the hold leaves nothing behind; pass a path for a screenshot |
 | `test_countdown.gd` | Renew + Healing Plague on one fighter: both listed under the health bar and both heal (18 over 2s); the timer flashes and pops on each of the last 5 seconds and resets when the round ends; pass a path for screenshots |
+| `test_baron_passives.gd` | Phase E: the schedule (spells after 1, 3, 7, 9 …; a passive after 5, 10, 15 …); spell picks offer only spells and Baron picks only passives, leaning to your tags; the Baron's bounty screen (no Skip; with full passives, swaps and a spell-instead card); Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction and Bastion with real casts; pass a path for a screenshot |
 | `screenshots.gd` | saves real screenshots of start, contract choice, boss, game over |
 
 ```bash
@@ -49,6 +50,7 @@ godot --headless --script tools/tests/test_baron.gd
 godot --headless --script tools/tests/test_debug_panel.gd
 godot --headless --script tools/tests/test_practice.gd
 godot --headless --script tools/tests/test_countdown.gd
+godot --headless --script tools/tests/test_baron_passives.gd
 godot --headless --script tools/tests/test_job_finished.gd
 timeout 180 godot --headless --script tools/tests/test_full_run.gd   # fast-forwarded; quits on its own after Play Again
 # screenshots need a (virtual) display:

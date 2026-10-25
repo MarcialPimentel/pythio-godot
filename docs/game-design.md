@@ -50,7 +50,8 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 
 **What each layer is for [Decided 2026-10-22]:**
 - **Combos are the bread and butter:** small, frequent, every few seconds.
-- **Keystones are the big moments** that make a build pop off: rare, after beating the Baron.
+- **Passives are the big moments** that make a build pop off: rare, one after each Baron
+  [Decided 2026-10-25: "keystones" were the same thing as passives, so they were folded in].
 
 **Pillars [Decided].** Check every change against these four.
 
@@ -126,8 +127,9 @@ the run. Script: `scenes/practice.gd`.
    nothing), then the next screen opens. Pick and Next party screens ignore input for their
    first half second, so a click left over from the round can't pick a card or start the
    next round [Decided 2026-10-24, after watching a new player].
-4. **Between rounds:** after round 1 and then every other round (3, 5, 7 …), you pick a
-   new spell or passive (1 of 3), or skip. Your mana carries over and tops up by half your max pool. Cooldowns
+4. **Between rounds:** after round 1 and then every other round (3, 7, 9 …), you pick a
+   new **spell** (1 of 3), or skip. After each **Baron** (rounds 5, 10, 15 …) you pick a
+   **passive** instead ("The Baron's bounty"). Your mana carries over and tops up by half your max pool. Cooldowns
    reset. A new party comes in at full health.
 
 **Endless [Decided].** Rounds never stop until someone dies. Your score is how far you got.
@@ -169,18 +171,38 @@ Some spells belong to **Any school**: every school sees them as a home spell. No
 badge or HUD line names a school (the old "OTHER SCHOOL" badge and the school name above
 the spell bar are gone).
 
-**Picks [Decided 2026-10-22].** After round 1, then every other round (after rounds 3, 5,
-7 …), choose 1 of 3 cards, or Skip. A typical run (first deaths around rounds 6–8) sees about
-4 picks: more decisions sooner. You pick with the mouse or keys 1–4.
+**Picks: spells from picks, passives from the Baron [Decided 2026-10-25, Phase E].**
+- **Spell picks:** after round 1, then every other round (3, 7, 9, 11 …), choose 1 of 3
+  **spells you cast**, or Skip. Spells come early because they're the concrete, pressable
+  part a new player learns first.
+- **The Baron's bounty:** after each Baron (rounds 5, 10, 15 …), choose 1 of 3 **passives**.
+  They lean hard toward the tags you own, so the passive makes the spells you picked better.
+  No Skip. When your 3 passive slots are full, the offers are swaps, plus a card to keep
+  your passives and take a spell pick instead.
+- Each reward has its own beat: spells build your toolkit, passives build your engine.
+
+| After round | You get | Spells / passives |
+|---|---|---|
+| 1, 3 | Spell pick | 2, then 3 / 0 |
+| **5 (Baron)** | **Passive** | 3 / 1 |
+| 7, 9 | Spell pick (rank-ups and swaps once the 4 keys are full) | 4 / 1 |
+| **10 (Baron)** | **Passive** | 4 / 2 |
+| 11, 13 | Spell pick | 4 / 2 |
+| **15 (Baron)** | **Passive** | 4 / 3 |
+
+A new player whose first deaths come around rounds 6–8 sees 3 spell picks and 1 passive.
+You pick with the mouse or keys 1–4.
 
 How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSystem.gd`):
-- **One card from another school** whenever one is available [Decided]. Splashing is where
+- **Spell picks offer only spells; the Baron's bounty offers only passives.**
+- **One card from another school** on spell picks, whenever one is available [Decided]. Splashing is where
   creative builds come from.
 - The rest favour **your school** (×3 weight), then Any-school spells (×1.5), then
   rank-ups (×2).
 - **Offers lean toward the tags you own** [Decided 2026-10-24]: a card
   that shares or reacts to one of your tags is twice as likely, two of your tags three
   times. That keeps a big pool from burying your combo pieces, for the "master a build" player.
+  The Baron's passives lean harder (×3 for one tag, ×5 for two), so they improve your spells.
 - **At least one card combos with something you own,** when that's possible. A card that
   combos says so ("Combos with …").
 - **Combo spells and most passives only appear once you own the tag they react to.** For
@@ -190,17 +212,17 @@ How the 3 offers are chosen (all of it is settings in `autoload/systems/DraftSys
 **Two kinds of slot [Decided].**
 - **4 spells you cast,** on keys Q, W, E, R (was 5 until Phase D). Enough for the fast /
   efficient / big triangle plus a combo spell; every slot matters.
-- **3 passive slots** in a gold tray next to the spell bar [Decided 2026-10-24: keep 3 for now]. Passives work on their own.
-  Keystones will get their own slots (Phase E), not these.
+- **3 passive slots** in a gold tray next to the spell bar [Decided 2026-10-24: keep 3].
+  Passives work on their own, and come only from beating the Baron (one per visit).
 
 **Ranks, not duplicates [Decided].** Lesser/normal/greater versions are one spell with ranks.
 A rank-up is a pick option and replaces the lower rank in the same slot, so "go deeper or
 go wider?" is a real choice. Ranks today: Heal → Heal II → Heal III, Renew → Rejuvenation,
 Shield → Shield II.
 
-**When your bar is full: swap, upgrade or skip** [Decided 2026-10-24]. New spells are still offered, marked **SWAP**. Taking one asks
+**When your bar is full: swap, upgrade or skip** [Decided 2026-10-24]. New spells (or, on the Baron's bounty, passives) are still offered, marked **SWAP**. Taking one asks
 "Replace which spell?" (with a Back button), and the new spell takes the old one's slot and
-key. Rank-ups work as before. Every pick screen has a **Skip** card: +10 max mana for the
+key. Rank-ups work as before. Every spell pick has a **Skip** card: +10 max mana for the
 rest of the run [Decided 2026-10-24: keep for now]. To go back to the old rule (rank-ups only, then nothing), turn off
 `swap_when_full`.
 
@@ -212,11 +234,13 @@ you can take it, and whether to change your build on the way.
 |---|---|---|
 | First pick after round | 1 | `DraftSystem.gd` (`first_pick_after_round`) |
 | Then a pick every | 2 rounds | same (`pick_every`) |
-| Cards offered | 3 (+ Skip) | same (`offer_count`) |
-| Cards from another school | 1 | same (`off_school_offers`) |
+| Cards offered | 3 (+ Skip on spell picks) | same (`offer_count`) |
+| Passives from the Baron (off = Phase D mixed picks) | on | same (`passives_from_baron`) |
+| Which rounds have a Baron | every 5th | `DifficultySystem.gd` (`boss_every`) |
+| Cards from another school (spell picks) | 1 | same (`off_school_offers`) |
 | Spell slots / passive slots | 4 / 3 | same (`spellbook_cap`, `passive_cap`), and `SpellSystem.gd` (`SLOTS`) |
 | Weight: own school / any school / rank-up | 3 / 1.5 / 2 | same |
-| Tag weighting (each owned tag shared, up to 2) | +1× | same (`tag_affinity_weight`) |
+| Tag weighting (each owned tag shared, up to 2) | +1× spells, +2× Baron passives | same (`tag_affinity_weight`, `passive_tag_weight`) |
 | Swap when full / Skip reward | on / +10 max mana | same (`swap_when_full`, `skip_bonus_max_mana`) |
 | A spell's own offer weight | 1 (each spell) | `resources/spells/<spell>.tres` (`offer_weight`) |
 
@@ -258,6 +282,12 @@ every tag has at least 2 spells with it and 2 that react to it (true since Phase
 | Mitigation | Sanctuary (passive) | Casting a Mitigation spell also gives the fighter a 15 shield |
 | Mitigation | Watchful Eye (passive) | Casting a Mitigation spell on a fighter below 40% heals them for 25 |
 | Overheal | Overflow, Mana Conduit (passives) | Overhealing becomes a shield, or mana |
+| Direct | Double Down (passive, Phase E) | Every 4th Direct heal lands twice |
+| Heal-over-Time | Wildgrowth (passive, Phase E) | Casting a Heal-over-Time spell makes every heal-over-time on the party last 2s longer |
+| Shield | Shatterpoint (passive, Phase E) | A breaking shield heals every fighter for 40% of what it held (up to 12) |
+| Delayed | Harvest (passive, Phase E) | Delayed heals also heal your most injured fighter for 50% |
+| Multi-target | Chain Reaction (passive, Phase E) | Casting a Multi-target spell also heals your most injured fighter for 15 |
+| Mitigation | Bastion (passive, Phase E) | Casting a Mitigation spell gives every fighter an 8 shield |
 
 **Readable combos [Decided].**
 - **Before:** a spell button **glows gold** when casting it on the fighter under your mouse
@@ -273,12 +303,12 @@ generated from those numbers, so it always matches.
 
 | School | Spells you cast | Passives |
 |---|---|---|
-| Mending | Heal (I–III), Flash Heal, Binding Heal, Echo Healing, Guardian Angel, Promise of Light | Seraphic Blessing, Overflow, Rising Tide |
-| Bloom | Renew → Rejuvenation, Lifebloom, Healing Plague, Overgrowth, Hasten, Tranquility | Aura of Mending, Ripening |
-| Ward | Shield (I–II), Guardian Ward, Spirit Surge, Divine Protection, Time Stop, Aegis of Light | Bulwark, Vital Bond, Sanctuary, Watchful Eye |
-| Any school | Chain Heal, Mend Wounds, Divine Channel | Mana Conduit, Second Wind, Lingering Light |
+| Mending | Heal (I–III), Flash Heal, Binding Heal, Echo Healing, Guardian Angel, Promise of Light | Seraphic Blessing, Overflow, Rising Tide, Double Down |
+| Bloom | Renew → Rejuvenation, Lifebloom, Healing Plague, Overgrowth, Hasten, Tranquility | Aura of Mending, Ripening, Wildgrowth, Harvest |
+| Ward | Shield (I–II), Guardian Ward, Spirit Surge, Divine Protection, Time Stop, Aegis of Light | Bulwark, Vital Bond, Sanctuary, Watchful Eye, Shatterpoint, Bastion |
+| Any school | Chain Heal, Mend Wounds, Divine Channel | Mana Conduit, Second Wind, Lingering Light, Chain Reaction |
 
-37 entries in all: 21 spells you cast (with ranks), 12 passives.
+43 entries in all: 21 spells you cast (with ranks), 18 passives.
 
 **Casting.** Each spell has a mana cost, a cast time (0 = instant) and sometimes a
 cooldown. **Cast time is shown first** [Decided 2026-10-24]: every spell card has a big
@@ -330,9 +360,10 @@ X% health), **do** [action] to [who].
 | Who | that fighter · the fighters on each side · your most injured fighter · every fighter |
 
 Triggers can't set off the same kind of trigger (no endless chains). Script:
-`resources/spells/passives/TagTriggerRule.gd`. Keystones (Phase E) will use the same parts.
+`resources/spells/passives/TagTriggerRule.gd`. The six Phase E passives use the same parts
+(no new code).
 
-**One system [Decided].** Rules, passives, future keystones and future debuffs are all the
+**One system [Decided].** Rules, passives and future debuffs are all the
 same kind of thing (a `PassiveRule`), so anything one can do, the others can too.
 
 | Tunable | Value | File |
@@ -417,8 +448,9 @@ the hit lands 1.5s later. Shields absorb it first [Decided: bursts always land a
 ## 9. The Crimson Baron
 
 **[Decided]** The Baron returns on every 5th round (5, 10, 15 …), tougher each time.
-**Beating him earns a keystone** (Phase E): after rounds 5, 10 and 15, up to 3. The boss
-kill is the power spike. He's
+**Beating him pays a passive** ("The Baron's bounty", Phase E, decided 2026-10-25): 1 of 3,
+leaning toward your tags. Up to 3; after that the bounty offers swaps or a spell pick
+instead. The boss kill is the power spike. He's
 your *patient*, not an enemy: he arrives badly hurt, with two guards (ordinary heavy
 fighters), so the fight is still triage, not one big health bar. He has his own Next-party
 card ("The Crimson Baron sends for you"). Random bursts never target him; his hits come
@@ -506,21 +538,25 @@ input model) is parked.
 
 The roadmap has the details and issue numbers. Phases A, B and C are done and live.
 
-Phases were reordered on 2026-10-22 so more spells and keystones come first: they're
-the fun we're trying to find.
+Phases were reordered on 2026-10-22 so more spells and the Baron's passives come first:
+they're the fun we're trying to find.
 
 **Phase D: Faster builds and more spells ✅ built 2026-10-22** (PR for #65–#70; sections 4–6
 describe it): passives as data (generic tag trigger) · picks every other round · 4 spell keys ·
 swap / upgrade / skip when full · offers weighted toward your tags · debug "take any spell" ·
 spell batch 2 (Mitigation tag, 4 new spells, 5 new passives). **[Decided 2026-10-24]** Marz kept all of it after the playtest.
 
-**Phase E: Keystones [Decided 2026-10-22]**
-- **Beat the Baron, pick a keystone** (1 of 3): after rounds 5, 10, 15, capped at 3.
-- **Their own 3 slots,** so you don't give up a passive for one.
-- **Each keystone bends a tag or flips a battlefield rule,** so the build pops off.
-  [Proposed] examples: "Heal-over-Time ticks twice as fast but lasts half as long";
-  "When a Shield breaks, the party heals for what it absorbed"; "Every 4th Direct heal is
-  free and lands twice"; the mirrored rules (Bulwark, Second Wind, Overflow) as keystone versions.
+**Phase E: Spells from picks, passives from the Baron ✅ built 2026-10-25 [Decided 2026-10-25]**
+(Marz: keystones and passives were the same thing, so keystones were folded into passives.)
+- Ordinary picks (after 1, 3, 7, 9 …) offer only spells; each Baron (5, 10, 15 …) pays a
+  passive, 1 of 3, leaning hard toward your tags. No Skip on the Baron's bounty; with full
+  passive slots it offers swaps or a spell pick instead (section 4).
+- Six new "Baron-worthy" passives, one per tag, all data: Double Down, Wildgrowth,
+  Shatterpoint, Harvest, Chain Reaction, Bastion (section 5). The reversed battlefield rules
+  already exist as Bulwark, Second Wind and Overflow.
+- Bot check: first deaths still around rounds 6–8 (average 6.8, same as before).
+- Later, if wanted: passives that need a new verb (e.g. "heals-over-time tick twice as fast
+  but last half as long").
 
 **Phase F: Debuffs and cleanse [Decided]**
 - From round 6, debuffs that each need a different answer:
@@ -577,10 +613,13 @@ Parked on purpose [Decided]. Don't build these without Marz's OK.
 **Settled 2026-10-24 (after the Phase D playtest):** keep swap / upgrade / skip when the
 bar is full; keep the Skip reward (+10 max mana) for now; keep tag-weighted offers; the
 Protection tag is renamed **Mitigation**; keep all 9 new spells and passives; keep 3
-passive slots for now (revisit once keystones exist).
+passive slots for now.
 
-**Settled 2026-10-22:** pick pacing (every other round); keystone timing (after each Baron,
-own slots); tags with no payoff (handled in spell batch 2); 4 spell keys; Cleanse separate
+**Settled 2026-10-25 (Phase E):** keystones folded into passives; spells from picks,
+passives from the Baron; 3 passive slots stay.
+
+**Settled 2026-10-22:** pick pacing (every other round); keystone timing (after each Baron;
+superseded 2026-10-25); tags with no payoff (handled in spell batch 2); 4 spell keys; Cleanse separate
 from the bandage.
 
 ## Known differences between docs and code (2026-10-22)
@@ -604,6 +643,7 @@ Listed so nobody "fixes" the wrong side.
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
 | 2026-10-24 | Claude (for Marz) | First-time practice round (Marz, after watching a new player): asked once per device after Take the Job; one knight, Heal only, three prompts, can't die, then the real run. Sections 3 and 11 updated. |
+| 2026-10-25 | Claude (for Marz) | Phase E: Marz decided keystones and passives are one thing. Spell picks offer only spells; each Baron pays a passive (the Baron's bounty: no Skip, leaning to your tags; swaps or a spell pick when full). Six new data passives: Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction, Bastion. Sections 1, 3, 4, 5, 6, 9, 12 and 14 updated. |
 | 2026-10-24 | Claude (for Marz) | Marz thought Renew and Healing Plague didn't stack: they did, but the fighter only showed the longest heal-over-time. Now every one is listed. The timer flashes and pops in the last 5 seconds. Sections 3 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Practice round teaches all three starting spells and ends in free practice until Start the real job (Marz). Pick cards use fixed-height rows so titles, costs, tags and text line up; hints read "Combos with Renew". Sections 3 and 4 updated. |
 | 2026-10-24 | Claude (for Marz) | Title screen shows Pythio (head bowed) instead of the knight. Marz decided Pythio's story: he's down on his luck because he once failed a party. Section 2 updated. |
