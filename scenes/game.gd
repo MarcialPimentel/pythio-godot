@@ -382,7 +382,8 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 		sub = "A passive works on its own for the rest of the run. Passives %d / %d" % [
 			SpellSystem.passives.size(), DraftSystem.passive_cap]
 		if DraftSystem.passives_full():
-			sub += " — full: a new one replaces one of yours."
+			sub += " — full: a new one replaces one of yours"
+		sub += "."
 	else:
 		sub = "Spells %d / %d" % [SpellSystem.spells.size(), DraftSystem.spellbook_cap]
 		if DraftSystem.spells_full():

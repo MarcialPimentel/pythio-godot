@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/spells/effects/SpellEffect.gd" id="1_spelle"]
+[ext_resource type="Script" path="res://resources/spells/SpellData.gd" id="2_spelld"]
+[ext_resource type="Script" path="res://resources/spells/passives/TagTriggerRule.gd" id="3_tagtri"]
+
+[sub_resource type="Resource" id="Resource_p"]
+script = ExtResource("3_tagtri")
+event = "HEALED"
+tags = Array[String](["DIRECT"])
+skip_quiet = true
+skip_echo = true
+every_nth = 4
+action = "HEAL"
+who = "TARGET"
+share = 1.0
+combo_label = "Double Down"
+
+[resource]
+script = ExtResource("2_spelld")
+id = "double_down"
+display_name = "Double Down"
+school = "MENDING"
+tags = Array[String]([])
+mana_cost = 0.0
+cast_time = 0.0
+cooldown = 0.0
+effects = Array[ExtResource("1_spelle")]([])
+passive = SubResource("Resource_p")
+rank_family = ""
+rank = 1
+requires_tags = Array[String](["DIRECT"])
+reacts_to_tags = Array[String](["DIRECT"])
+offer_weight = 1.0
+flavor = "Twice the work. Same invoice."
