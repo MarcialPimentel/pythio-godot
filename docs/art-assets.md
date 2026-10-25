@@ -116,7 +116,7 @@ in `resources/spells/`. Ask Claude to wire each new icon in; it's a one-line cha
 | `ui/icons/status_buff_4.png` | The fighter is **protected** (Divine Protection, Time Stop) or saved from death (Guardian Angel). | Stand-in | 128 |
 | `ui/icons/status_debuff_1.png` | A **burst is incoming** on this fighter (with the red ring). | Stand-in | 128 |
 | `ui/icons/status_debuff_2.png` | The fighter is **Saturated** (the next heal on them is weaker). | Stand-in | 128 |
-| `ui/icons/status_debuff_3.png` … `status_debuff_5.png` | Not shown yet. Natural fits for Phase F's **Poison**, **Hex** and **Bleed**. | Spare | 128 |
+| `ui/icons/status_debuff_3.png` … `status_debuff_5.png` | Not shown yet. Phase F (2026-10-25) shows debuffs as text above the fighter ("☠ POISON ×2", violet = Cleanse it, red = Bleed), not icons. Wanted later: **violet** Poison, Hex and Dread icons and a red Bleed icon, plus a Cleanse icon for the F counter. | Spare | 128 |
 
 ## Effects on fighters (VFX)
 
