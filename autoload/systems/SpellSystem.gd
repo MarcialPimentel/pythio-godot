@@ -21,7 +21,7 @@ signal spellbook_changed
 const DEFAULT_SPELL_KEYS: Array[Key] = [KEY_Q, KEY_W, KEY_E, KEY_R]
 ## Spells you cast: keys Q–R (owner, 2026-10-22: 4, was 5).
 const SLOTS := 4
-## Passives (and later keystones) live in their own tray.
+## Passives live in their own tray (they come from beating the Baron).
 const PASSIVE_SLOTS := 3
 ## Spellbook before a specialization is picked (and in tests that skip the pick).
 @export var default_spellbook_ids: PackedStringArray = ["flash_heal", "renew", "shield"]

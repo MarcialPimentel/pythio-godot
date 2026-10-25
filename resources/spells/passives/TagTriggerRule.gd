@@ -2,7 +2,7 @@
 # One passive built from settings instead of code (#65):
 #   WHEN <event> happens to something tagged <tags> [on a fighter below X% health]
 #   DO   <action> to <who>.
-# Most passives (and, later, keystones) are a .tres file using this script with different
+# Most passives are a .tres file using this script with different
 # numbers. The card text is written from the settings, so it always matches.
 class_name TagTriggerRule
 extends PassiveRule
