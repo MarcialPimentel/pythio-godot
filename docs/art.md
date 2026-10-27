@@ -34,7 +34,9 @@ drop a better PNG with **the same name** over the old one. No code change is nee
 
 ## Asset list
 Every image, its file name, when it appears in the game, whether it's high-res yet and its
-target size: **`docs/art-assets.md`**. That list, including what to make next, replaces the
+target size: **`docs/art-assets.md`**. It also has the workflow and three ready-to-paste
+ChatGPT prompts (a character, a spell icon, anything else); the per-asset subject lines below
+slot into those prompts. That list, including what to make next, replaces the
 table that used to be here.
 
 ## Prompt pack for regenerating at high resolution
