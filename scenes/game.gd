@@ -57,6 +57,8 @@ const TAG_ICONS := {
 	"DELAYED": "ui/icons/status_buff_2.png",
 }
 const FALLBACK_ICON := "ui/icons/status_buff_4.png"
+## Which tag picks a spell's icon when it has several (first match wins).
+const TAG_ORDER := ["SHIELD", "PROTECT", "HOT", "DELAYED", "MULTI", "DIRECT", "CLEANSE"]
 
 ## Pythio's dry one-liners. Edit freely.
 const QUIPS := {
@@ -1024,14 +1026,27 @@ func _create_spell_buttons() -> void:
 			spell_container.add_child(_make_empty_slot(key))
 
 
+## A spell's icon, first match wins (owner, 2026-10-27: new art needs no code change):
+##   1. ui/icons/spell_<id>.png (a rank can share its family's: spell_heal.png for Heal II)
+##   2. the four hand-wired stand-ins (SPELL_ICONS)
+##   3. ui/icons/tag_<tag>.png for the spell's main tag (passives: the tag they react to)
+##   4. the old shared tag icons (TAG_ICONS), then the fallback
 func spell_icon(spell: SpellData) -> Texture2D:
+	for id in [spell.id, spell.family()]:
+		var own := ART + "ui/icons/spell_%s.png" % id
+		if ResourceLoader.exists(own):
+			return load(own)
 	var rel: String = SPELL_ICONS.get(spell.id, "")
 	if rel == "":
-		var look: Array = spell.tags + spell.reacts_to_tags   # passives: the tag they react to
-		for tag in ["SHIELD", "HOT", "DIRECT", "DELAYED"]:
+		var look: Array = spell.tags + spell.reacts_to_tags
+		for tag in TAG_ORDER:
 			if look.has(tag):
-				rel = TAG_ICONS[tag]
-				break
+				var tag_art := ART + "ui/icons/tag_%s.png" % tag.to_lower()
+				if ResourceLoader.exists(tag_art):
+					return load(tag_art)
+				if TAG_ICONS.has(tag):
+					rel = TAG_ICONS[tag]
+					break
 	if rel == "" and spell.icon:
 		return spell.icon
 	if rel == "":
