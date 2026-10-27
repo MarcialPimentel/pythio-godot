@@ -419,6 +419,7 @@ func bonus_spell_card() -> Dictionary:
 		"header": "INSTEAD", "header_color": grey, "accent": grey,
 		"title": "A spell instead",
 		"stats": "Keep your passives",
+		"stats_color": Color(0.8, 0.76, 0.7),
 		"body_bb": "Keep the passives you have and pick a new spell (or a rank-up) instead.",
 		"flavor": "Cash, not credit.",
 	}
@@ -545,6 +546,7 @@ func spell_card(spell: SpellData) -> Dictionary:
 		"title": spell.display_name,
 		"cast": spell.cast_badge(),
 		"stats": spell.cost_line(),
+		"stats_color": SpellTags.COMBO_COLOR if spell.is_passive() else (DebuffStatus.VIOLET if spell.utility else SpellTags.MANA_COLOR),
 		"tags": spell.tags,
 		"body_bb": spell.description_bb(),
 		"hint_bb": synergy_hint_bb(spell) + (("\n" if synergy_hint_bb(spell) != "" else "") + "[color=#c9c2b6][i]Your %s are full: you'll choose one to replace.[/i][/color]" % ("passives" if spell.is_passive() else "spells") if badge == "SWAP" else ""),
@@ -1087,7 +1089,7 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	if spell.is_passive():
 		btn.add_child(_slot_label("Cost", "passive", 16, Color(1.0, 0.8, 0.35), Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
 	else:
-		btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, Color(1.0, 0.8, 0.35), Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+		btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, SpellTags.MANA_COLOR, Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
 		# Cast time on the button too (owner, 2026-10-24): "inst" or "1.5s", bottom left.
 		var cast_txt := "inst" if spell.cast_time <= 0.0 else "%ss" % SpellData._num(spell.cast_time)
 		var cast_lbl := _slot_label("Cast", cast_txt, 18, Color(0.93, 0.89, 0.8), Vector2(6, 84), HORIZONTAL_ALIGNMENT_LEFT)

@@ -54,6 +54,8 @@ const SCHOOL_COLORS := {
 
 ## Gold = combos and powerful effects (the game's colour language).
 const COMBO_COLOR := Color(1.0, 0.82, 0.3)
+## Icy cyan = mana: the bar, costs (owner, 2026-10-27, #63: gold means combos only).
+const MANA_COLOR := Color(0.55, 0.9, 1.0)
 
 
 static func label(tag: String) -> String:

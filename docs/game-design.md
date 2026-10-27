@@ -94,10 +94,12 @@ system has to make a new spell easy to add: numbers and effects, not new code.
 | Electric blue | Shields |
 | Gold | Combos and powerful effects: a gold flash always means a combo fired |
 | Blood red | Danger: bursts, warnings, wounds (and Bleed: heal it) |
+| Icy cyan | Mana: the bar, the orb, spell costs [Decided 2026-10-27] |
 | Violet | Debuffs you can Cleanse (Poison, Hex, Dread) and the Cleanse ability [Decided 2026-10-25, can change later] |
 
-- **Gold means combos only [Decided 2026-10-22].** Today the mana bar is also gold. It will
-  move to another colour in Phase G (see Planned features).
+- **Gold means combos only [Decided 2026-10-22].** Gold is combos, powerful effects and
+  your passive tray. **Mana is icy cyan** [Decided 2026-10-27]: the mana bar, its orb and every
+  mana cost on spell buttons and cards (the orb turns red-rimmed when you're low).
 - **Fonts:** Pirata One (titles), Oswald (UI), Special Elite (Pythio's speech), DejaVu
   (symbols). Files: `assets/fonts/`. The Phase H pass may change these.
 - **Art:** stand-ins cut from a concept sheet. The style guide, file names and prompt pack
@@ -616,7 +618,7 @@ spell batch 2 (Mitigation tag, 4 new spells, 5 new passives). **[Decided 2026-10
 **Phase G: Readability and feel [Decided]**
 - Basic sound: casts, combos, bursts, death.
 - Swap in high-res art as it's made (`docs/art.md`).
-- Mana bar off gold, so gold only ever means combos (decided 2026-10-22).
+- ✅ Mana bar off gold: icy cyan (decided 2026-10-27, #63).
 
 **Phase H: Words, names and flair [Decided, owner-led]**
 - Marz goes through every on-screen line: fonts, spell names, descriptions, flavour.
@@ -691,6 +693,7 @@ Listed so nobody "fixes" the wrong side.
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
 | 2026-10-24 | Claude (for Marz) | First-time practice round (Marz, after watching a new player): asked once per device after Take the Job; one knight, Heal only, three prompts, can't die, then the real run. Sections 3 and 11 updated. |
+| 2026-10-27 | Claude (for Marz) | Mana is icy cyan (Marz): the mana bar, its orb and spell costs; gold now only means combos, powerful effects and the passive tray. Section 2 and 12 updated. |
 | 2026-10-25 | Claude (for Marz) | Phase F: debuffs from round 6 (Poison, Bleed, Hex, Dread), shown above the fighter like "! INCOMING", violet = cleanse it; Cleanse on F (2 charges, Purify rank-up), Mend Wounds removes Poison, Purging Light and Clean Slate; bandages stop Bleed; new Cleanse tag and violet colour. Fixed the spell count (25 spells you cast with ranks, not 21). Sections 1, 2, 5, 6, 7, 8, 11, 12, 14 updated. |
 | 2026-10-25 | Claude (for Marz) | Phase E: Marz decided keystones and passives are one thing. Spell picks offer only spells; each Baron pays a passive (the Baron's bounty: no Skip, leaning to your tags; swaps or a spell pick when full). Six new data passives: Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction, Bastion. Sections 1, 3, 4, 5, 6, 9, 12 and 14 updated. |
 | 2026-10-24 | Claude (for Marz) | Marz thought Renew and Healing Plague didn't stack: they did, but the fighter only showed the longest heal-over-time. Now every one is listed. The timer flashes and pops in the last 5 seconds. Sections 3 and 11 updated. |

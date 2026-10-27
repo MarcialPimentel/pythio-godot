@@ -72,7 +72,7 @@ exist, those two stay standing when they die.
 | `ui/bars/health_bar_fill.png` | The red fill inside a fighter's health bar. | Stand-in | match the frame |
 | `ui/bars/shield_bar_fill.png` | The blue strip over a fighter's health bar while they have a shield. | Stand-in | match the frame |
 | `ui/bars/mana_bar_under.png` | The frame of your mana bar (bottom centre). | Stand-in | 1024 wide |
-| `ui/bars/mana_bar_fill.png` | The fill of your mana bar. Gold today; moving off gold in Phase G (#63). | Stand-in | match the frame |
+| `ui/bars/mana_bar_fill.png` | The fill of your mana bar. Icy cyan since 2026-10-27 (#63; the stand-in was recoloured from gold). | Stand-in | match the frame |
 | `ui/bars/mana_orb_1.png` | The orb left of the mana bar when mana is **25% or less**. | Stand-in | 256 |
 | `ui/bars/mana_orb_2.png` | Mana **26–50%**. | Stand-in | 256 |
 | `ui/bars/mana_orb_3.png` | Mana **51–75%**. | Stand-in | 256 |
@@ -136,7 +136,7 @@ the frames listed below appear.
 | `vfx/heal/heal_burst_1.png`, `_2`, `_3`, `_5` · `vfx/heal/hot_circle_2.png` … `_5` · `vfx/heal/healing_particles.png` | Not shown (unused animation frames). | Spare | 256 per frame |
 | `vfx/shield/shield_loop_2.png` … `_5` · `shield_impact_1`, `_3`, `_4` · `shield_break_1.png` … `_5` | Not shown. `shield_break` would suit a shield **breaking**. | Spare | 256 per frame |
 | `vfx/danger/danger_telegraph_2.png` … `_5` · `blood_burst_2`, `_4` · `danger_spikes_1.png` … `_5` | Not shown. | Spare | 256 per frame |
-| `vfx/mana/mana_orb_flow_1.png` … `_6` · `vfx/mana/mana_sparkles_1.png` … `_5` | Not shown (no mana effects yet; they're gold, so they'd need recolouring for #63). | Spare | 256 per frame |
+| `vfx/mana/mana_orb_flow_1.png` … `_6` · `vfx/mana/mana_sparkles_1.png` … `_5` | Not shown (no mana effects yet; they're gold; mana is icy cyan since #63, so they'd need recolouring). | Spare | 256 per frame |
 
 ## Props
 

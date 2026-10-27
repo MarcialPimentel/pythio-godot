@@ -175,7 +175,7 @@ One bullet ≈ one pull request.
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 - ⬜ #33 **Basic sound:** casts, combos, bursts, death.
 - ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
-- ⬜ #63 **Mana bar off gold,** so gold only ever means combos (owner, 2026-10-22).
+- ✅ #63 **Mana bar off gold:** icy cyan (owner, 2026-10-27) for the bar, the orb and costs.
 
 ### Phase H: Words, names and flair (owner-led)
 - ⬜ #61 **Fonts, spell names, descriptions and flavour:** the owner goes through all

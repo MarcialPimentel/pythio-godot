@@ -23,7 +23,7 @@ drop a better PNG with **the same name** over the old one. No code change is nee
   - electric blue = shields
   - blood red = danger, bursts, wounds
   - gold = combos and powerful effects (a gold flash always means a combo)
-  - mana: not gold (moving to another colour in Phase G, #63)
+  - icy cyan = mana (the bar, the orb, costs; since 2026-10-27, #63)
   - The full colour language is in `docs/game-design.md` (section 2).
 - **Camera:** characters full-body, front three-quarter view. Pythio is seen **from behind**
   (the player looks over his shoulder at the party).
