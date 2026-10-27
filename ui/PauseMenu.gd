@@ -73,6 +73,32 @@ func _ready() -> void:
 	_button(col, "Restart run", func(): close(); restart_requested.emit())
 	_button(col, "Quit to title", func(): close(); quit_requested.emit())
 
+	# Sound (Phase G, #33): volume and mute, saved on this device.
+	var sound := HBoxContainer.new()
+	sound.add_theme_constant_override("separation", 14)
+	col.add_child(sound)
+	var lbl := Label.new()
+	lbl.text = "Sound"
+	lbl.add_theme_font_size_override("font_size", 22)
+	sound.add_child(lbl)
+	var slider := HSlider.new()
+	slider.name = "Volume"
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = SoundSystem.volume
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	slider.value_changed.connect(SoundSystem.set_volume)
+	sound.add_child(slider)
+	var mute := CheckBox.new()
+	mute.name = "Mute"
+	mute.text = "Mute"
+	mute.button_pressed = SoundSystem.muted
+	mute.add_theme_font_size_override("font_size", 20)
+	mute.toggled.connect(SoundSystem.set_muted)
+	sound.add_child(mute)
+
 	var note := Label.new()
 	note.text = "Restarting or quitting ends this run. It isn't posted to the leaderboard."
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
