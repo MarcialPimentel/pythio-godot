@@ -984,6 +984,7 @@ func _update_mana_bar() -> void:
 		_low_mana_warned = true
 		_set_pose("low_mana", 2.0)
 		_say("low_mana")
+		SoundSystem.low_mana()
 
 
 func _on_cast_start(spell: SpellData, _target) -> void:

@@ -93,7 +93,11 @@ _Last updated: 2026-10-25 (Phase F). Owner: Marz. Claude works through this list
   violet = Cleanse it · **Cleanse on F** (2 charges, refill in the round), Purify rank-up,
   Mend Wounds removes Poison, Purging Light and Clean Slate · bandages stop Bleed · F1 can put
   any debuff on a fighter. Bot check: first deaths average round 6.5 (6.8 before).
-- **Next up:** Marz playtests Phase E and F → Phase G (sound, art, mana bar off gold).
+- **✅ Phase F merged 2026-10-25 (#87, Build 88).**
+- **Phase G started 2026-10-27 (owner):** Marz makes every sound and the art; Claude builds the
+  systems and lists. Sound list and file names: `docs/sound-design.md` (#33). Art workflow,
+  ChatGPT prompts, tag icons and one icon per spell: `docs/art-assets.md`. Mana → icy cyan (#63).
+- **Next up:** Marz playtests E and F, and starts on sounds and icons.
 - **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
   low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the
   rogue, adventurer and Baron (knight and mercenary still stay standing when they die). Every image and what to make next:
@@ -173,7 +177,8 @@ One bullet ≈ one pull request.
 
 ### Phase G: Readability and feel
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).
-- ⬜ #33 **Basic sound:** casts, combos, bursts, death.
+- 🟡 #33 **Basic sound:** system built (play by file name, volume/mute); Marz makes the 32 sounds
+  listed in `docs/sound-design.md`.
 - ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
 - ✅ #63 **Mana bar off gold:** icy cyan (owner, 2026-10-27) for the bar, the orb and costs.
 

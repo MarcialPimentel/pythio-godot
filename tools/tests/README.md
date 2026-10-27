@@ -29,6 +29,7 @@ Run from the repo root with Godot 4.3. Each script plays part of the game (picki
 | `test_countdown.gd` | Renew + Healing Plague on one fighter: both listed under the health bar and both heal (18 over 2s); the timer flashes and pops on each of the last 5 seconds and resets when the round ends; pass a path for screenshots |
 | `test_baron_passives.gd` | Phase E: the schedule (spells after 1, 3, 7, 9 …; a passive after 5, 10, 15 …); spell picks offer only spells and Baron picks only passives, leaning to your tags; the Baron's bounty screen (no Skip; with full passives, swaps and a spell-instead card); Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction and Bastion with real casts; pass a path for a screenshot |
 | `test_debuffs.gd` | Phase F: no debuffs before round 6, then on a timer; Poison stacks (3) and hurts; Hex halves heals but not shields; Bleed opens a wound, stops above 80% or with a bandage, can't be cleansed; Dread kills at its line, a death save still works, never on a fighter near the line; Cleanse on F (charges, refill), Mend Wounds removes Poison, Purify blocks new debuffs; Purging Light and Clean Slate fire only on a real cleanse; warnings above fighters; pass a path for a screenshot |
+| `test_sound.gd` | sound (#33): which sound each moment asks for (round start, casts by tag with fallback, combo, burst warning, debuff with fallback, cleanse, 5 countdown ticks, Job finished), volume and mute settings, Escape menu controls; works with or without sound files |
 | `screenshots.gd` | saves real screenshots of start, contract choice, boss, game over |
 
 ```bash
@@ -53,6 +54,7 @@ godot --headless --script tools/tests/test_practice.gd
 godot --headless --script tools/tests/test_countdown.gd
 godot --headless --script tools/tests/test_baron_passives.gd
 godot --headless --script tools/tests/test_debuffs.gd
+godot --headless --script tools/tests/test_sound.gd
 godot --headless --script tools/tests/test_job_finished.gd
 timeout 180 godot --headless --script tools/tests/test_full_run.gd   # fast-forwarded; quits on its own after Play Again
 # screenshots need a (virtual) display:

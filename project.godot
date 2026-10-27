@@ -34,6 +34,7 @@ ContractSelector="*res://autoload/systems/ContractSelector.gd"
 Leaderboard="*res://autoload/systems/Leaderboard.gd"
 CleanseSystem="*res://autoload/systems/CleanseSystem.gd"
 DebuffSystem="*res://autoload/systems/DebuffSystem.gd"
+SoundSystem="*res://autoload/systems/SoundSystem.gd"
 
 [display]
 

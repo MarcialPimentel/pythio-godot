@@ -17,7 +17,7 @@ any death ends the run.
   the frozen record of the 2026-10-21 design review (the *why*). `docs/design.md` is the
   original web game's doc: ideas only.
   `docs/art-assets.md` lists every image, its file name and when it appears; `docs/art.md`
-  has the style guide and prompt pack.
+  has the style guide and prompt pack. `docs/sound-design.md` lists every sound the same way.
 - Act as a game design veteran: push back when something weakens a pillar and suggest a
   better option. The owner makes the final call.
 
@@ -26,7 +26,8 @@ any death ends the run.
 - Main scene: `scenes/Game.tscn` (script `scenes/game.gd`).
 - Global systems are autoloads (see `project.godot`): GameManager, SpellSystem,
   DraftSystem, BandageSystem, RunStats, BossDirector, EffectSystem, TargetSystem,
-  ContractGenerator, DifficultySystem, EventBus, PartyChoicePanel, CleanseSystem, DebuffSystem.
+  ContractGenerator, DifficultySystem, EventBus, PartyChoicePanel, CleanseSystem, DebuffSystem,
+  SoundSystem (plays `assets/audio/sfx/<name>.ogg` by file name; list in `docs/sound-design.md`).
 - Data lives in Resources: spells in `resources/spells/*.tres`, schools in
   `resources/specs/*.tres`, contracts and units in `data/`.
 
