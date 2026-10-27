@@ -250,7 +250,7 @@ func _build_card(i: int, d: Dictionary) -> Button:
 		chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		cast_row.add_child(chip)
 	if d.get("stats", "") != "":
-		var cost := _label(d.stats, 19, Color(1.0, 0.8, 0.35))
+		var cost := _label(d.stats, 19, d.get("stats_color", SpellTags.MANA_COLOR))
 		cost.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		cast_row.add_child(cost)
 
