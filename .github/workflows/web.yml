@@ -86,7 +86,7 @@ jobs:
           if grep -E "^ERROR|SCRIPT ERROR|Parse Error" run.log; then echo "::error::Game logs errors on start"; exit 1; fi
 
       - name: Automated tests (tools/tests)
-        run: tools/tests/run_all.sh ~/godot/godot
+        run: bash tools/tests/run_all.sh ~/godot/godot
 
       - name: Leaderboard server has no PHP syntax errors
         run: for f in web/*.php; do php -l "$f"; done
