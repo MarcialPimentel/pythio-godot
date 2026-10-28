@@ -177,8 +177,9 @@ func _ready() -> bool:
 	return true
 
 
+## Seconds of play (not paused, not between rounds), so pausing can't reset a cooldown.
 func _now() -> float:
-	return Time.get_ticks_msec() / 1000.0
+	return EffectSystem.clock
 
 
 ## Forget counters and cooldowns (a new run).
@@ -231,7 +232,8 @@ func _apply(t: Node, v: float) -> bool:
 				EffectSystem.effect_applied.emit("hot_tick", t, v, "")
 			return restored > 0.0
 		"SHIELD":
-			var s := ShieldStatus.new(v, duration)
+			# Through the shield rules like any shield (Bulwark, Diminishing shields).
+			var s := ShieldStatus.new(EffectSystem.shield_amount(t, v, null), duration)
 			s.label = _label()
 			s.set_meta("trigger_event", event)
 			EffectSystem.add_status(t, s, null)

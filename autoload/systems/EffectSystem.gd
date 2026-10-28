@@ -13,6 +13,15 @@ var battlefield_rules: Array[PassiveRule] = []
 ## "protect", "delayed" or "mana".
 signal effect_applied(effect_type: String, target, value: float, vfx_color: String)
 
+## Seconds of play: counts only during a round and stops while the game is paused.
+## Passive cooldowns use it.
+var clock := 0.0
+
+
+func _process(delta: float) -> void:
+	if GameManager.in_round:
+		clock += delta
+
 
 func _ready() -> void:
 	var dir := DirAccess.open("res://resources/rules/")

@@ -348,7 +348,7 @@ cancelled, the rules panel shows it struck through, with the passive's name in g
 
 | Rule (everyone) | What it does | Mirror passive | What the mirror does |
 |---|---|---|---|
-| Diminishing shields | A second shield on a fighter who already has one absorbs 50% less | Bulwark (Ward) | Shields stack at full strength and absorb 15% more |
+| Diminishing shields | A different shield on a fighter who already has one absorbs 50% less; recasting the same shield refreshes it at full strength [Decided 2026-10-28]. Shields from passives follow it too | Bulwark (Ward) | Shields stack at full strength and absorb 15% more (passives' shields included) |
 | Exhaustion | Run your mana dry (too little for any spell) and it refills at half speed for 4s | Second Wind (Any) | Running dry restores 30 mana instead (once every 20s) |
 | Saturation | Overheal a fighter by 8+ and your next heal on them is 30% weaker for 3s (heal-over-time ticks never trigger it) | Overflow (Mending) | 50% of overheal becomes a shield (up to 20, for 5s) |
 
@@ -368,7 +368,8 @@ X% health), **do** [action] to [who].
 | Action | heal · shield · mana · heal-over-time · extend heals-over-time · boost (+%) |
 | Who | that fighter · the fighters on each side · your most injured fighter · every fighter |
 
-Triggers can't set off the same kind of trigger (no endless chains). Script:
+Triggers can't set off the same kind of trigger (no endless chains). Cooldowns count
+seconds of play: they stop while the game is paused and between rounds [2026-10-28]. Script:
 `resources/spells/passives/TagTriggerRule.gd`. The six Phase E passives use the same parts
 (no new code).
 
@@ -695,6 +696,7 @@ Listed so nobody "fixes" the wrong side.
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-10-28 | Claude (for Marz) | Bug fixes from the code review (#92): recasting the same shield refreshes it at full strength (Marz); passives' shields follow Bulwark and Diminishing shields; passive cooldowns stop while paused and between rounds; the Baron's "a spell instead" pick has no Skip; heals-over-time no longer lose their last tick; "Job finished" waits while paused; quitting right after a pick can't start a hidden round. Section 6 updated. |
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
 | 2026-10-24 | Claude (for Marz) | First-time practice round (Marz, after watching a new player): asked once per device after Take the Job; one knight, Heal only, three prompts, can't die, then the real run. Sections 3 and 11 updated. |

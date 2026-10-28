@@ -63,6 +63,13 @@ func _process(d):
 		3:
 			P("HoT 4/s for 3s: hp=%.0f (expect 22) hot_time=%.1f statuses=%d" % [hp(T[0]), T[0].health_comp.hot_time, T[0].health_comp.statuses.size()])
 			C.near(hp(T[0]), 22.0, "HoT 4/s for 3s heals all 3 ticks")
+			# The last tick must survive rounding (0.1 added ten times is 0.9999…, not 1.0)
+			setall(10.0)
+			var h = load("res://components/statuses/HotStatus.gd").new(4.0, 3.0)
+			h.target = T[1]
+			for i in 30:
+				if h.time_left > 0.0: h.tick(T[1].health_comp, 0.1)
+			C.near(hp(T[1]), 22.0, "a 3s HoT stepped in 0.1s frames still pays all 3 ticks")
 			var ward := make("ward", ["SHIELD"], [eff("ShieldEffect", {"amount": 20.0, "duration": 1.0, "heal_on_end": 7.0})])
 			setall(30.0); ES.cast(ward, T[0]); ES.cast(ward, T[1])
 			var r = T[0].health_comp.take_damage(25.0)

@@ -44,6 +44,17 @@ func _process(d):
 			reset(40.0); cast("shield", T[1]); cast("guardian_ward", T[1])
 			P("Bulwark: same casts → %.1f (34.5 + 28.75 = 63.25) · rules: %s" % [T[1].health_comp.shield_amount, rules_text()])
 			C.near(T[1].health_comp.shield_amount, 63.25, "Bulwark: shields stack at full strength, +15%")
+			# Owner, 2026-10-28: recasting the same shield refreshes it at full strength
+			SS.set_spellbook_ids(PackedStringArray(["shield", "flash_heal"]))
+			reset(40.0); cast("shield", T[2]); T[2].health_comp.take_damage(10.0); cast("shield", T[2])
+			C.near(T[2].health_comp.shield_amount, 30.0, "recasting your Shield refreshes it to 30 (not halved)")
+			# Shields from passives follow the shield rules too (review 2026-10-28)
+			SS.set_spellbook_ids(PackedStringArray(["shield", "divine_protection", "sanctuary"]))
+			reset(40.0); cast("shield", T[3]); cast("divine_protection", T[3])
+			C.near(T[3].health_comp.shield_amount, 37.5, "Sanctuary's 15 shield on top of a Shield is halved (30 + 7.5)")
+			SS.set_spellbook_ids(PackedStringArray(["divine_protection", "sanctuary", "bulwark"]))
+			reset(40.0); cast("divine_protection", T[3])
+			C.near(T[3].health_comp.shield_amount, 17.25, "Bulwark makes Sanctuary's shield 15% bigger")
 			# Exhaustion
 			SS.set_spellbook_ids(PackedStringArray(["shield"]))
 			reset(40.0); GM.mana = 20.0; cast("shield", T[2]); wait = 0.05

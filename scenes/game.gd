@@ -111,6 +111,8 @@ var _last_combo_quip := -100.0
 var _card_options: Array = []
 ## The offer screen being shown (so "Back" from the swap screen can return to it).
 var _last_offers: Array = []
+## The spell pick came from the Baron's bounty ("A spell instead"), so it has no Skip either.
+var _from_bounty := false
 var _last_pick_round := 0
 ## The spell waiting to replace one of yours (swap screen).
 var _pending_swap: SpellData = null
@@ -315,7 +317,7 @@ func _on_round_cleared_transition(round_num: int) -> void:
 	var tw := create_tween()
 	tw.tween_property(_job_finished, "modulate:a", 1.0, 0.2)
 	_say("cleared", DifficultySystem.job_finished_time + 1.0)
-	await get_tree().create_timer(DifficultySystem.job_finished_time).timeout
+	await get_tree().create_timer(DifficultySystem.job_finished_time, false).timeout   # holds while paused
 	if my_id != _job_finished_id:
 		return   # the run was left or a new transition started
 	_job_finished_active = false
@@ -367,6 +369,8 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	contract_info.visible = false
 	round_label.text = ("Round %d cleared" % round_cleared) if round_cleared > 0 else "Bonus pick"
 	_card_mode = "spell"
+	if _last_pick_round != round_cleared:
+		_from_bounty = false   # a new pick screen, not a return from "Replace which spell?"
 	_last_offers = Array(offers)
 	_last_pick_round = round_cleared
 	_card_options = []   # untyped: it also holds the Skip marker
@@ -381,10 +385,10 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	for spell in _card_options:
 		cards.append(spell_card(spell))
 	if bounty:
-		if DraftSystem.passives_full():
+		if DraftSystem.passives_full() and not DraftSystem.make_offers("spell").is_empty():
 			_card_options.append(BONUS_SPELL)
 			cards.append(bonus_spell_card())
-	else:
+	elif not _from_bounty:
 		_card_options.append(SKIP)
 		cards.append(skip_card())
 	var sub := ""
@@ -472,6 +476,7 @@ func _on_card_chosen(index: int) -> void:
 			if typeof(choice) == TYPE_STRING and choice == BONUS_SPELL:
 				var spells := DraftSystem.make_offers("spell")
 				if not spells.is_empty():
+					_from_bounty = true   # the Baron's bounty has no Skip (Phase E)
 					_show_spell_pick(spells, _last_pick_round)
 					return
 			elif typeof(choice) == TYPE_STRING and choice == SKIP:
@@ -494,6 +499,7 @@ func _on_card_chosen(index: int) -> void:
 				_on_start_pressed()
 			return
 	_card_mode = ""
+	_from_bounty = false
 	GameManager.continue_to_contracts()
 
 
@@ -1408,6 +1414,8 @@ func _leave_run() -> void:
 	GameManager.abandon_run()
 	party_choice_panel.visible = false
 	card_panel.close()
+	_card_mode = ""
+	_from_bounty = false
 	game_over_panel.visible = false
 	cast_bar.visible = false
 	fallen_name = ""
