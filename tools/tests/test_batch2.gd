@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Spell batch 2 (#70): new spells and passives with real casts, the Mitigation tag (key PROTECT), offer
 # gating, and the tag census (every tag: at least 2 spells have it and 2 react to it).
 var game; var f := 0; var GM; var SS; var DS; var TS; var ES; var step := 0; var wait := 0.0
@@ -101,6 +102,6 @@ func _process(d):
 			use(["heal"])
 			P("Sanctuary offered with only Heal=%s · after Divine Protection=%s" % [DS.requirements_met(lib("sanctuary")), (func(): use(["heal", "divine_protection"]); return DS.requirements_met(lib("sanctuary"))).call()])
 			P("Hasten / Ripening need Delayed: with Lifebloom=%s" % [(func(): use(["lifebloom"]); return DS.requirements_met(lib("hasten")) and DS.requirements_met(lib("ripening"))).call()])
-			quit()
+			C.done(self)
 	step += 1
 	return false

@@ -3,12 +3,10 @@
 AddType application/wasm .wasm
 AddType application/octet-stream .pck
 
-# Let browsers cache the big engine files; index.html always checks for updates.
+# Browsers keep the game files but check for a newer one every time (a cheap "not modified"
+# reply when nothing changed), so a new build is live for everyone right after a deploy.
 <IfModule mod_headers.c>
-  <FilesMatch "\.(wasm|pck)$">
-    Header set Cache-Control "public, max-age=3600"
-  </FilesMatch>
-  <FilesMatch "index\.html$">
+  <FilesMatch "\.(html|js|pck|wasm)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 </IfModule>

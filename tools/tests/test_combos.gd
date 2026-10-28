@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Combo spells with real casts: Renew → Overgrowth, Echo Healing → Heal, Shield → Spirit Surge.
 # Checks the gold combo label on the fighter, Pythio's quip, and that combo spells are only
 # offered once you own a spell with the tag they react to.
@@ -60,6 +61,6 @@ func _process(d):
 			P("Shield → Spirit Surge: hp=%.0f (10+45, capped at max HP) shield=%.0f combos=%s" % [hp(T[2]), T[2].health_comp.shield_amount, combos])
 			P("Pythio quip visible=%s text='%s'" % [game.quip_bubble.visible, game.quip_label.text])
 			P("card text: %s" % str(["overgrowth", "echo_healing", "spirit_surge"].map(func(id): return SS.get_library_spell(id).description_plain())))
-			quit()
+			C.done(self)
 	step += 1
 	return false

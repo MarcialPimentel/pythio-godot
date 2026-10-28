@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Phase F (owner, 2026-10-25): debuffs and Cleanse.
 # - schedule: none before round 6; from round 6 a debuff every few seconds, never on the Baron
 # - Poison stacks (up to 3) and hurts; Bleed hurts until healed above 80% or bandaged, and
@@ -129,7 +130,7 @@ func _process(d):
 			var line: float = T[3].health_comp.get_debuff("DREAD").threshold
 			T[3].health_comp.take_damage(hp(T[3]) - line + 1.0)
 			P("RESULT Dread: line at %d, fighter dropped to it → dead=%s" % [roundi(line), T[3].health_comp.is_dead])
-			quit()
+			C.done(self)
 	step += 1
 	return false
 

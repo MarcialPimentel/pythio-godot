@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Battlefield rules and their mirrored passives:
 # Diminishing shields ↔ Bulwark, Exhaustion ↔ Second Wind, Saturation (soft) ↔ Overflow.
 var game; var f := 0; var GM; var SS; var TS; var ES; var step := 0; var wait := 0.0; var T := []
@@ -38,41 +39,51 @@ func _process(d):
 			SS.set_spellbook_ids(PackedStringArray(["shield", "guardian_ward", "flash_heal"]))
 			reset(40.0); cast("shield", T[0]); cast("guardian_ward", T[0])
 			P("Diminishing: Shield 30 then Guardian Ward 25 → total shield %.1f (30 + 12.5 = 42.5)" % T[0].health_comp.shield_amount)
+			C.near(T[0].health_comp.shield_amount, 42.5, "a second, different shield absorbs 50% less")
 			SS.set_spellbook_ids(PackedStringArray(["shield", "guardian_ward", "flash_heal", "bulwark"]))
 			reset(40.0); cast("shield", T[1]); cast("guardian_ward", T[1])
 			P("Bulwark: same casts → %.1f (34.5 + 28.75 = 63.25) · rules: %s" % [T[1].health_comp.shield_amount, rules_text()])
+			C.near(T[1].health_comp.shield_amount, 63.25, "Bulwark: shields stack at full strength, +15%")
 			# Exhaustion
 			SS.set_spellbook_ids(PackedStringArray(["shield"]))
 			reset(40.0); GM.mana = 20.0; cast("shield", T[2]); wait = 0.05
 		3:
 			P("Exhaustion: Shield (14) from 20 mana leaves %.0f → exhausted for %.1fs, label '%s'" % [GM.mana, GM.exhausted_time, game.mana_label.text])
+			C.near(GM.mana, 6.0, "Shield costs 14", 1.5); C.ok(GM.exhausted_time > 0.0, "running dry exhausts you")
 			GM.mana = 0.0; GM.regen_mana(1.0)
 			P("  regen over 1s while exhausted: %.1f (4 × 50%% = 2)" % GM.mana)
+			C.near(GM.mana, 2.0, "exhausted regen is half speed")
 			SS.set_spellbook_ids(PackedStringArray(["shield", "second_wind"]))
 			reset(40.0); GM.mana = 20.0; cast("shield", T[2]); wait = 0.05
 		4:
 			var after: float = GM.mana
 			P("Second Wind: Shield from 20 → %.0f (6 + 30 = 36), exhausted=%.1fs · rules: %s" % [after, GM.exhausted_time, rules_text()])
+			C.near(after, 36.0, "Second Wind gives 30 mana", 1.5); C.near(GM.exhausted_time, 0.0, "and cancels exhaustion")
 			GM.mana = 20.0; cast("shield", T[3]); wait = 0.05
 		5:
 			P("  again within 20s: mana %.0f (6, on cooldown)" % GM.mana)
+			C.near(GM.mana, 6.0, "Second Wind is on cooldown", 1.5)
 			# Saturation
 			SS.set_spellbook_ids(PackedStringArray(["flash_heal", "renew"]))
 			reset(10.0); T[0].health_comp.current_health = T[0].health_comp.max_health - 5.0
 			cast("flash_heal", T[0]); wait = 0.05
 		6:
 			P("Saturation: Flash Heal with 5 missing → saturated=%s" % T[0].health_comp.has_status("SATURATED"))
+			C.ok(T[0].health_comp.has_status("SATURATED"), "big overheal saturates")
 			T[0].health_comp.current_health = 10.0; var b: float = hp(T[0]); cast("flash_heal", T[0])
 			P("  next Flash Heal heals %.1f (32 × 0.7 = 22.4); saturated now=%s" % [hp(T[0]) - b, T[0].health_comp.has_status("SATURATED")])
+			C.near(hp(T[0]) - b, 22.4, "saturated heal is 30% weaker")
 			reset(10.0); T[1].health_comp.current_health = T[1].health_comp.max_health - 1.0
 			cast("renew", T[1]); wait = 2.1
 		7:
 			P("  Renew ticks overhealing never saturate: saturated=%s" % T[1].health_comp.has_status("SATURATED"))
+			C.ok(not T[1].health_comp.has_status("SATURATED"), "HoT ticks never saturate")
 			SS.set_spellbook_ids(PackedStringArray(["flash_heal", "overflow"]))
 			reset(10.0); T[2].health_comp.current_health = T[2].health_comp.max_health - 5.0
 			cast("flash_heal", T[2]); wait = 0.05
 		8:
 			P("Overflow: overheal 27 → shield %.1f (13.5), saturated=%s · rules: %s" % [T[2].health_comp.shield_amount, T[2].health_comp.has_status("SATURATED"), rules_text()])
-			quit()
+			C.near(T[2].health_comp.shield_amount, 13.5, "Overflow turns half the overheal into a shield"); C.ok(not T[2].health_comp.has_status("SATURATED"), "Overflow cancels Saturation")
+			C.done(self)
 	step += 1
 	return false

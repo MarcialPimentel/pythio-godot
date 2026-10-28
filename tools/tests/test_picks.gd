@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Specialization pick and spell picks: schedule, offer rules, rank-ups, cap, build complete,
 # and the real flow (school pick → round 1 → spell pick → contracts).
 var game; var f := 0; var GM; var DS; var SS; var step := 0; var wait := 0.0; var complete := 0
@@ -22,10 +23,12 @@ func _process(d):
 			game._on_start_pressed(); wait = 0.2
 		1:
 			P("school screen: visible=%s mode=%s schools=%s spellbook=%s" % [game.card_panel.visible, game._card_mode, DS.specs.map(func(s): return s.display_name), ids(SS.spells)])
+			C.ok(game.card_panel.visible and game._card_mode == "spec", "run starts on Choose your spell")
 			game.card_panel._choose(1); wait = 0.6   # Bloom
 		2:
 			P("picked %s: spellbook=%s contract screen=%s" % [DS.current_spec.display_name, ids(SS.spells), game.party_choice_panel.visible])
 			P("pick rounds 1..21: %s" % [range(1, 22).filter(func(r): return DS.is_pick_round(r))])
+			C.eq(range(1, 22).filter(func(r): return DS.is_pick_round(r)), [1, 3, 5, 7, 9, 10, 11, 13, 15, 17, 19, 20, 21], "pick rounds (spells, plus the Baron every 5th)")
 			# Offer rules over many rolls
 			var counts := {"own": 0, "any": 0, "other": 0, "upgrade": 0, "dupes": 0, "owned": 0, "with_other": 0, "rolls": 300}
 			for i in 300:
@@ -43,6 +46,7 @@ func _process(d):
 				if had_other: counts.with_other += 1
 			P("300 offer rolls as Bloom (Renew owned): %s" % counts)
 			P("RESULT offers have no duplicates or owned spells=%s, one other-school card each time=%s" % [counts.dupes == 0 and counts.owned == 0, counts.with_other == 300])
+			C.ok(counts.dupes == 0 and counts.owned == 0, "offers never repeat or offer an owned spell"); C.eq(counts.with_other, 300, "one other-school card every time")
 			var gated: Array = SS.library.filter(func(s): return not s.requires_tags.is_empty())
 			P("spells that need a tag you own: %s" % [gated.map(func(s): return "%s needs %s → offered now=%s" % [s.id, s.requires_tags, DS.requirements_met(s)])])
 			# Rank-up replaces in the same slot
@@ -60,11 +64,13 @@ func _process(d):
 			P("passives go to the tray: spells=%s passives=%s" % [ids(SS.spells), ids(SS.passives)])
 			var o2: Array = DS.make_offers()
 			P("full (%d/%d spells, %d/%d passives): offers=%s (all rank-ups=%s)" % [SS.spells.size(), DS.spellbook_cap, SS.passives.size(), DS.passive_cap, ids(o2), o2.all(func(s): return SS.owned_rank(s.family()) > 0)])
+			C.ok(o2.all(func(s): return SS.owned_rank(s.family()) > 0), "with everything full, offers are rank-ups")
 			for id in ["shield_2", "heal_2", "heal_3"]:
 				SS.add_spell(SS.get_library_spell(id))
 			P("everything ranked up: spellbook=%s offers=%s" % [ids(SS.spells), ids(DS.make_offers())])
 			var a = DS.offers_after_round(5); var b = DS.offers_after_round(10)
 			P("RESULT build complete fires once: offers=%s/%s signal count=%d" % [ids(a), ids(b), complete])
+			C.eq(complete, 1, "build complete fires once")
 			DS.swap_when_full = true
 			# Real flow from a fresh run: school → round 1 → spell pick → contracts
 			GM.new_game(); wait = 0.2
@@ -76,14 +82,17 @@ func _process(d):
 			GM.round_time = 0.01; wait = 0.3
 		6:
 			P("after round 1: pick screen=%s mode=%s offers=%s" % [game.card_panel.visible, game._card_mode, ids(game._card_options)])
+			C.ok(game.card_panel.visible and game._card_mode == "spell", "a spell pick follows round 1")
 			game.card_panel._choose(0); wait = 0.6
 		7:
 			P("after picking: spellbook=%s contract screen=%s round=%d" % [ids(SS.spells), game.party_choice_panel.visible, GM.current_round])
+			C.ok(game.party_choice_panel.visible, "picking opens Next party")
 			game.party_choice_panel._on_left_chosen(); wait = 0.2
 		8:
 			GM.round_time = 0.01; wait = 0.3
 		9:
 			P("after round 2 (not a pick round): pick screen=%s contract screen=%s" % [game.card_panel.visible, game.party_choice_panel.visible])
-			quit()
+			C.ok(not game.card_panel.visible and game.party_choice_panel.visible, "no pick after round 2")
+			C.done(self)
 	step += 1
 	return false

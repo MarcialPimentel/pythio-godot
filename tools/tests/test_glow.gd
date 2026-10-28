@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Combo-ready glow: a spell button glows gold when casting it on the hovered fighter would
 # fire a combo — Overgrowth on a HoT, Spirit Surge on a Shield, Direct heals on an
 # Echo-marked fighter, Direct heals on a low fighter with Seraphic Blessing.
@@ -61,6 +62,6 @@ func _process(d):
 		9:
 			if shot != "":
 				root.get_viewport().get_texture().get_image().save_png(shot); print("saved shot")
-			quit()
+			C.done(self)
 	step += 1
 	return false

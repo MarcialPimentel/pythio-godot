@@ -8,3 +8,6 @@
 
 # Local export output
 /build/
+
+# Windows leftovers from replacing a locked file
+~*

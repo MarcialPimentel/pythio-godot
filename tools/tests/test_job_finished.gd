@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # "Job finished" (owner, 2026-10-24): after a cleared round a short screen holds and ignores
 # input, then the pick or Next party screen opens, and that screen ignores clicks and keys
 # for its first moment, so nobody picks a card or starts a round by accident.
@@ -88,6 +89,6 @@ func _process(d):
 		16:
 			P("quit to title during the hold: shown=%s pick screen=%s party screen=%s in_round=%s (all false expected)" % [
 				jf_visible(), game.card_panel.visible, game.party_choice_panel.visible, GM.in_round])
-			quit()
+			C.done(self)
 	step += 1
 	return false

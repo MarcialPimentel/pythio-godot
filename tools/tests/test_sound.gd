@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Sound (Phase G, #33): sounds play by file name from assets/audio/sfx/ and a missing file is
 # silent. Checks which sound each moment asks for (casts by tag, combo, burst warning, debuff
 # with its fallback, cleanse, round start, final countdown ticks, Job finished), the volume
@@ -62,6 +63,6 @@ func _process(d):
 			var pm = game.get_children().filter(func(c): return c.get_script() and str(c.get_script().resource_path).ends_with("PauseMenu.gd"))
 			var has_controls: bool = not pm.is_empty() and pm[0].find_child("Volume", true, false) != null and pm[0].find_child("Mute", true, false) != null
 			P("Escape menu has Sound volume and Mute=%s" % has_controls)
-			quit()
+			C.done(self)
 	step += 1
 	return false

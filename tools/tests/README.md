@@ -1,7 +1,20 @@
 # Automated checks (no screen needed)
 
-Run from the repo root with Godot 4.3. Each script plays part of the game (picking the first card on any school/spell pick screen) and prints
-`TEST:` lines; look for unexpected values and any `ERROR` / `SCRIPT ERROR`.
+Run from the repo root with Godot 4.3. Each script plays part of the game (picking the first
+card on any pick screen), prints `TEST:` lines for people to read, and checks the results with
+`check.gd` (`C.ok`, `C.eq`, `C.near` print `PASS:` / `FAIL:`; `C.done(self)` exits with 1 if
+anything failed).
+
+**Run them all** (CI does this on every PR and merge; nothing deploys if one fails):
+
+```bash
+tools/tests/run_all.sh path/to/godot          # all tests
+tools/tests/run_all.sh path/to/godot picks    # only tests whose name contains "picks"
+```
+
+A test fails if it prints a `FAIL:` line, an `ERROR` / `SCRIPT ERROR`, crashes, hangs past
+5 minutes, or never reaches `C.done()`. When you add a test, end it with `C.done(self)` and
+turn the values you'd eyeball into `C.ok` / `C.eq` / `C.near` checks.
 
 | Script | What it checks |
 |---|---|

@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # The Crimson Baron fight: arrives at 55% with 2 guards; phase banners at 0 / 40% / 75% of
 # the round; assassin strikes only in phase 2; one execution warning in phase 3; random
 # bursts never target him; his second visit hits 15% harder.
@@ -60,6 +61,6 @@ func _process(d):
 		6:
 			baron = TS.targets.filter(func(t): return t.is_boss)[0]
 			P("visit 2: '%s', Baron max %.0f, factor %.2f, bleed %.1f/s (1200-HP visit-1 Baron: 14.4/s)" % [game.party_choice_panel.left_name.text, baron.health_comp.max_health, BD.visit_factor(), BD.boss_dps(baron)])
-			quit()
+			C.done(self)
 	step += 1
 	return false

@@ -70,7 +70,9 @@ any death ends the run.
 The project owner is not a programmer and tests by playing. Every change must leave the
 game launching and playable. Before opening a PR:
 1. `godot --headless --import` then `godot --headless --quit-after 300` from the repo root
-   and confirm there are no new `ERROR` / `SCRIPT ERROR` lines.
+   and confirm there are no new `ERROR` / `SCRIPT ERROR` lines. Then `tools/tests/run_all.sh <godot>`
+   must pass (CI runs it too; nothing deploys if it fails). Turn what a new test checks into
+   `C.ok` / `C.eq` / `C.near` checks (`tools/tests/check.gd`), not just printed lines.
 2. In the PR description, write **plain-language test steps** ("Start a run, pick the left
    contract, cast Flash Heal on the first fighter — their health bar should rise").
 

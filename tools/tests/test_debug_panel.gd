@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Debug panel (F1): toggle, jump to round, +mana, god mode, hit/heal, skip round,
 # and that a debug run can't be posted to the leaderboard. Play Again starts clean.
 var game; var f := 0; var GM; var TS; var dbg; var step := 0; var wait := 0
@@ -27,10 +28,12 @@ func _process(_d):
 		1:
 			if root.get_node("DraftSystem").current_spec == null: return false
 			P("F1 opens panel: %s" % dbg._panel.visible)
+			C.ok(dbg._panel.visible, "F1 opens the debug panel")
 			dbg._round_spin.value = 15; dbg._jump(); step = 2; wait = 2
 		2:
 			var c = game.contract_selector.get_contracts_for_round(GM.current_round)
 			P("after jump: round=%d mana=%d/%d boss=%s debug_used=%s" % [GM.current_round, GM.mana, GM.max_mana, c[0].is_boss, GM.debug_used])
+			C.ok(GM.debug_used, "using the debug panel marks the run as debug")
 			game.party_choice_panel._on_left_chosen(); step = 3; wait = 3
 		3:
 			GM.mana = 10.0; dbg._add_mana(); P("+50 mana: %d" % GM.mana)
@@ -48,6 +51,7 @@ func _process(_d):
 			for i in 20: dbg._hit_target()
 			var hc = TS.targets[0].health_comp
 			P("god mode, 20 hits of 25: hp=%.0f/%.0f dead=%s in_round=%s" % [hc.current_health, hc.max_health, hc.is_dead, GM.in_round])
+			C.ok(not hc.is_dead, "god mode: nobody dies")
 			dbg._heal_target(); P("heal to full: hp=%.0f" % hc.current_health)
 			dbg._skip_round(); step = 4; wait = 3
 		4:
@@ -60,9 +64,11 @@ func _process(_d):
 			step = 6; wait = 3
 		6:
 			P("game over visible=%s submit disabled=%s status='%s'" % [game.game_over_panel.visible, game.submit_button.disabled, game.submit_status.text])
+			C.ok(game.game_over_panel.visible and game.submit_button.disabled, "a debug run can't be posted")
 			game.play_again_button.emit_signal("pressed"); step = 7; wait = 5
 		7:
 			P("Play Again: round=%d debug_used=%s god_mode=%s" % [GM.current_round, GM.debug_used, GM.god_mode])
-			quit()
-	if f > 5000: P("TIMEOUT"); quit()
+			C.eq(GM.current_round, 1, "Play Again starts at round 1"); C.ok(not GM.debug_used and not GM.god_mode, "Play Again starts a clean, postable run")
+			C.done(self)
+	if f > 5000: C.timed_out(self)
 	return false
