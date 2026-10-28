@@ -76,6 +76,14 @@ func remove_status(status: Status, expired: bool) -> void:
 	_changed(status)
 
 
+## Takes a status off without its end effects (consumed, landed early, used up), and
+## tells the UI. Use this instead of erasing from `statuses` by hand.
+func drop_status(status: Status) -> void:
+	if statuses.has(status):
+		statuses.erase(status)
+		_changed(status)
+
+
 ## Debuffs on this fighter (optionally only those that can be cleansed).
 func debuffs(only_cleansable: bool = false) -> Array[DebuffStatus]:
 	var out: Array[DebuffStatus] = []
@@ -170,22 +178,19 @@ func take_damage(amount: float) -> Dictionary:
 		if not saves.is_empty():
 			current_health = 1.0
 			var save := saves[0] as SaveStatus
-			statuses.erase(save)
-			_changed(save)
+			drop_status(save)
 			EffectSystem.death_prevented(fighter(), save)
 			return result
 	current_health -= incoming
 	# Dread (Phase F): falling to its line is a killing blow. A death save still works.
 	var dread := get_debuff("DREAD")
 	if dread and current_health > 0.0 and current_health <= dread.threshold:
-		statuses.erase(dread)
-		_changed(dread)
+		drop_status(dread)
 		var saves := get_statuses("SAVE")
 		if not saves.is_empty():
 			current_health = maxf(1.0, current_health)
 			var save := saves[0] as SaveStatus
-			statuses.erase(save)
-			_changed(save)
+			drop_status(save)
 			EffectSystem.death_prevented(fighter(), save)
 			return result
 		EventBus.dread_struck.emit(fighter())

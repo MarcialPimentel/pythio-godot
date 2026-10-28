@@ -131,7 +131,7 @@ func _on_round_end(r):
 	print("SIM     decisions: %s" % why); why = {}
 	stat = {"healed": 0.0, "overheal": 0.0, "burst": 0.0, "casts": 0, "idle_mana_low": 0}
 
-func _on_over(round_reached: int, _score: int):
+func _on_over(round_reached: int):
 	var key: String = SCHOOLS[school_i]
 	if not results.has(key): results[key] = []
 	results[key].append("R%d %s" % [round_reached, SS.spells.map(func(s): return s.id)])

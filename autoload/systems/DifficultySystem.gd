@@ -2,8 +2,6 @@
 
 extends Node
 
-## Rounds in a run. 0 = endless (keep going until a fighter dies).
-@export var total_rounds: int = 0
 ## The Crimson Baron shows up on every Nth round (5 → rounds 5, 10, 15 …).
 @export var boss_every: int = 5
 
@@ -86,9 +84,6 @@ extends Node
 
 func get_round_time(round: int) -> float:
 	return minf(round_time_max, first_round_time + round_time_growth * maxi(0, round - 1))
-
-func is_endless() -> bool:
-	return total_rounds <= 0
 
 func is_boss_round(round: int) -> bool:
 	return boss_every > 0 and round % boss_every == 0

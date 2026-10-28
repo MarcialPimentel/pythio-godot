@@ -1,4 +1,4 @@
-# ui/PartyChoicePanel.gd  (or wherever it's located)
+# ui/PartyChoicePanel.gd — the Next party screen (who you heal next; Ready / Space).
 extends Control
 
 @onready var left_button: Button = $ChoicesContainer/LeftParty/LeftVBox/LeftButton

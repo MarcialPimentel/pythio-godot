@@ -1,19 +1,17 @@
 extends Node
 
 signal target_selected(target: Node)
-signal target_hovered(target: Node)
-signal target_died(target: Node)   # null when the mouse leaves a fighter
+signal target_hovered(target: Node)   # null when the mouse leaves a fighter
+signal target_died(target: Node)
+## A new run begins (new game, or the practice round): every system resets on this.
+signal run_started()
 signal round_started(round: int)
-signal round_ended(success: bool)
+## The round is over, won or lost (round_cleared fires only for wins).
+signal round_ended(round: int)
 signal contract_chosen(contract: ContractData)
 signal party_spawned()
 signal targets_spawned(targets: Array[Node])
-signal party_cleared()
-signal all_targets_dead()
-signal game_over(score: int)
 signal spell_cast_requested(spell: SpellData, target: Node)
-signal spell_cast_completed(spell: SpellData, target: Node, success: bool)
-signal round_begun(round: int)  # emitted when round actually starts after spawn
 ## A round was survived (round_ended fires for losses too).
 signal round_cleared(round: int)
 # ── Spells and effects (EffectSystem announces these; combos, passives and UI listen) ──
@@ -39,11 +37,6 @@ signal burst_warned(target: Node, damage: float, delay: float, label: String)
 signal boss_phase(phase: int, title: String, hint: String)
 ## A burst landed: `absorbed` went into the shield, `dealt` hit health.
 signal burst_landed(target: Node, absorbed: float, dealt: float)
-
-
-# Helper methods to emit (optional, for consistency)
-func emit_round_started(round: int) -> void:
-	round_started.emit(round)
 
 # ── Debuffs and Cleanse (Phase F) ──
 ## A debuff went on (or stacked) on `target`. `status` is the DebuffStatus.

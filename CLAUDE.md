@@ -26,7 +26,7 @@ any death ends the run.
 - Main scene: `scenes/Game.tscn` (script `scenes/game.gd`).
 - Global systems are autoloads (see `project.godot`): GameManager, SpellSystem,
   DraftSystem, BandageSystem, RunStats, BossDirector, EffectSystem, TargetSystem,
-  ContractGenerator, DifficultySystem, EventBus, PartyChoicePanel, CleanseSystem, DebuffSystem,
+  ContractGenerator, DifficultySystem, EventBus, CleanseSystem, DebuffSystem,
   SoundSystem (plays `assets/audio/sfx/<name>.ogg` by file name; list in `docs/sound-design.md`).
 - Data lives in Resources: spells in `resources/spells/*.tres`, schools in
   `resources/specs/*.tres`, contracts and units in `data/`.
@@ -45,6 +45,9 @@ any death ends the run.
   passive = a `.tres` whose `passive` is a `TagTriggerRule` (when event + tags → do action
   to who; see `docs/game-design.md` section 6). A new *kind* of effect or trigger event is
   code. Ranks share `rank_family`.
+- `GameManager` runs a round: `start_round(contract)`, the clock and mana regen in `_process`,
+  and ends the run when a fighter dies. A new run emits `EventBus.run_started`; every system
+  that keeps per-run state resets on it. `scenes/game.gd` only shows things.
 - `DraftSystem` owns the school pick, the pick schedule, offers (school and tag weighting),
   the caps (4 spells + 3 passives), rank-ups, swaps and Skip.
 - **Battlefield rules** are `PassiveRule`s in `resources/rules/`, active for everyone unless a

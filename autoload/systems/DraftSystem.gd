@@ -52,6 +52,7 @@ var rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	EventBus.run_started.connect(reset)
 	rng.randomize()
 	_load_specs()
 

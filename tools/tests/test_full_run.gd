@@ -19,7 +19,7 @@ func _process(d):
 		DS.debuff_start_round = 9999   # no Poison/Bleed: only the scripted death may end this run
 		var BD = root.get_node("BossDirector")
 		BD.bleed_per_second = 0.0; BD.bleed_per_second_phase_3 = 0.0; BD.assassin_hit = 0.0; BD.execution_hit = 0.0
-		P("endless=%s round times 1..12 = %s" % [DS.is_endless(), range(1, 13).map(func(r): return DS.get_round_time(r))])
+		P("round times 1..12 = %s" % [range(1, 13).map(func(r): return DS.get_round_time(r))])
 		C.eq(range(1, 13).map(func(r): return DS.get_round_time(r)), [15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 25.0], "round lengths: 15s + 1s a round, capped at 25s")
 		game._on_start_pressed()
 		Engine.time_scale = 30.0
@@ -38,7 +38,7 @@ func _process(d):
 		C.eq(GM.current_round, STOP_AT, "the run reached round %d" % STOP_AT)
 		game.play_again_button.emit_signal("pressed")
 	if played_again and not game.game_over_panel.visible and GM.current_round == 1:
-		P("after Play Again: round=%d game_over_visible=%s score=%d" % [GM.current_round, game.game_over_panel.visible, GM.score])
+		P("after Play Again: round=%d game_over_visible=%s" % [GM.current_round, game.game_over_panel.visible])
 		C.ok(not game.game_over_panel.visible, "Play Again hides the game over panel")
 		C.done(self)
 	if f > 40000: C.timed_out(self)

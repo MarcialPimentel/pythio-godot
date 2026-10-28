@@ -9,11 +9,10 @@ func apply(spell: SpellData, target: Node) -> void:
 	var hc: HealthComponent = target.health_comp
 	var landed := false
 	for s in _delayed(hc):
-		hc.statuses.erase(s)   # it lands now instead of later (no end-of-timer heal)
+		hc.drop_status(s)   # it lands now instead of later (no end-of-timer heal)
 		EffectSystem.heal(target, s.amount * (1.0 + bonus), s.spell, s.tags)
 		landed = true
 	if landed:
-		hc.statuses_changed.emit()
 		EffectSystem.combo(target, "%s!" % (spell.display_name if spell else "Hasten"))
 
 func would_combo(_spell: SpellData, target: Node) -> bool:
