@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Bursts: a warning, then the hit lands after burst_telegraph_time.
 # Checks: damage matches the formula, a shield absorbs it, the warning label shows the
 # number, and bursts stop when the round ends.
@@ -29,6 +30,7 @@ func _process(_d):
 		P("warned %s (%s armor) for %.1f" % [t.display_name, t.armor_type, w[1]])
 		P("landed after %.2fs (telegraph %.1fs): absorbed=%.1f dealt=%.1f expected=%.1f hp now %.1f/%.0f" % [l[3] - w[3], DS.burst_telegraph_time, l[1], l[2], expect, l[4], t.health_comp.max_health])
 		P("RESULT damage-correct=%s" % (absf(l[2] - expect) < 0.01 and l[1] == 0.0))
+		C.ok(absf(l[2] - expect) < 0.01 and l[1] == 0.0, "a burst lands for the right damage after its warning")
 		phase = 2
 	if phase == 2:
 		# Shield every fighter, then wait for the next burst to land
@@ -37,12 +39,15 @@ func _process(_d):
 	if phase == 3 and landed.size() >= 1:
 		var l = landed[0]
 		P("shielded burst: absorbed=%.1f dealt=%.1f  RESULT shield-absorbs=%s" % [l[1], l[2], l[2] == 0.0 and l[1] > 0.0])
+		C.ok(l[2] == 0.0 and l[1] > 0.0, "a shield absorbs the burst")
 		phase = 4
 	if phase == 4:
 		GM.end_round(true); phase = 5; t0 = now(); landed.clear()
 		P("RESULT round-end-clears-pending=%s" % (TS.pending_bursts.size() == 0))
+		C.eq(TS.pending_bursts.size(), 0, "ending the round clears warned bursts")
 	if phase == 5 and now() - t0 > 0.5:
 		P("RESULT no-burst-between-rounds=%s" % (landed.size() == 0))
-		quit()
-	if f > 20000: P("TIMEOUT"); quit()
+		C.eq(landed.size(), 0, "no bursts land between rounds")
+		C.done(self)
+	if f > 20000: C.timed_out(self)
 	return false

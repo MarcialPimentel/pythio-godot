@@ -6,7 +6,7 @@
 #   FTP_USERNAME    the FTP account's username
 #   FTP_PASSWORD    the FTP account's password
 #   FTP_SERVER_DIR  folder to upload into, relative to that FTP account's root, ending in /
-#                   e.g. pythio-godot/   (see docs/deploy.md)
+#                   e.g. pythio/   (see docs/deploy.md)
 # Without them, the build still runs and the upload step is skipped.
 name: Web build & deploy
 
@@ -17,12 +17,17 @@ on:
     branches: [master]
   workflow_dispatch:
 
+# A newer push to a PR replaces its old build; a merge to master never cancels a deploy halfway.
 concurrency:
   group: web-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   GODOT_VERSION: "4.3"
+
+defaults:
+  run:
+    shell: bash   # bash with -e and pipefail: a crash behind a pipe still fails the step
 
 jobs:
   build:
@@ -70,17 +75,26 @@ jobs:
         run: rm -rf addons/godot-git-plugin
 
       - name: Import project
-        run: ~/godot/godot --headless --import || true
+        # Godot 4.3's first headless import sometimes stops early; a second pass finishes it.
+        run: |
+          ~/godot/godot --headless --import || true
+          ~/godot/godot --headless --import || true
 
-      - name: Smoke test (game starts without script errors)
+      - name: Smoke test (game starts without errors)
         run: |
           ~/godot/godot --headless --quit-after 300 2>&1 | tee run.log
-          if grep -E "SCRIPT ERROR|Parse Error" run.log; then echo "::error::Game has script errors"; exit 1; fi
+          if grep -E "^ERROR|SCRIPT ERROR|Parse Error" run.log; then echo "::error::Game logs errors on start"; exit 1; fi
+
+      - name: Automated tests (tools/tests)
+        run: bash tools/tests/run_all.sh ~/godot/godot
+
+      - name: Leaderboard server has no PHP syntax errors
+        run: for f in web/*.php; do php -l "$f"; done
 
       - name: Export for the web
         run: |
           mkdir -p build/web
-          ~/godot/godot --headless --export-release "Web" build/web/index.html 2>&1 | tail -5
+          ~/godot/godot --headless --export-release "Web" build/web/index.html 2>&1 | tee export.log | tail -5
           test -f build/web/index.wasm && test -f build/web/index.pck
           cp web/.htaccess build/web/
           cp web/*.php build/web/ 2>/dev/null || true
@@ -117,7 +131,7 @@ jobs:
 
       - name: Upload to marz.gg
         if: steps.check.outputs.ready == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65   # v4.3.5, pinned
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}

@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 var game; var GM; var TS; var SS; var step := 0; var wait := 0.0; var t0; var t1
 func _initialize():
 	game = load("res://scenes/Game.tscn").instantiate()
@@ -33,12 +34,14 @@ func _process(d):
 			game.spell_buttons[0].emit_signal("pressed"); t0.target_button.emit_signal("pressed"); wait = 0.05
 		3:
 			P("[click] after: hp=%.0f mana=%.0f hp_bar=%.0f" % [hp(t0), GM.mana, t0.hp_bar.value])
+			C.ok(hp(t0) > 40.0, "click-casting heals")
 			t1.health_comp.current_health = 30
 			t1.target_button.emit_signal("mouse_entered")
 			P("[hover W] Mend Wounds on fighter 1 | before hp=%.0f mana=%.0f" % [hp(t1), GM.mana])
 			key(KEY_W); wait = 0.2
 		4:
 			P("[hover W] mid-cast: casting=%s cast_bar visible=%s label='%s' value=%.0f" % [SS.is_casting, game.cast_bar.visible, game.cast_label.text, game.cast_bar.value])
+			C.ok(SS.is_casting and game.cast_bar.visible, "hover + W starts a cast with a cast bar")
 			wait = 1.0
 		5:
 			P("[hover W] after cast: casting=%s cast_bar visible=%s hot_time=%.1f mana=%.0f" % [SS.is_casting, game.cast_bar.visible, t1.health_comp.hot_time, GM.mana])
@@ -48,12 +51,15 @@ func _process(d):
 			key(KEY_E); wait = 0.05
 		7:
 			P("[hover E] Shield: shield=%.0f shield_bar=%.0f mana=%.0f" % [t1.health_comp.shield_amount, t1.shield_bar.value, GM.mana])
+			C.ok(t1.health_comp.shield_amount > 0.0, "hover + E shields the hovered fighter")
 			t1.target_button.emit_signal("mouse_exited")
-			GM.mana = 5.0; var before = hp(t0)
+			GM.mana = 5.0; set_meta("before", hp(t0))
 			game.spell_buttons[0].emit_signal("pressed"); t0.target_button.emit_signal("pressed"); wait = 0.05
 			P("[no mana] Flash Heal with 5 mana: button disabled=%s" % game.spell_buttons[0].disabled)
 		8:
 			P("[no mana] hp=%.0f (unchanged expected) mana=%.0f" % [hp(t0), GM.mana])
+			C.near(hp(t0), get_meta("before"), "no mana, no heal")
+			C.ok(game.spell_buttons[0].disabled, "a spell you can't afford is disabled")
 			GM.mana = 100.0
 			t0.target_button.emit_signal("mouse_entered"); key(KEY_W); wait = 0.2
 		9:
@@ -61,6 +67,7 @@ func _process(d):
 			GM.round_time = 0.0; wait = 0.1
 		10:
 			P("[round end mid-cast] casting=%s cast_bar visible=%s mana=%.0f (no Mend Wounds charged)" % [SS.is_casting, game.cast_bar.visible, GM.mana])
-			quit()
+			C.ok(not SS.is_casting and not game.cast_bar.visible, "the round ending cancels a cast")
+			C.done(self)
 	step += 1
 	return false

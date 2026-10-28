@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Owner, 2026-10-24:
 # 1. Every heal-over-time on a fighter is listed under the health bar (one line each), so
 #    Renew + Healing Plague visibly stack, and both heal.
@@ -62,6 +63,6 @@ func _process(d):
 		8:
 			P("seconds that popped: %s (5,4,3,2,1 expected)" % [pops])
 			P("after the round: in_round=%s scale=%s modulate=%s countdown=%d (normal, -1 expected)" % [GM.in_round, game.timer_label.scale, game.timer_label.modulate, game._countdown_sec])
-			quit()
+			C.done(self)
 	step += 1
 	return false

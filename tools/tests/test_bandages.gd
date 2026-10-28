@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Bandages: Space on a hovered fighter channels 40 healing over 2.5s; no casting while
 # channelling; charges (start 3, max 3, +1 after every 2nd round cleared); a death cancels it.
 var game; var f := 0; var GM; var SS; var BS; var TS; var step := 0; var wait := 0.0; var T := []
@@ -53,6 +54,6 @@ func _process(d):
 			P("after clearing rounds 1–6 from 1 charge: charges=%d (1 +1 +1 +1, capped at 3)" % BS.charges)
 			BS.charges = 0; BS.charges_changed.emit(0, 3); BS.try_bandage(T[1])
 			P("no charges: channelling=%s label='%s'" % [BS.is_channeling(), game._bandage_label.get_parsed_text()])
-			quit()
+			C.done(self)
 	step += 1
 	return false

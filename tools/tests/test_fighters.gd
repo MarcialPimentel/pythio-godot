@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 var game; var GM; var TS; var CG; var step := 0; var wait := 0.0; var deaths := 0; var snap := {}
 func _initialize():
 	game = load("res://scenes/Game.tscn").instantiate()
@@ -39,6 +40,7 @@ func _process(d):
 			wait = 0.5
 		4:
 			P("after fighter 0 drops: died signals=%d in_round=%s game_over_visible=%s party_visible=%s" % [deaths, GM.in_round, game.game_over_panel.visible, game.party_container.visible])
+			C.ok(deaths >= 1 and not GM.in_round and game.game_over_panel.visible, "one death ends the run")
 			P("game over text: '%s'" % game.final_score_label.text.replace("\n"," / "))
 			P("fallen frame: '%s'" % TS.targets[0].target_name.text)
 			TS.targets[0].health_comp.heal(50)
@@ -46,6 +48,7 @@ func _process(d):
 			game.play_again_button.emit_signal("pressed"); wait = 0.8
 		5:
 			P("play again: round=%d choice_visible=%s game_over_visible=%s" % [GM.current_round, game.party_choice_panel.visible, game.game_over_panel.visible])
-			quit()
+			C.eq(GM.current_round, 1, "Play Again starts at round 1"); C.ok(not game.game_over_panel.visible, "game over is gone")
+			C.done(self)
 	step += 1
 	return false

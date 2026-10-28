@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Full spell bar (#67): a new spell replaces one you choose (with a Back button), rank-ups
 # still work, Skip gives +max mana for the run, and "build complete" still fires once.
 var game; var f := 0; var GM; var DS; var SS; var step := 0; var wait := 0.0; var complete := 0
@@ -26,8 +27,10 @@ func _process(d):
 		2:
 			SS.set_spellbook_ids(PackedStringArray(["heal", "flash_heal", "binding_heal", "chain_heal"]))
 			P("bar full: %s spells_full=%s" % [ids(SS.spells), DS.spells_full()])
+			C.ok(DS.spells_full(), "the spell bar is full")
 			var o: Array = DS.make_offers()
 			P("offers with a full bar include new spells (swaps)=%s: %s" % [o.any(func(s): return not s.is_passive() and SS.owned_rank(s.family()) == 0), ids(o)])
+			C.ok(o.any(func(s): return not s.is_passive() and SS.owned_rank(s.family()) == 0), "a full bar still offers new spells (as swaps)")
 			game._show_spell_pick([lib("renew"), lib("heal_2"), lib("mana_conduit")], 3); wait = 0.4
 		3:
 			var cards: Array = game._card_options
@@ -36,6 +39,7 @@ func _process(d):
 			game.card_panel._choose(0); wait = 0.5   # Renew → bar is full → choose what it replaces
 		4:
 			P("swap screen: visible=%s mode=%s options=%s back button=%s" % [game.card_panel.visible, game._card_mode, ids(game._card_options), game.card_panel._back.visible])
+			C.ok(game.card_panel.visible and game.card_panel._back.visible, "Replace which spell? shows with Back")
 			game.card_panel._on_back(); wait = 0.5
 		5:
 			P("Back → offers again: mode=%s options=%s spellbook unchanged=%s" % [game._card_mode, ids(game._card_options), ids(SS.spells)])
@@ -44,6 +48,7 @@ func _process(d):
 			game.card_panel._choose(2); wait = 0.6   # replace Binding Heal (slot E)
 		7:
 			P("RESULT swapped: spellbook=%s (renew in Binding Heal's slot 3=%s) contract screen=%s" % [ids(SS.spells), SS.spells[2].id == "renew", game.party_choice_panel.visible])
+			C.eq(SS.spells[2].id, "renew", "the new spell takes the old one's slot")
 			# Rank-up with a full bar: no swap screen
 			game._show_spell_pick([lib("heal_2"), lib("lifebloom"), lib("mana_conduit")], 5); wait = 0.4
 		8:
@@ -59,8 +64,10 @@ func _process(d):
 		11:
 			var before: float = get_meta("before")
 			P("RESULT skip: max mana %.0f → %.0f (+10), bonus=%.0f, spellbook unchanged=%s" % [before, GM.max_mana, GM.bonus_max_mana, ids(SS.spells)])
+			C.near(GM.bonus_max_mana, 10.0, "Skip gives +10 max mana")
 			GM.end_round(true)
 			P("next round's max mana keeps the bonus: %.0f = %.0f + 10" % [GM.max_mana, root.get_node("DifficultySystem").get_max_mana(GM.current_round)])
+			C.near(GM.max_mana, root.get_node("DifficultySystem").get_max_mana(GM.current_round) + 10.0, "the Skip bonus lasts the run")
 			# Build complete still fires once with swaps on (full + no rank-ups left)
 			for id in ["heal_3", "mana_conduit", "aura_of_mending", "second_wind"]:
 				SS.add_spell(lib(id))
@@ -68,6 +75,7 @@ func _process(d):
 			SS.add_spell(lib("rejuvenation"))
 			var a = DS.offers_after_round(9); var b = DS.offers_after_round(11)
 			P("RESULT full + ranked: build complete count=%d (1), offers still come (swaps)=%s" % [complete, not a.is_empty() and not b.is_empty()])
-			quit()
+			C.eq(complete, 1, "build complete fires once"); C.ok(not a.is_empty() and not b.is_empty(), "offers still come once complete")
+			C.done(self)
 	step += 1
 	return false

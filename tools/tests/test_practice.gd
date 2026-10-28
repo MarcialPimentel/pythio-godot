@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # First-time practice round (owner, 2026-10-24): Take the Job asks "First time on the job?"
 # once per device. Yes → one Heavy Knight with Heal, Renew and Shield, prompts (Heal → mana →
 # Renew → a warned hit and Shield → free practice with random hits), the knight can't die,
@@ -104,6 +105,6 @@ func _process(d):
 			P("quit mid-practice: practice=%s in_round=%s coach left=%s fighters=%d burst interval=%s" % [GM.practice, GM.in_round,
 				is_instance_valid(game.get_node_or_null("PracticeRound")), TS.targets.size(), DS.burst_interval])
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(CFG))
-			quit()
+			C.done(self)
 	step += 1
 	return false

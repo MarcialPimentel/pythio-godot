@@ -10,8 +10,23 @@ The game lives in `public_html/games/pythio/` → **https://marz.gg/games/pythio
 The original JavaScript version was moved to `public_html/games/pythio-classic/` so it
 stays playable (with its own old leaderboard) at https://marz.gg/games/pythio-classic/.
 
-Leaderboard scores live in `leaderboard_godot.json` next to the game. The deploy never
-touches that file, so scores survive every update.
+Leaderboard scores live next to the game, one file per board (`leaderboard_godot_v2.json`
+is the current board; older boards keep their own files). The deploy never touches those
+files, so scores survive every update.
+
+## What has to pass before anything goes live
+Every PR and every merge runs, in order: import → a 300-frame start of the game (fails on any
+`ERROR` line) → every test in `tools/tests/` (`tools/tests/run_all.sh`; fails on a `FAIL`
+check, an error, a crash or a hang) → a PHP syntax check of the leaderboard server → the web
+export. If any step fails, nothing is uploaded. Run the same tests locally with
+`tools/tests/run_all.sh path/to/godot`.
+
+## Rolling back a bad build
+1. On GitHub, open the merged PR that broke things and press **Revert**. That opens a new PR
+   undoing it.
+2. Merge that PR. The normal deploy uploads the previous version (a few minutes).
+3. Browsers check for the new files on every load, so a refresh shows the rolled-back build.
+Scores are never touched by a deploy or a rollback.
 
 ## One-time setup (about 10 minutes)
 

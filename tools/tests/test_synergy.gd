@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Synergy hints on pick cards, the "at least one offer combos with your spellbook" rule,
 # and the build summary above the spell bar.
 var game; var f := 0; var DS; var SS; var step := 0; var wait := 0.0
@@ -49,6 +50,6 @@ func _process(d):
 			SS.add_spell(SS.get_library_spell("shield"))
 			# The build summary line above the bar was removed (owner, 2026-10-24).
 			P("RESULT no build summary label: %s" % (not "_build_label" in game))
-			quit()
+			C.done(self)
 	step += 1
 	return false

@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # Escape menu: pauses mid-round (timer and damage stop), Resume continues, Quit to title
 # ends the run cleanly (no game over, no fighters left), Restart from the Baron fight starts
 # a fresh run. Escape does nothing on the title screen.
@@ -31,6 +32,7 @@ func _process(d):
 			esc(); wait = 0.2
 		1:
 			P("RESULT title screen ignores Escape=%s" % (not menu().visible and not paused))
+			C.ok(not menu().visible and not paused, "Escape does nothing on the title screen")
 			game._on_start_pressed(); wait = 0.5
 		2:
 			game.party_choice_panel._on_left_chosen(); wait = 1.5
@@ -43,14 +45,17 @@ func _process(d):
 			if Time.get_ticks_msec() - get_meta("t0") < 1500: return false
 			if shot != "": root.get_viewport().get_texture().get_image().save_png(shot)
 			P("RESULT menu open=%s, paused=%s, timer frozen=%s, no damage while paused=%s" % [menu().visible, paused, is_equal_approx(GM.round_time, t_before), is_equal_approx(hp(), hp_before)])
+			C.ok(menu().visible and paused, "Escape pauses mid-round"); C.ok(is_equal_approx(GM.round_time, t_before), "timer frozen while paused"); C.ok(is_equal_approx(hp(), hp_before), "no damage while paused")
 			esc(); wait = 0.6
 		6:
 			P("RESULT Escape resumes=%s, timer running=%s" % [not paused and not menu().visible, GM.round_time < t_before - 0.3])
+			C.ok(not paused and not menu().visible and GM.round_time < t_before - 0.3, "Escape resumes and the timer runs")
 			esc(); wait = 0.1
 		7:
 			menu()._buttons_for_test()[2].pressed.emit(); wait = 0.3
 		8:
 			P("RESULT quit to title: start screen=%s, game UI hidden=%s, fighters left=%d, in round=%s, not paused=%s, game overs=%d" % [game.start_screen.visible, not game.game_ui.visible, TS.targets.size(), GM.in_round, not paused, overs])
+			C.ok(game.start_screen.visible and not game.game_ui.visible, "Quit goes to the title screen"); C.eq(TS.targets.size(), 0, "no fighters left"); C.ok(not GM.in_round and not paused, "not in a round, not paused"); C.eq(overs, 0, "quitting is not a game over")
 			game._on_start_pressed(); wait = 0.5
 		9:
 			GM.debug_jump_to_round(5); wait = 0.2
@@ -63,11 +68,13 @@ func _process(d):
 			menu()._buttons_for_test()[1].pressed.emit(); wait = 0.6
 		13:
 			P("RESULT restart: round %d, school pick showing=%s, Baron cleared=%s, spells=%d, game overs=%d" % [GM.current_round, game.card_panel.visible or game._card_mode == "spec" or GM.current_round == 1, BD.boss == null, root.get_node("SpellSystem").spells.size(), overs])
+			C.eq(GM.current_round, 1, "Restart begins at round 1"); C.ok(BD.boss == null, "the Baron is cleared"); C.eq(overs, 0, "restarting is not a game over")
 			wait = 0.5
 		14:
 			game.party_choice_panel._on_left_chosen(); wait = 1.0
 		15:
 			P("RESULT new run plays: in round=%s, fighters=%d" % [GM.in_round, TS.targets.size()])
-			quit()
+			C.ok(GM.in_round and TS.targets.size() > 0, "the new run plays")
+			C.done(self)
 	step += 1
 	return false

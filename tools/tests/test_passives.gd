@@ -1,4 +1,5 @@
 extends SceneTree
+const C = preload("res://tools/tests/check.gd")
 # The four passives and the remaining spells, with real casts.
 var game; var f := 0; var GM; var SS; var TS; var step := 0; var wait := 0.0
 var combos := []; var T := []
@@ -77,6 +78,6 @@ func _process(d):
 			GM.mana = 10.0; cast("divine_channel", T[0]); wait = 3.2
 		10:
 			P("Divine Channel (3s cast): mana=%.0f (10 + 50 + ~13 regen during the cast)" % GM.mana)
-			quit()
+			C.done(self)
 	step += 1
 	return false
