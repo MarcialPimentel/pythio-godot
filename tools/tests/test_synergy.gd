@@ -24,9 +24,9 @@ func _process(d):
 			game.card_panel._choose(1); wait = 0.6   # Bloom → Renew
 		2:
 			for id in ["overgrowth", "aura_of_mending", "healing_plague", "mend_wounds", "spirit_surge", "flash_heal"]:
-				P("hint for %-16s %s" % [id + ":", strip(game.synergy_hint_bb(SS.get_library_spell(id)))])
+				P("hint for %-16s %s" % [id + ":", strip(PickCards.synergy_hint_bb(SS.get_library_spell(id)))])
 			SS.add_spell(SS.get_library_spell("overgrowth"))
-			P("after taking Overgrowth, hint for Mend Wounds: %s" % strip(game.synergy_hint_bb(SS.get_library_spell("mend_wounds"))))
+			P("after taking Overgrowth, hint for Mend Wounds: %s" % strip(PickCards.synergy_hint_bb(SS.get_library_spell("mend_wounds"))))
 			var with_syn := 0
 			for i in 300:
 				if DS.make_offers().any(DS.has_synergy): with_syn += 1
