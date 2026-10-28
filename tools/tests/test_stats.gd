@@ -57,7 +57,7 @@ func _process(d):
 			C.ok(game.game_over_panel.visible, "death shows the game over panel")
 			C.eq(game._last_run.rounds, GM.rounds_survived(), "payload rounds = rounds survived")
 			C.eq(game._last_run.healing, RS.effective_healing(), "payload healing = effective healing")
-			game._show_leaderboard(true, [{"name": "Marz", "rounds": 7, "healing": 5050}, {"name": "Ann", "rounds": 7, "healing": 980}])
+			game.leaderboard_view.show_board(true, [{"name": "Marz", "rounds": 7, "healing": 5050}, {"name": "Ann", "rounds": 7, "healing": 980}])
 			wait = 0.05
 		6:
 			P("leaderboard rows: %s" % str(game.lb_grid.get_children().filter(func(c): return not c.is_queued_for_deletion()).map(func(c): return c.text)))

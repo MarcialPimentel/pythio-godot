@@ -19,7 +19,7 @@ var rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	rng.randomize()
 	EventBus.round_started.connect(_on_round_started)
-	GameManager.show_spec_choice.connect(func(): _seen.clear())
+	EventBus.run_started.connect(func(): _seen.clear())
 
 
 func _on_round_started(round_num: int) -> void:

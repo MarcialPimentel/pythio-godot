@@ -162,7 +162,7 @@ func _connect() -> void:
 	# Round flow
 	EventBus.round_started.connect(func(r): play("baron_arrive" if DifficultySystem.is_boss_round(r) else "round_start"))
 	EventBus.round_cleared.connect(func(_r): play("job_finished"))
-	GameManager.game_over.connect(func(_r, _s): play("game_over"))
+	GameManager.game_over.connect(func(_r): play("game_over"))
 	GameManager.show_spell_pick.connect(func(_o, r): play("bounty" if DraftSystem.pick_kind(r) == "passive" else "pick_screen"))
 
 

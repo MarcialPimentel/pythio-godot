@@ -28,7 +28,7 @@ func _process(d):
 		0:
 			if f < 3: return false
 			GM = root.get_node("GameManager"); TS = root.get_node("TargetSystem"); BD = root.get_node("BossDirector")
-			GM.game_over.connect(func(_a, _b): overs += 1)
+			GM.game_over.connect(func(_a): overs += 1)
 			esc(); wait = 0.2
 		1:
 			P("RESULT title screen ignores Escape=%s" % (not menu().visible and not paused))
@@ -70,6 +70,11 @@ func _process(d):
 		13:
 			P("RESULT restart: round %d, school pick showing=%s, Baron cleared=%s, spells=%d, game overs=%d" % [GM.current_round, game.card_panel.visible or game._card_mode == "spec" or GM.current_round == 1, BD.boss == null, root.get_node("SpellSystem").spells.size(), overs])
 			C.eq(GM.current_round, 1, "Restart begins at round 1"); C.ok(BD.boss == null, "the Baron is cleared"); C.eq(overs, 0, "restarting is not a game over")
+			var SSr = root.get_node("SpellSystem")
+			C.eq(SSr.passives.size(), 0, "Restart: no passives carried over")
+			C.eq(root.get_node("RunStats").effective_healing(), 0, "Restart: run stats reset")
+			C.near(GM.bonus_max_mana, 0.0, "Restart: no Skip bonus carried over")
+			C.eq(SSr.utility.id if SSr.utility else "", "cleanse", "Restart: F is Cleanse again")
 			wait = 0.5
 		14:
 			game.party_choice_panel._on_left_chosen(); wait = 1.0

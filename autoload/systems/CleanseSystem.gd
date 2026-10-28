@@ -18,7 +18,7 @@ var _refill := 0.0
 
 
 func _ready() -> void:
-	GameManager.show_spec_choice.connect(reset)
+	EventBus.run_started.connect(reset)
 	EventBus.round_started.connect(func(_r): _refill_all())
 	SpellSystem.spellbook_changed.connect(func(): charges = mini(charges, max_charges()); charges_changed.emit(charges, max_charges()))
 	(func(): if SpellSystem.utility == null: reset()).call_deferred()

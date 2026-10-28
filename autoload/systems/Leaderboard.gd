@@ -34,7 +34,7 @@ func _ready() -> void:
 		var url = JavaScriptBridge.eval("new URL('leaderboard_godot.php', window.location.href).href", true)
 		if typeof(url) == TYPE_STRING and url != "":
 			_endpoint = url
-	GameManager.show_spec_choice.connect(start_run)   # a new run begins
+	EventBus.run_started.connect(start_run)   # a new run begins
 
 
 ## Asks the server for this run's ticket (quietly; offline just means it can't be posted).

@@ -36,7 +36,7 @@ func _ready() -> void:
 					battlefield_rules.append(r)
 			f = dir.get_next()
 		battlefield_rules.sort_custom(func(a, b): return a.rule_name < b.rule_name)
-	GameManager.show_spec_choice.connect(_reset_rules)
+	EventBus.run_started.connect(_reset_rules)
 
 
 ## A new run: passives forget their counters and cooldowns.

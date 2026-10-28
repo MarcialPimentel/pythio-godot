@@ -9,11 +9,9 @@ func apply(spell: SpellData, target: Node) -> void:
 	var total := 0.0
 	for s in hc.get_statuses("SHIELD"):
 		total += (s as ShieldStatus).remaining
-		hc.statuses.erase(s)   # consumed, not broken: no end effects
+		hc.drop_status(s)   # consumed, not broken: no end effects
 	if total <= 0.0:
 		return
-	hc.shield_changed.emit(hc.shield_amount)
-	hc.statuses_changed.emit()
 	EffectSystem.combo(target, spell.display_name if spell else "Surge")
 	EffectSystem.heal(target, total * ratio, spell, spell.tags)
 
