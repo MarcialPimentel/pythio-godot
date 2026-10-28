@@ -1,6 +1,6 @@
 # Pythio: roadmap
 
-_Last updated: 2026-10-25 (Phase F). Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through this list one pull request at a time._
 
 > **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
 > `docs/game-design.md`, which wins over every other design doc.
@@ -9,10 +9,9 @@ _Last updated: 2026-10-25 (Phase F). Owner: Marz. Claude works through this list
 - **Live:** https://marz.gg/games/pythio/ (deploys automatically when a PR merges into
   `master`; see `docs/deploy.md`). The original JS version is at `games/pythio-classic/`.
   Every build shows a build number bottom-right; it should match the latest Actions run.
-- **Direction changed 2026-10-21:** the game is **endless** again (the 5-round run was a
-  pilot). Builds come from a **specialization** pick at the start and a **new spell every
-  5 rounds**, capped, so a run reaches a "build complete" point and then it's about how
-  far you can take it. Full reasoning: `docs/design-direction.md`.
+- **The game today:** endless rounds; you choose a starting spell (its hidden school steers
+  offers), pick spells after rounds 1, 3, 7, 9 … and a passive after each Baron (5, 10, 15 …).
+  Details: `docs/game-design.md`. (History of how it got here: the bullets below.)
 - **✅ Phase A done 2026-10-21 (Build 30, owner playtested):** endless rounds (#43),
   bursts land after their warning and shields absorb them (#45), F1 debug panel (#46,
   works on the live site; debug runs can't be posted to the leaderboard).
@@ -97,7 +96,23 @@ _Last updated: 2026-10-25 (Phase F). Owner: Marz. Claude works through this list
 - **Phase G started 2026-10-27 (owner):** Marz makes every sound and the art; Claude builds the
   systems and lists. Sound list and file names: `docs/sound-design.md` (#33). Art workflow,
   ChatGPT prompts, tag icons and one icon per spell: `docs/art-assets.md`. Mana → icy cyan (#63).
-- **Next up:** Marz playtests E and F, and starts on sounds and icons.
+- **✅ Code health batch 2026-10-28** (milestone "Code health", from the architecture review):
+  - **#96** (#91): the tests now pass or fail, and CI runs them; nothing deploys if one fails.
+  - **#97** (#92): gameplay bug fixes. Recasting a shield refreshes it (Marz); passive shields
+    follow Bulwark and Diminishing shields; cooldowns stop while paused; no Skip on the bounty;
+    heals-over-time keep their last tick; quitting right after a pick is safe.
+  - **#98 #99:** follow-ups: a quiet leaderboard parse, and two tests that relied on luck.
+  - **#100:** every build loads its files as `?v=<commit>`.
+  - **#102** (#94): GameManager runs the round, one `run_started` reset, leftover code removed.
+  - **#103** (#95): game.gd split. Pythio's lines are now in `data/PythioLines.gd`.
+  - **#101** (#93): leaderboard run tickets, safe saves and hidden entries (current board kept).
+  - Bot check after the fixes: first deaths average round 6.4 (9 runs; Ward lowest at 4.7, worth
+    a look in playtest).
+- **Your turn (SiteGround):** its front cache kept serving the old page at `/games/pythio/`
+  after deploys. Flush it (Site Tools → Speed → Caching) and exclude `/games/pythio/` from
+  caching so each deploy shows up at once (`docs/deploy.md`).
+- **Next up:** Marz playtests E, F and the Code health fixes, and starts on sounds and icons.
+  Open design talk: the road-to-Steam roadmap (run arc, meta-progression, content scale).
 - **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
   low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the
   rogue, adventurer and Baron (knight and mercenary still stay standing when they die). Every image and what to make next:
@@ -181,6 +196,13 @@ Done early: floating numbers, noir theme, online leaderboard (#12, #14).
   listed in `docs/sound-design.md`.
 - ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
 - ✅ #63 **Mana bar off gold:** icy cyan (owner, 2026-10-27) for the bar, the orb and costs.
+
+### Code health (from the 2026-10-28 architecture review) — ✅ done 2026-10-28
+- ✅ #91 **Safety net:** tests that can fail, run in CI before every deploy.
+- ✅ #92 **Gameplay bug fixes** found by the review.
+- ✅ #93 **Leaderboard:** harder to cheat, can't be wiped.
+- ✅ #94 **Round rules into GameManager**, leftover code removed.
+- ✅ #95 **Split scenes/game.gd** into smaller pieces.
 
 ### Phase H: Words, names and flair (owner-led)
 - ⬜ #61 **Fonts, spell names, descriptions and flavour:** the owner goes through all
