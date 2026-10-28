@@ -57,6 +57,8 @@ var _last_run := {"rounds": 0, "healing": 0}
 var card_panel: Control
 ## Rules panel, passive tray, Cleanse and bandage counters (ui/HudCounters.gd).
 var hud: HudCounters
+## The top-10 list on the title screen, with ◀ ▶ between boards (ui/LeaderboardView.gd).
+var leaderboard_view: LeaderboardView
 var _banner: VBoxContainer
 var _banner_tween: Tween
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
@@ -117,9 +119,9 @@ func _ready() -> void:
 	play_again_button.pressed.connect(_on_play_again_pressed)
 	submit_button.pressed.connect(_on_submit_pressed)
 	name_edit.text_submitted.connect(func(_t): _on_submit_pressed())
-	Leaderboard.top_loaded.connect(_show_leaderboard)
 	Leaderboard.submitted.connect(_on_score_submitted)
-	_make_board_nav()
+	leaderboard_view = LeaderboardView.new(lb_grid, lb_status)
+	add_child(leaderboard_view)
 	Leaderboard.fetch_top()
 
 	_add_build_label()
@@ -908,90 +910,11 @@ func _on_submit_pressed() -> void:
 func _on_score_submitted(ok: bool, rank: int, entries: Array, message: String) -> void:
 	if ok:
 		submit_status.text = "Posted. You're #%d on the board." % rank
-		_show_leaderboard(true, entries)
+		leaderboard_view.show_board(true, entries)
 	else:
 		submit_status.text = message
 		submit_button.disabled = false
 		name_edit.editable = true
-
-
-# ── Leaderboard boards: ◀ older · newer ▶ ──────────────
-
-var _board_nav: HBoxContainer
-
-func _make_board_nav() -> void:
-	var box := lb_grid.get_parent()
-	_board_nav = HBoxContainer.new()
-	_board_nav.alignment = BoxContainer.ALIGNMENT_CENTER
-	_board_nav.add_theme_constant_override("separation", 10)
-	var older := Button.new()
-	older.name = "Older"; older.text = "◀"; older.flat = true; older.focus_mode = Control.FOCUS_NONE
-	older.tooltip_text = "Older leaderboard"
-	older.pressed.connect(func(): _switch_board(1))
-	var title := Label.new()
-	title.name = "Title"
-	title.add_theme_font_size_override("font_size", 20)
-	title.custom_minimum_size = Vector2(220, 0)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var newer := Button.new()
-	newer.name = "Newer"; newer.text = "▶"; newer.flat = true; newer.focus_mode = Control.FOCUS_NONE
-	newer.tooltip_text = "Newer leaderboard"
-	newer.pressed.connect(func(): _switch_board(-1))
-	_board_nav.add_child(older); _board_nav.add_child(title); _board_nav.add_child(newer)
-	_board_nav.visible = false
-	box.add_child(_board_nav)
-	box.move_child(_board_nav, lb_grid.get_index())
-
-
-func _switch_board(step: int) -> void:
-	var id := Leaderboard.neighbour_board(step)
-	if id != "":
-		Leaderboard.fetch_top(id)
-
-
-func _update_board_nav() -> void:
-	if not _board_nav:
-		return
-	_board_nav.visible = Leaderboard.boards.size() > 1
-	var current := Leaderboard.boards.any(func(b): return b.get("id") == Leaderboard.board_id and b.get("current", false))
-	var title: Label = _board_nav.get_node("Title")
-	title.text = Leaderboard.board_title + ("" if current else "  (old)")
-	title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.3) if current else Color(0.7, 0.66, 0.6))
-	_board_nav.get_node("Older").disabled = Leaderboard.neighbour_board(1) == ""
-	_board_nav.get_node("Newer").disabled = Leaderboard.neighbour_board(-1) == ""
-
-
-func _show_leaderboard(ok: bool, entries: Array) -> void:
-	_update_board_nav()
-	for c in lb_grid.get_children():
-		c.queue_free()
-	if not ok:
-		lb_status.text = "Leaderboard offline. It works once the game is on marz.gg."
-		return
-	lb_status.text = "No one yet. Be the first." if entries.is_empty() else ""
-	for i in entries.size():
-		var e: Dictionary = entries[i]
-		var gold := Color(0.95, 0.78, 0.35) if i == 0 else Color(0.9, 0.87, 0.8)
-		_lb_cell("%d." % (i + 1), gold)
-		_lb_cell(str(e.get("name", "?")), gold, true)
-		if Leaderboard.board_kind == "classic":   # old boards: original score, then round reached
-			_lb_cell(str(int(e.get("score", 0))), gold)
-			_lb_cell("WON" if e.get("won", false) else "R%d" % int(e.get("round", 0)),
-				Color(0.45, 0.9, 0.4) if e.get("won", false) else Color(0.6, 0.58, 0.55))
-		else:
-			_lb_cell("R%d" % int(e.get("rounds", 0)), gold)
-			_lb_cell(RunStats.fmt(int(e.get("healing", 0))), Color(0.6, 0.58, 0.55))
-
-
-func _lb_cell(text: String, color: Color, expand := false) -> void:
-	var l := Label.new()
-	l.text = text
-	l.add_theme_color_override("font_color", color)
-	l.add_theme_font_size_override("font_size", 24)
-	if expand:
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		l.clip_text = true
-	lb_grid.add_child(l)
 
 
 ## Pause menu: end the current run quietly (no game over, nothing posted) and clear the screen.

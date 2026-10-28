@@ -582,9 +582,12 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 **Between rounds:** Choose your spell (run start), spell picks (3 cards with cast time, cost,
 tags, one sentence and "Combos with …" hints) and the Next party screen.
 
-Main files: `scenes/game.gd` (the screen), `ui/CardChoicePanel.gd` (pick cards),
+Main files: `scenes/game.gd` (the screen), `ui/CardChoicePanel.gd` (pick cards) and
+`ui/PickCards.gd` (what each card says, spell icons), `ui/HudCounters.gd` (rules panel,
+passive tray, Cleanse and bandage counters), `ui/LeaderboardView.gd` (the top 10),
 `ui/PartyChoicePanel.tscn` + `ui/PartyChoicePanel.gd` (Next party), `ui/PauseMenu.gd`,
-`ui/DebugPanel.gd`, `entities/Target.gd` (a fighter). Pythio's quips are at the top of `scenes/game.gd`.
+`ui/DebugPanel.gd`, `entities/Target.gd` (a fighter). Pythio's lines are in `data/PythioLines.gd`
+(edit them freely).
 
 **[Decided, backlog]** Click-casting with mouse buttons and modifier keys (the web game's
 input model) is parked.
@@ -695,6 +698,7 @@ Listed so nobody "fixes" the wrong side.
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-10-28 | Claude (for Marz) | `scenes/game.gd` split (#95), no visible change: card text and icons → `ui/PickCards.gd`, HUD counters → `ui/HudCounters.gd`, the top 10 → `ui/LeaderboardView.gd`, Pythio's lines → `data/PythioLines.gd`. Section 11 updated. |
 | 2026-10-28 | Claude (for Marz) | Code cleanup (#94), no gameplay change: GameManager runs the round clock, mana regen and "a death ends the run" (was the screen script); every system resets on one `run_started` signal; leftover score/victory/contract code removed. |
 | 2026-10-28 | Claude (for Marz) | Bug fixes from the code review (#92): recasting the same shield refreshes it at full strength (Marz); passives' shields follow Bulwark and Diminishing shields; passive cooldowns stop while paused and between rounds; the Baron's "a spell instead" pick has no Skip; heals-over-time no longer lose their last tick; "Job finished" waits while paused; quitting right after a pick can't start a hidden round. Section 6 updated. |
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
