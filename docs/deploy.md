@@ -21,6 +21,15 @@ check, an error, a crash or a hang) → a PHP syntax check of the leaderboard se
 export. If any step fails, nothing is uploaded. Run the same tests locally with
 `tools/tests/run_all.sh path/to/godot`.
 
+## Why the game files end in `?v=…`
+SiteGround's front cache keeps serving an old `index.pck` after a deploy, whatever `.htaccess`
+says (seen 2026-10-28: Build 104 uploaded, Build 98 still served). So the build step
+(`tools/web/cache_bust.sh`) makes the page load `index.js?v=<commit>`, `index.pck?v=<commit>`
+and `index.wasm?v=<commit>`: a new address every build, which no cache has seen yet. If a
+Godot upgrade changes the web template, that step fails loudly instead of shipping stale files.
+If the page itself ever looks stale, flush SiteGround's cache: **Site Tools → Speed → Caching
+→ Flush**.
+
 ## Rolling back a bad build
 1. On GitHub, open the merged PR that broke things and press **Revert**. That opens a new PR
    undoing it.

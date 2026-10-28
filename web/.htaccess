@@ -3,8 +3,8 @@
 AddType application/wasm .wasm
 AddType application/octet-stream .pck
 
-# Browsers keep the game files but check for a newer one every time (a cheap "not modified"
-# reply when nothing changed), so a new build is live for everyone right after a deploy.
+# Ask browsers to re-check the game files. SiteGround's front cache ignores this for static
+# files, so the build also loads them as index.pck?v=<commit> (tools/web/cache_bust.sh).
 <IfModule mod_headers.c>
   <FilesMatch "\.(html|js|pck|wasm)$">
     Header set Cache-Control "no-cache"
