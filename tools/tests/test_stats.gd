@@ -63,6 +63,8 @@ func _process(d):
 			P("leaderboard rows: %s" % str(game.lb_grid.get_children().filter(func(c): return not c.is_queued_for_deletion()).map(func(c): return c.text)))
 			var rows: Array = game.lb_grid.get_children().filter(func(c): return not c.is_queued_for_deletion()).map(func(c): return c.text)
 			C.ok("Marz" in rows and "Ann" in rows, "leaderboard rows show both names")
+			var lb = root.get_node("Leaderboard")
+			C.ok(lb._parse(0, 200, "<html>host error</html>".to_utf8_buffer()) == null, "a non-JSON server reply is ignored (quietly: no ERROR line)")
 			C.done(self)
 	step += 1
 	return false

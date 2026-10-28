@@ -105,9 +105,12 @@ func _new_request() -> HTTPRequest:
 func _parse(result: int, code: int, body: PackedByteArray):
 	if result != HTTPRequest.RESULT_SUCCESS:
 		return null
-	var data = JSON.parse_string(body.get_string_from_utf8())
-	if typeof(data) != TYPE_DICTIONARY:
+	# A host error page or a firewall check isn't JSON. Treat it as "no reply" quietly
+	# (JSON.parse_string would log an ERROR line for it).
+	var json := JSON.new()
+	if json.parse(body.get_string_from_utf8()) != OK or typeof(json.data) != TYPE_DICTIONARY:
 		return null
+	var data: Dictionary = json.data
 	if code >= 400 and not data.has("message"):
 		return null
 	return data
