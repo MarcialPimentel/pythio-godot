@@ -543,6 +543,9 @@ from the fight's phases.
   with ◀ ▶ so friends' scores are never lost. Today: "Phase C onward" (rounds, then
   healing) and "Builds 1–33" (the older scoring).
 - **Debug runs can't be posted.** That includes god mode and anything from the F1 panel.
+- **Fair play [2026-10-28]:** the server gives each run a one-time ticket when it starts; a
+  score needs it and can't arrive faster than its rounds could be played. Marz can hide any
+  entry by hand (see `docs/deploy.md`).
 - **Your best on this device** shows on the start screen.
 
 Files: `autoload/systems/RunStats.gd` (the stats), `autoload/systems/Leaderboard.gd` (the
@@ -698,6 +701,7 @@ Listed so nobody "fixes" the wrong side.
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-10-28 | Claude (for Marz) | Leaderboard hardening (#93): one-time run tickets, a minimum run time per round claimed, safe saves with a backup, hidden entries; the current board is kept (Marz). Section 10 updated. |
 | 2026-10-28 | Claude (for Marz) | `scenes/game.gd` split (#95), no visible change: card text and icons → `ui/PickCards.gd`, HUD counters → `ui/HudCounters.gd`, the top 10 → `ui/LeaderboardView.gd`, Pythio's lines → `data/PythioLines.gd`. Section 11 updated. |
 | 2026-10-28 | Claude (for Marz) | Code cleanup (#94), no gameplay change: GameManager runs the round clock, mana regen and "a death ends the run" (was the screen script); every system resets on one `run_started` signal; leftover score/victory/contract code removed. |
 | 2026-10-28 | Claude (for Marz) | Bug fixes from the code review (#92): recasting the same shield refreshes it at full strength (Marz); passives' shields follow Bulwark and Diminishing shields; passive cooldowns stop while paused and between rounds; the Baron's "a spell instead" pick has no Skip; heals-over-time no longer lose their last tick; "Job finished" waits while paused; quitting right after a pick can't start a hidden round. Section 6 updated. |

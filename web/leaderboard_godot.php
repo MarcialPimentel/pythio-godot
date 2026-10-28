@@ -1,7 +1,11 @@
 <?php
 // Pythio (Godot version) leaderboard.
 //   GET  leaderboard_godot.php?action=top[&board=v1]  -> top 10 entries of a board (default: current)
+//   POST leaderboard_godot.php?action=start           -> a one-time run ticket {"run": "<id>"}
 //   POST leaderboard_godot.php?action=submit  (JSON)  -> adds ONE entry, returns top 10 + your rank
+// A score needs the ticket from the start of its run, used once, and the run must have lasted
+// at least as long as the rounds it claims (review 2026-10-28: anyone could post any score).
+// To hide an entry, add "hidden": true to it in the board's .json file (File Manager).
 // Unlike the old leaderboard.php, the game can't overwrite the whole list: the server
 // validates each entry, keeps the best scores itself, and limits how fast an address can post.
 // Boards: a new board starts only when the scoring rules change; older boards stay on the
@@ -20,22 +24,57 @@ const BOARDS = [
 const CURRENT = "v2";
 const KEEP = 100;          // entries stored
 const SHOW = 10;           // entries returned
-const MAX_ROUND = 1000;    // endless runs; sanity cap only
+const MAX_ROUND = 500;     // endless runs; sanity cap only (500 rounds is about 3.5 hours of play)
 // Effective healing can't exceed the damage the party took; damage per round grows with the
 // round, so cap generously by round: 4000 per round plus 400 x rounds^2.
 function max_healing($rounds) { return 4000 * max(1, $rounds) + 400 * $rounds * $rounds; }
 const MIN_SECONDS_BETWEEN_POSTS = 10;
+const RUNS_FILE = "leaderboard_godot_runs.json";   // open run tickets
+const LOCK_FILE = "leaderboard_godot.lock";
+const RUN_TICKET_HOURS = 12;       // a ticket expires after this long
+const MAX_OPEN_TICKETS = 5000;
+const MAX_STARTS_PER_HOUR = 60;    // per address
+// The shortest time `rounds` cleared rounds can take: round 1 is 15s, +1s a round, at most
+// 25s (DifficultySystem first_round_time, round_time_growth, round_time_max), less 10%.
+function min_seconds($rounds) {
+    $t = 0;
+    for ($i = 1; $i <= $rounds; $i++) $t += min(15 + ($i - 1), 25);
+    return (int)floor($t * 0.9);
+}
 
 function respond($code, $payload) { http_response_code($code); echo json_encode($payload); exit; }
 
 function board_path($id) { return __DIR__ . "/" . BOARDS[$id]["file"]; }
 
-function load_data($id) {
-    $path = board_path($id);
-    if (!file_exists($path)) return ["entries" => [], "recent" => []];
-    $d = json_decode(file_get_contents($path), true);
-    return is_array($d) ? $d + ["entries" => [], "recent" => []] : ["entries" => [], "recent" => []];
+function read_json($path, $empty) {
+    if (!file_exists($path)) return $empty;
+    $d = json_decode((string)file_get_contents($path), true);
+    return is_array($d) ? $d + $empty : $empty;
 }
+
+function load_data($id) { return read_json(board_path($id), ["entries" => [], "recent" => []]); }
+
+// Saves safely: write a temporary file, keep a .bak copy of the old one, then swap it in.
+// A failed write leaves the old file untouched instead of an empty board.
+function save_json($path, $data) {
+    $json = json_encode($data);
+    if ($json === false) return false;
+    $tmp = substr($path, 0, -5) . ".tmp.json";
+    if (file_put_contents($tmp, $json) !== strlen($json)) { @unlink($tmp); return false; }
+    if (file_exists($path)) @copy($path, substr($path, 0, -5) . ".bak.json");
+    return rename($tmp, $path);
+}
+
+// One lock for every write (the board files get swapped, so they can't hold the lock).
+function lock() {
+    $fp = fopen(__DIR__ . "/" . LOCK_FILE, "c");
+    if (!$fp || !flock($fp, LOCK_EX)) respond(500, ["status" => "error", "message" => "Busy, try again"]);
+    return $fp;
+}
+function unlock($fp) { flock($fp, LOCK_UN); fclose($fp); }
+
+// Request values as text; arrays and objects (?board[]=x) become "".
+function str_in($v) { return (is_string($v) || is_int($v) || is_float($v)) ? (string)$v : ""; }
 
 function sort_entries(&$entries, $kind) {
     usort($entries, function ($a, $b) use ($kind) {
@@ -50,8 +89,10 @@ function sort_entries(&$entries, $kind) {
     });
 }
 
+function visible($entries) { return array_values(array_filter($entries, fn($e) => empty($e["hidden"]))); }
+
 function public_entries($entries, $kind) {
-    $rows = array_slice($entries, 0, SHOW);
+    $rows = array_slice(visible($entries), 0, SHOW);
     if ($kind === "healing")
         return array_map(fn($e) => ["name" => $e["name"], "rounds" => $e["rounds"], "healing" => $e["healing"],
                                     "build" => $e["build"] ?? "", "date" => substr($e["date"], 0, 10)], $rows);
@@ -65,10 +106,11 @@ function board_list() {
     return $out;
 }
 
-$action = $_GET["action"] ?? "";
+$action = str_in($_GET["action"] ?? "");
+$who = hash("sha256", ($_SERVER["REMOTE_ADDR"] ?? "") . "pythio");
 
 if ($action === "top") {
-    $id = $_GET["board"] ?? CURRENT;
+    $id = str_in($_GET["board"] ?? CURRENT);
     if (!isset(BOARDS[$id])) $id = CURRENT;
     $d = load_data($id);
     sort_entries($d["entries"], BOARDS[$id]["kind"]);
@@ -76,12 +118,34 @@ if ($action === "top") {
                   "boards" => board_list(), "entries" => public_entries($d["entries"], BOARDS[$id]["kind"])]);
 }
 
+if ($action === "start" && $_SERVER["REQUEST_METHOD"] === "POST") {
+    $fp = lock();
+    $path = __DIR__ . "/" . RUNS_FILE;
+    $r = read_json($path, ["runs" => [], "starts" => []]);
+    $now = time();
+    $r["runs"] = array_filter($r["runs"], fn($t) => is_array($t) && $now - $t["at"] < RUN_TICKET_HOURS * 3600);
+    $r["starts"] = array_filter($r["starts"], fn($l) => is_array($l) && $now - $l["since"] < 3600);
+    $mine = $r["starts"][$who] ?? ["since" => $now, "n" => 0];
+    if ($mine["n"] >= MAX_STARTS_PER_HOUR) { unlock($fp); respond(429, ["status" => "error", "message" => "Slow down a moment"]); }
+    $r["starts"][$who] = ["since" => $mine["since"], "n" => $mine["n"] + 1];
+    if (count($r["runs"]) >= MAX_OPEN_TICKETS) {
+        uasort($r["runs"], fn($a, $b) => $a["at"] - $b["at"]);
+        $r["runs"] = array_slice($r["runs"], count($r["runs"]) - MAX_OPEN_TICKETS + 1, null, true);
+    }
+    $run = bin2hex(random_bytes(12));
+    $r["runs"][$run] = ["at" => $now];
+    $ok = save_json($path, $r);
+    unlock($fp);
+    if (!$ok) respond(500, ["status" => "error", "message" => "Couldn't start the run"]);
+    respond(200, ["status" => "ok", "run" => $run]);
+}
+
 if ($action === "submit" && $_SERVER["REQUEST_METHOD"] === "POST") {
     $in = json_decode(file_get_contents("php://input"), true);
     if (!is_array($in)) respond(400, ["status" => "error", "message" => "Invalid data"]);
 
     // Name: 1-16 letters, numbers, spaces and a few symbols
-    $name = preg_replace("/[^A-Za-z0-9 _.\\-']/", "", (string)($in["name"] ?? ""));
+    $name = preg_replace("/[^A-Za-z0-9 _.\\-']/", "", str_in($in["name"] ?? ""));
     $name = trim(preg_replace("/\\s+/", " ", $name));
     $name = substr($name, 0, 16);
     if ($name === "") respond(400, ["status" => "error", "message" => "Enter a name"]);
@@ -90,21 +154,31 @@ if ($action === "submit" && $_SERVER["REQUEST_METHOD"] === "POST") {
     $healing = (int)($in["healing"] ?? -1);
     if ($rounds < 0 || $rounds > MAX_ROUND || $healing < 0 || $healing > max_healing($rounds))
         respond(400, ["status" => "error", "message" => "Score out of range"]);
-    $build = substr(preg_replace("/[^A-Za-z0-9 #._\/\-]/", "", (string)($in["build"] ?? "")), 0, 40);
+    $build = substr(preg_replace("/[^A-Za-z0-9 #._\/\-]/", "", str_in($in["build"] ?? "")), 0, 40);
 
-    $fp = fopen(board_path(CURRENT), "c+");
-    if (!$fp || !flock($fp, LOCK_EX)) respond(500, ["status" => "error", "message" => "Busy, try again"]);
-    $raw = stream_get_contents($fp);
-    $d = json_decode($raw ?: "", true);
-    if (!is_array($d)) $d = [];
-    $d += ["entries" => [], "recent" => []];
+    $run = preg_replace("/[^a-f0-9]/", "", str_in($in["run"] ?? ""));
+    if ($run === "") respond(400, ["status" => "error", "message" => "Refresh the page to get the latest game, then post again"]);
 
-    // Simple flood protection by (hashed) address
-    $who = hash("sha256", ($_SERVER["REMOTE_ADDR"] ?? "") . "pythio");
+    $fp = lock();
     $now = time();
+    // The run's ticket: it must exist, it's used up now, and the run must have taken long enough.
+    $runs_path = __DIR__ . "/" . RUNS_FILE;
+    $r = read_json($runs_path, ["runs" => [], "starts" => []]);
+    $ticket = $r["runs"][$run] ?? null;
+    if (!is_array($ticket) || $now - $ticket["at"] > RUN_TICKET_HOURS * 3600) {
+        unlock($fp);
+        respond(400, ["status" => "error", "message" => "This run can't be posted (it wasn't registered when it started)"]);
+    }
+    if ($now - $ticket["at"] < min_seconds($rounds)) {
+        unlock($fp);
+        respond(400, ["status" => "error", "message" => "Score out of range"]);
+    }
+
+    $d = load_data(CURRENT);
+    // Simple flood protection by (hashed) address
     foreach ($d["recent"] as $k => $t) if ($now - $t > 3600) unset($d["recent"][$k]);
     if (isset($d["recent"][$who]) && $now - $d["recent"][$who] < MIN_SECONDS_BETWEEN_POSTS) {
-        flock($fp, LOCK_UN); fclose($fp);
+        unlock($fp);
         respond(429, ["status" => "error", "message" => "Slow down a moment"]);
     }
     $d["recent"][$who] = $now;
@@ -112,12 +186,13 @@ if ($action === "submit" && $_SERVER["REQUEST_METHOD"] === "POST") {
     $entry = ["name" => $name, "rounds" => $rounds, "healing" => $healing, "build" => $build, "date" => gmdate("c")];
     $d["entries"][] = $entry;
     sort_entries($d["entries"], "healing");
-    $rank = array_search($entry, $d["entries"], true) + 1;
+    $rank = array_search($entry, visible($d["entries"]), true) + 1;
     $d["entries"] = array_slice($d["entries"], 0, KEEP);
 
-    ftruncate($fp, 0); rewind($fp);
-    fwrite($fp, json_encode($d));
-    fflush($fp); flock($fp, LOCK_UN); fclose($fp);
+    unset($r["runs"][$run]);   // a ticket posts once
+    $ok = save_json(board_path(CURRENT), $d) && save_json($runs_path, $r);
+    unlock($fp);
+    if (!$ok) respond(500, ["status" => "error", "message" => "Couldn't save, try again"]);
 
     respond(200, ["status" => "ok", "rank" => $rank, "board" => CURRENT, "kind" => "healing",
                   "title" => BOARDS[CURRENT]["title"], "boards" => board_list(),

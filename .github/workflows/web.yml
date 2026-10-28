@@ -91,6 +91,9 @@ jobs:
       - name: Leaderboard server has no PHP syntax errors
         run: for f in web/*.php; do php -l "$f"; done
 
+      - name: Leaderboard server works (tickets, refusals, hidden entries)
+        run: bash tools/web/test_leaderboard_server.sh
+
       - name: Export for the web
         env:
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
