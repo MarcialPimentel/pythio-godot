@@ -124,7 +124,12 @@ func _on_card_pressed(i: int) -> void:
 		_choose(i)
 
 
+## Hide now and cancel a pick that's still fading out, so it can't fire after the
+## player has left the screen (e.g. Esc → Quit to title right after clicking a card).
 func close() -> void:
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	_locked = true
 	visible = false
 
 

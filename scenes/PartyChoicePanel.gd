@@ -48,7 +48,7 @@ func guarded() -> bool:
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Space or Enter takes the job (between rounds only; in a round Space is a bandage).
-	if visible and event is InputEventKey and event.pressed and not event.echo \
+	if is_visible_in_tree() and event is InputEventKey and event.pressed and not event.echo \
 			and event.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER] and not left_button.disabled:
 		get_viewport().set_input_as_handled()
 		if not guarded():

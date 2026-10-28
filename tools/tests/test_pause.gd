@@ -39,13 +39,14 @@ func _process(d):
 		3:
 			esc(); wait = 0.1
 		4:
-			t_before = GM.round_time; hp_before = hp()
+			t_before = GM.round_time; hp_before = hp(); set_meta("clock", root.get_node("EffectSystem").clock)
 			wait = 0.0; step = 5; set_meta("t0", Time.get_ticks_msec()); return false
 		5:
 			if Time.get_ticks_msec() - get_meta("t0") < 1500: return false
 			if shot != "": root.get_viewport().get_texture().get_image().save_png(shot)
 			P("RESULT menu open=%s, paused=%s, timer frozen=%s, no damage while paused=%s" % [menu().visible, paused, is_equal_approx(GM.round_time, t_before), is_equal_approx(hp(), hp_before)])
 			C.ok(menu().visible and paused, "Escape pauses mid-round"); C.ok(is_equal_approx(GM.round_time, t_before), "timer frozen while paused"); C.ok(is_equal_approx(hp(), hp_before), "no damage while paused")
+			C.ok(is_equal_approx(root.get_node("EffectSystem").clock, get_meta("clock")), "passive cooldowns don't count down while paused")
 			esc(); wait = 0.6
 		6:
 			P("RESULT Escape resumes=%s, timer running=%s" % [not paused and not menu().visible, GM.round_time < t_before - 0.3])

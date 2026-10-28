@@ -77,6 +77,9 @@ func _process(d):
 		6:
 			P("chose a spell instead: mode=%s offers=%s all spells=%s skip there=%s passives kept=%s" % [game._card_mode, ids(game._last_offers),
 				game._last_offers.all(func(s): return not s.is_passive()), ids(game._card_options).has(game.SKIP), ids(SS.passives)])
+			C.ok(game._last_offers.all(func(s): return not s.is_passive()), "a spell instead offers spells")
+			C.ok(not ids(game._card_options).has(game.SKIP), "the spell pick from the bounty has no Skip")
+			C.eq(SS.passives.size(), 3, "your passives are kept")
 			game.card_panel.close(); game._card_mode = ""
 			# Double Down: every 4th Direct heal lands twice
 			use(["heal", "double_down"]); reset(10.0)
