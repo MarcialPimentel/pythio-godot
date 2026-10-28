@@ -64,7 +64,9 @@ any death ends the run.
 - `autoload/events/EventBus.gd` — shared signals; systems talk through these
 - `components/` — reusable node components (HealthComponent) and `statuses/`
 - `entities/` — the party member scene (Target)
-- `scenes/`, `ui/` — main game scene and panels
+- `scenes/`, `ui/` — main game scene and panels. `scenes/game.gd` wires the screen together;
+  self-contained pieces live in `ui/` (`PickCards`, `HudCounters`, `LeaderboardView`,
+  `CardChoicePanel`, `PartyChoicePanel`). Pythio's lines: `data/PythioLines.gd`.
 - `data/`, `resources/` — data definitions and .tres files (`resources/spells/effects`,
   `resources/spells/passives`, `resources/specs`)
 - `tools/tests/` — automated checks (see its README); `sim_bot.gd` plays real runs for balance
@@ -75,7 +77,9 @@ game launching and playable. Before opening a PR:
 1. `godot --headless --import` then `godot --headless --quit-after 300` from the repo root
    and confirm there are no new `ERROR` / `SCRIPT ERROR` lines. Then `tools/tests/run_all.sh <godot>`
    must pass (CI runs it too; nothing deploys if it fails). Turn what a new test checks into
-   `C.ok` / `C.eq` / `C.near` checks (`tools/tests/check.gd`), not just printed lines.
+   `C.ok` / `C.eq` / `C.near` checks (`tools/tests/check.gd`), not just printed lines. A test
+   can't name a `class_name` script that uses autoloads (it compiles first): use
+   `load("res://ui/PickCards.gd")` instead.
 2. In the PR description, write **plain-language test steps** ("Start a run, pick the left
    contract, cast Flash Heal on the first fighter — their health bar should rise").
 

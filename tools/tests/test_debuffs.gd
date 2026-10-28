@@ -45,7 +45,8 @@ func _process(d):
 			game.party_choice_panel._on_left_chosen(); wait = 0.4
 		3:
 			T = TS.targets.duplicate(); T.sort_custom(func(a, b): return a.index < b.index)
-			P("round %d: Cleanse on F = %s, charges %d/%d · counter: '%s'" % [GM.current_round, SS.utility.id, CS.charges, CS.max_charges(), game._cleanse_label.get_parsed_text()])
+			P("round %d: Cleanse on F = %s, charges %d/%d · counter: '%s'" % [GM.current_round, SS.utility.id, CS.charges, CS.max_charges(), game.hud.cleanse_label.get_parsed_text()])
+			C.ok(game.hud.cleanse_label.get_parsed_text().to_upper().contains(SS.utility.display_name.to_upper()), "the F counter names the Cleanse spell")
 			GM.round_time = 30.0
 			wait = 3.0
 		4:
