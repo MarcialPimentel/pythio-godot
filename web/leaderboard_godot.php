@@ -5,7 +5,10 @@
 //   POST leaderboard_godot.php?action=submit  (JSON)  -> adds ONE entry, returns top 10 + your rank
 // A score needs the ticket from the start of its run, used once, and the run must have lasted
 // at least as long as the rounds it claims (review 2026-10-28: anyone could post any score).
-// To hide an entry, add "hidden": true to it in the board's .json file (File Manager).
+// Data lives in *.data.php files: if anyone opens one in a browser, PHP runs its first line and
+// shows nothing (SiteGround serves .json files directly, ignoring .htaccess; 2026-10-28).
+// To hide an entry, add "hidden": true to it in leaderboard_godot_v2.data.php (File Manager;
+// keep the first line as it is).
 // Unlike the old leaderboard.php, the game can't overwrite the whole list: the server
 // validates each entry, keeps the best scores itself, and limits how fast an address can post.
 // Boards: a new board starts only when the scoring rules change; older boards stay on the
@@ -18,8 +21,8 @@ header("Cache-Control: no-store");
 
 // Newest first. To start a new board: add it at the top and point CURRENT at it.
 const BOARDS = [
-    "v2" => ["file" => "leaderboard_godot_v2.json", "title" => "Phase C onward", "kind" => "healing"],
-    "v1" => ["file" => "leaderboard_godot.json",    "title" => "Builds 1–33",    "kind" => "classic"],
+    "v2" => ["file" => "leaderboard_godot_v2", "title" => "Phase C onward", "kind" => "healing"],
+    "v1" => ["file" => "leaderboard_godot",    "title" => "Builds 1–33",    "kind" => "classic"],
 ];
 const CURRENT = "v2";
 const KEEP = 100;          // entries stored
@@ -29,8 +32,11 @@ const MAX_ROUND = 500;     // endless runs; sanity cap only (500 rounds is about
 // round, so cap generously by round: 4000 per round plus 400 x rounds^2.
 function max_healing($rounds) { return 4000 * max(1, $rounds) + 400 * $rounds * $rounds; }
 const MIN_SECONDS_BETWEEN_POSTS = 10;
-const RUNS_FILE = "leaderboard_godot_runs.json";   // open run tickets
+const RUNS_FILE = "leaderboard_godot_runs";     // open run tickets
+const SECRET_FILE = "leaderboard_godot_secret"; // random salt for hashing addresses
 const LOCK_FILE = "leaderboard_godot.lock";
+const STORE = ".data.php";                      // every data file ends in this
+const GUARD = "<?php http_response_code(404); exit; ?>\n";   // first line of every data file
 const RUN_TICKET_HOURS = 12;       // a ticket expires after this long
 const MAX_OPEN_TICKETS = 5000;
 const MAX_STARTS_PER_HOUR = 60;    // per address
@@ -44,11 +50,14 @@ function min_seconds($rounds) {
 
 function respond($code, $payload) { http_response_code($code); echo json_encode($payload); exit; }
 
-function board_path($id) { return __DIR__ . "/" . BOARDS[$id]["file"]; }
+function store_path($name) { return __DIR__ . "/" . $name . STORE; }
+function board_path($id) { return store_path(BOARDS[$id]["file"]); }
 
 function read_json($path, $empty) {
     if (!file_exists($path)) return $empty;
-    $d = json_decode((string)file_get_contents($path), true);
+    $raw = (string)file_get_contents($path);
+    if (strncmp($raw, "<?php", 5) === 0) $raw = (string)substr($raw, strpos($raw, "\n") + 1);
+    $d = json_decode($raw, true);
     return is_array($d) ? $d + $empty : $empty;
 }
 
@@ -59,9 +68,11 @@ function load_data($id) { return read_json(board_path($id), ["entries" => [], "r
 function save_json($path, $data) {
     $json = json_encode($data);
     if ($json === false) return false;
-    $tmp = substr($path, 0, -5) . ".tmp.json";
-    if (file_put_contents($tmp, $json) !== strlen($json)) { @unlink($tmp); return false; }
-    if (file_exists($path)) @copy($path, substr($path, 0, -5) . ".bak.json");
+    $body = GUARD . $json;
+    $base = substr($path, 0, -strlen(STORE));
+    $tmp = $base . ".tmp" . STORE;
+    if (file_put_contents($tmp, $body) !== strlen($body)) { @unlink($tmp); return false; }
+    if (file_exists($path)) @copy($path, $base . ".bak" . STORE);
     return rename($tmp, $path);
 }
 
@@ -72,6 +83,38 @@ function lock() {
     return $fp;
 }
 function unlock($fp) { flock($fp, LOCK_UN); fclose($fp); }
+
+// One-time move from the old public .json files: keep the entries, drop the per-address
+// "recent" list (it used a guessable salt), and delete the old files.
+function migrate_old_files() {
+    $old = [];
+    foreach (BOARDS as $b) foreach (["", ".bak", ".tmp"] as $x) $old[] = __DIR__ . "/" . $b["file"] . $x . ".json";
+    foreach (["", ".bak", ".tmp"] as $x) $old[] = __DIR__ . "/" . RUNS_FILE . $x . ".json";
+    if (!array_filter($old, "file_exists")) return;
+    $fp = lock();
+    foreach (BOARDS as $id => $b) {
+        $json = __DIR__ . "/" . $b["file"] . ".json";
+        if (file_exists($json) && !file_exists(board_path($id))) {
+            $d = read_json($json, ["entries" => []]);
+            $d["recent"] = [];
+            if (!save_json(board_path($id), $d)) { unlock($fp); respond(500, ["status" => "error", "message" => "Busy, try again"]); }
+        }
+    }
+    foreach ($old as $f) if (file_exists($f)) @unlink($f);
+    unlock($fp);
+}
+
+// A random salt kept on the server, so hashed addresses can't be reversed.
+function secret() {
+    $path = store_path(SECRET_FILE);
+    $d = read_json($path, []);
+    if (empty($d["salt"])) {
+        $d = ["salt" => bin2hex(random_bytes(16))];
+        save_json($path, $d);
+        $d = read_json($path, []) + $d;   // if two requests raced, use the one that won
+    }
+    return $d["salt"];
+}
 
 // Request values as text; arrays and objects (?board[]=x) become "".
 function str_in($v) { return (is_string($v) || is_int($v) || is_float($v)) ? (string)$v : ""; }
@@ -106,8 +149,9 @@ function board_list() {
     return $out;
 }
 
+migrate_old_files();
 $action = str_in($_GET["action"] ?? "");
-$who = hash("sha256", ($_SERVER["REMOTE_ADDR"] ?? "") . "pythio");
+$who = hash("sha256", ($_SERVER["REMOTE_ADDR"] ?? "") . secret());
 
 if ($action === "top") {
     $id = str_in($_GET["board"] ?? CURRENT);
@@ -120,7 +164,7 @@ if ($action === "top") {
 
 if ($action === "start" && $_SERVER["REQUEST_METHOD"] === "POST") {
     $fp = lock();
-    $path = __DIR__ . "/" . RUNS_FILE;
+    $path = store_path(RUNS_FILE);
     $r = read_json($path, ["runs" => [], "starts" => []]);
     $now = time();
     $r["runs"] = array_filter($r["runs"], fn($t) => is_array($t) && $now - $t["at"] < RUN_TICKET_HOURS * 3600);
@@ -162,7 +206,7 @@ if ($action === "submit" && $_SERVER["REQUEST_METHOD"] === "POST") {
     $fp = lock();
     $now = time();
     // The run's ticket: it must exist, it's used up now, and the run must have taken long enough.
-    $runs_path = __DIR__ . "/" . RUNS_FILE;
+    $runs_path = store_path(RUNS_FILE);
     $r = read_json($runs_path, ["runs" => [], "starts" => []]);
     $ticket = $r["runs"][$run] ?? null;
     if (!is_array($ticket) || $now - $ticket["at"] > RUN_TICKET_HOURS * 3600) {
