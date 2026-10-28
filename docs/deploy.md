@@ -21,6 +21,17 @@ check, an error, a crash or a hang) → a PHP syntax check of the leaderboard se
 export. If any step fails, nothing is uploaded. Run the same tests locally with
 `tools/tests/run_all.sh path/to/godot`.
 
+## Leaderboard: hiding a score, backups
+- **Hide a score:** SiteGround **File Manager** → `public_html/games/pythio/leaderboard_godot_v2.json`
+  → edit → find the entry's `"name"` and add `"hidden":true,` next to it → save. It disappears
+  from the board at once; nothing is deleted.
+- **Backup:** every save keeps the previous board as `leaderboard_godot_v2.bak.json`. To undo
+  the last save, copy it over the board file.
+- **Run tickets:** the game asks the server for a one-time ticket when a run starts
+  (`leaderboard_godot_runs.json`, tickets expire after 12 hours). A score needs its run's
+  ticket and can't arrive faster than the rounds it claims could be played. A player on an
+  old cached build is told to refresh the page.
+
 ## Why the game files end in `?v=…`
 SiteGround's front cache keeps serving an old `index.pck` after a deploy, whatever `.htaccess`
 says (seen 2026-10-28: Build 104 uploaded, Build 98 still served). So the build step

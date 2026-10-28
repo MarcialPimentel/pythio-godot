@@ -23,6 +23,9 @@ const NAME_FILE := "user://player_name.cfg"
 
 var entries: Array = []
 var _endpoint: String = ""
+## The server's one-time ticket for the run being played ("" = none yet, or offline).
+## A score can only be posted with the ticket from the start of its run.
+var run_ticket: String = ""
 
 
 func _ready() -> void:
@@ -31,6 +34,22 @@ func _ready() -> void:
 		var url = JavaScriptBridge.eval("new URL('leaderboard_godot.php', window.location.href).href", true)
 		if typeof(url) == TYPE_STRING and url != "":
 			_endpoint = url
+	GameManager.show_spec_choice.connect(start_run)   # a new run begins
+
+
+## Asks the server for this run's ticket (quietly; offline just means it can't be posted).
+func start_run() -> void:
+	run_ticket = ""
+	if not is_inside_tree() or DisplayServer.get_name() == "headless":
+		return   # automated tests don't take tickets from the live server
+	var req := _new_request()
+	req.request_completed.connect(func(result, code, _h, body):
+		var data = _parse(result, code, body)
+		if data != null and data.get("status") == "ok":
+			run_ticket = str(data.get("run", ""))
+		req.queue_free())
+	if req.request(_endpoint + "?action=start", [], HTTPClient.METHOD_POST, "") != OK:
+		req.queue_free()
 
 
 ## Loads a board's top 10 (`board` = "" for the current one).
@@ -60,10 +79,12 @@ func submit(player_name: String, rounds: int, healing: int) -> void:
 			entries = data.get("entries", [])
 			_read_board(data)
 		var msg: String = "" if ok else (data.get("message", "Couldn't reach the leaderboard") if data else "Couldn't reach the leaderboard")
+		if ok:
+			run_ticket = ""   # used up
 		submitted.emit(ok, int(data.get("rank", 0)) if ok else 0, entries, msg)
 		req.queue_free())
 	var build := str(ProjectSettings.get_setting("application/config/version", "dev")).replace("·", "/")
-	var body := JSON.stringify({"name": player_name, "rounds": rounds, "healing": healing, "build": build})
+	var body := JSON.stringify({"name": player_name, "rounds": rounds, "healing": healing, "build": build, "run": run_ticket})
 	var err := req.request(_endpoint + "?action=submit", ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
 	if err != OK:
 		submitted.emit(false, 0, entries, "Couldn't reach the leaderboard")

@@ -543,6 +543,9 @@ from the fight's phases.
   with ◀ ▶ so friends' scores are never lost. Today: "Phase C onward" (rounds, then
   healing) and "Builds 1–33" (the older scoring).
 - **Debug runs can't be posted.** That includes god mode and anything from the F1 panel.
+- **Fair play [2026-10-28]:** the server gives each run a one-time ticket when it starts; a
+  score needs it and can't arrive faster than its rounds could be played. Marz can hide any
+  entry by hand (see `docs/deploy.md`).
 - **Your best on this device** shows on the start screen.
 
 Files: `autoload/systems/RunStats.gd` (the stats), `autoload/systems/Leaderboard.gd` (the
@@ -696,6 +699,7 @@ Listed so nobody "fixes" the wrong side.
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-10-28 | Claude (for Marz) | Leaderboard hardening (#93): one-time run tickets, a minimum run time per round claimed, safe saves with a backup, hidden entries; the current board is kept (Marz). Section 10 updated. |
 | 2026-10-28 | Claude (for Marz) | Bug fixes from the code review (#92): recasting the same shield refreshes it at full strength (Marz); passives' shields follow Bulwark and Diminishing shields; passive cooldowns stop while paused and between rounds; the Baron's "a spell instead" pick has no Skip; heals-over-time no longer lose their last tick; "Job finished" waits while paused; quitting right after a pick can't start a hidden round. Section 6 updated. |
 | 2026-10-22 | Claude (for Marz) | First version, built from the live code and the docs after Phase C. Marz decided: one Next party screen (contract choice parked), gold = combos only, this doc wins over the other design docs, and pick pacing stays an open question. |
 | 2026-10-22 | Claude (for Marz) | Marz decided: the two player fantasies; combos = bread and butter, keystones = the big moments; picks every other round; 4 spell keys (Q–R); keystones after each Baron in their own 3 slots; Cleanse as its own basic ability, separate from the bandage. Phases reordered: D faster builds and more spells, E keystones, F debuffs and cleanse, G readability, H words. Proposed: swap/upgrade/skip when the bar is full, tag-weighted offers. |
