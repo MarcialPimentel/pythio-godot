@@ -92,10 +92,14 @@ jobs:
         run: for f in web/*.php; do php -l "$f"; done
 
       - name: Export for the web
+        env:
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           mkdir -p build/web
           ~/godot/godot --headless --export-release "Web" build/web/index.html 2>&1 | tee export.log | tail -5
           test -f build/web/index.wasm && test -f build/web/index.pck
+          # Each build loads its files under its own address, so no cache can serve an old one.
+          bash tools/web/cache_bust.sh build/web "${SHA::7}"
           cp web/.htaccess build/web/
           cp web/*.php build/web/ 2>/dev/null || true
           ls -la build/web
