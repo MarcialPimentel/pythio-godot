@@ -26,7 +26,8 @@ func _process(d):
 			DS.job_finished_time = 0.0; DS.screen_input_guard = 0.0   # instant screens (see test_job_finished.gd)
 			game._on_start_pressed(); wait = 0.8
 		1:
-			P("run start: charges=%d/%d label='%s'" % [BS.charges, BS.max_charges, game._bandage_label.get_parsed_text()])
+			P("run start: charges=%d/%d label='%s'" % [BS.charges, BS.max_charges, game.hud.bandage_label.get_parsed_text()])
+			C.ok(game.hud.bandage_label.get_parsed_text().begins_with("BANDAGES") and game.hud.bandage_label.get_parsed_text().count("■") == BS.charges, "the bandage counter shows the charges")
 			space(); wait = 0.1   # Space between rounds takes the job, not a bandage
 		2:
 			P("Space on the party screen: in_round=%s charges=%d (unchanged)" % [GM.in_round, BS.charges])
@@ -53,7 +54,7 @@ func _process(d):
 				root.get_node("EventBus").round_cleared.emit(r)
 			P("after clearing rounds 1–6 from 1 charge: charges=%d (1 +1 +1 +1, capped at 3)" % BS.charges)
 			BS.charges = 0; BS.charges_changed.emit(0, 3); BS.try_bandage(T[1])
-			P("no charges: channelling=%s label='%s'" % [BS.is_channeling(), game._bandage_label.get_parsed_text()])
+			P("no charges: channelling=%s label='%s'" % [BS.is_channeling(), game.hud.bandage_label.get_parsed_text()])
 			C.done(self)
 	step += 1
 	return false

@@ -55,10 +55,8 @@ var _low_mana_warned := false
 var _quip_tween: Tween
 var _last_run := {"rounds": 0, "healing": 0}
 var card_panel: Control
-var _passive_tray: HBoxContainer
-var _bandage_label: RichTextLabel
-var _cleanse_label: RichTextLabel
-var _rules_box: VBoxContainer
+## Rules panel, passive tray, Cleanse and bandage counters (ui/HudCounters.gd).
+var hud: HudCounters
 var _banner: VBoxContainer
 var _banner_tween: Tween
 ## What the open card screen is choosing: "spec" or "spell", and the options shown.
@@ -125,16 +123,14 @@ func _ready() -> void:
 	Leaderboard.fetch_top()
 
 	_add_build_label()
-	_make_passive_tray()
-	_make_bandage_counter()
-	_make_cleanse_counter()
-	_make_rules_panel()
+	hud = HudCounters.new()
+	game_ui.add_child(hud)
+	BandageSystem.channel_started.connect(_on_bandage_start)
+	BandageSystem.channel_ended.connect(func(_t, _done): cast_bar.visible = SpellSystem.is_casting)
+	DebuffSystem.first_seen.connect(func(kind): _say("debuff_" + kind, 5.0))
 	_make_banner()
 	EventBus.boss_phase.connect(_on_boss_phase)
-	SpellSystem.spellbook_changed.connect(_refresh_rules_panel)
 	EventBus.rule_triggered.connect(func(kind, _t): if kind == "exhausted": _flash_exhausted())
-	SpellSystem.spellbook_changed.connect(_refresh_passive_tray)
-	EventBus.passive_triggered.connect(_pulse_passive)
 	card_panel = preload("res://ui/CardChoicePanel.gd").new()
 	game_ui.add_child(card_panel)
 	card_panel.chosen.connect(_on_card_chosen)
@@ -187,7 +183,6 @@ func _process(delta: float) -> void:
 		var left := SpellSystem.current_spell.cast_time - SpellSystem.cast_elapsed
 		cast_label.text = "Casting %s  %.1fs" % [SpellSystem.current_spell.display_name, maxf(0.0, left)]
 	_update_spell_ui()
-	_pulse_cleanse()
 
 
 ## Mana came back (Divine Channel, Mana Conduit): a quick electric-blue pulse on the bar.
@@ -455,45 +450,7 @@ func _on_boss_phase(phase: int, title: String, hint: String) -> void:
 		_say("boss", 3.0)
 
 
-# ── Battlefield rules: always on screen, top right ─────
-
-func _make_rules_panel() -> void:
-	_rules_box = VBoxContainer.new()
-	_rules_box.position = Vector2(1530, 28)
-	_rules_box.custom_minimum_size = Vector2(370, 0)
-	_rules_box.add_theme_constant_override("separation", 2)
-	game_ui.add_child(_rules_box)
-	_refresh_rules_panel()
-
-
-func _refresh_rules_panel() -> void:
-	if not _rules_box:
-		return
-	for c in _rules_box.get_children():
-		_rules_box.remove_child(c)
-		c.queue_free()
-	var title := _slot_label("RulesTitle", "BATTLEFIELD RULES", 15, Color(0.95, 0.35, 0.3, 0.85), Vector2.ZERO, HORIZONTAL_ALIGNMENT_RIGHT)
-	title.custom_minimum_size = Vector2(370, 20)
-	title.mouse_filter = Control.MOUSE_FILTER_PASS
-	title.tooltip_text = "Rules everyone plays by. Some passives cancel a rule (shown in gold)."
-	_rules_box.add_child(title)
-	for rule in EffectSystem.battlefield_rules:
-		var line := RichTextLabel.new()
-		line.bbcode_enabled = true
-		line.fit_content = true
-		line.scroll_active = false
-		line.custom_minimum_size = Vector2(370, 0)
-		line.add_theme_font_size_override("normal_font_size", 17)
-		line.add_theme_font_size_override("bold_font_size", 17)
-		var by := EffectSystem.cancelled_by(rule.rule_id)
-		if by:
-			line.text = "[right][color=#6f6a63][s]%s[/s][/color]  [color=#ffd24d]→ %s[/color][/right]" % [rule.rule_name, by.display_name]
-			line.tooltip_text = "%s is cancelled by your %s:\n%s" % [rule.rule_name, by.display_name, by.description_plain()]
-		else:
-			line.text = "[right][color=#d9d2c5]%s[/color][/right]" % rule.rule_name
-			line.tooltip_text = "%s: %s" % [rule.rule_name, SpellTags.fill_plain(rule.describe())]
-		_rules_box.add_child(line)
-
+# ── Around the HUD counters (the counters themselves: ui/HudCounters.gd) ──
 
 func _flash_exhausted() -> void:
 	var tw := create_tween()
@@ -501,164 +458,11 @@ func _flash_exhausted() -> void:
 	tw.tween_property(mana_bar, "modulate", Color.WHITE, 0.6)
 
 
-# ── Bandages: counter by the mana bar, cast bar while channelling ──
-
-func _make_bandage_counter() -> void:
-	_bandage_label = RichTextLabel.new()
-	_bandage_label.bbcode_enabled = true
-	_bandage_label.fit_content = true
-	_bandage_label.scroll_active = false
-	_bandage_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_bandage_label.tooltip_text = "Bandages: hover a fighter and press Space to channel %d healing over %ss.\nYou can't cast while bandaging. +1 bandage every %d rounds (max %d)." % [
-		int(BandageSystem.heal_total), str(BandageSystem.channel_time), BandageSystem.gain_every_rounds, BandageSystem.max_charges]
-	_bandage_label.add_theme_font_size_override("normal_font_size", 20)
-	_bandage_label.add_theme_font_size_override("bold_font_size", 20)
-	_bandage_label.position = Vector2(1420, 1008)
-	_bandage_label.size = Vector2(300, 34)
-	game_ui.add_child(_bandage_label)
-	BandageSystem.charges_changed.connect(func(_c, _m): _update_bandages())
-	BandageSystem.channel_started.connect(_on_bandage_start)
-	BandageSystem.channel_ended.connect(func(_t, _done): cast_bar.visible = SpellSystem.is_casting)
-	BandageSystem.bandage_failed.connect(_on_bandage_failed)
-	_update_bandages()
-
-
-func _update_bandages() -> void:
-	var full := "■".repeat(BandageSystem.charges)
-	var empty := "□".repeat(maxi(0, BandageSystem.max_charges - BandageSystem.charges))
-	_bandage_label.text = "[b]BANDAGES[/b]  [color=#7df25a]%s[/color][color=#5a554e]%s[/color]  [color=#a9a39a]Space[/color]" % [full, empty]
-
-
 func _on_bandage_start(target: Node, _duration: float) -> void:
 	_set_pose("cast_heal", BandageSystem.channel_time + 0.3)
 	cast_bar.visible = true
 	cast_bar.value = 0
 	cast_label.text = "Bandaging %s" % target.display_name
-
-
-func _on_bandage_failed(reason: String) -> void:
-	if reason == "no_charges":
-		var tw := create_tween()
-		_bandage_label.modulate = Color(1.0, 0.3, 0.3)
-		tw.tween_property(_bandage_label, "modulate", Color.WHITE, 0.4)
-
-
-# ── Cleanse (Phase F): counter above the bandages; F on a hovered fighter ──
-const VIOLET_HEX := "b873ff"
-
-func _make_cleanse_counter() -> void:
-	_cleanse_label = RichTextLabel.new()
-	_cleanse_label.bbcode_enabled = true
-	_cleanse_label.fit_content = true
-	_cleanse_label.scroll_active = false
-	_cleanse_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_cleanse_label.add_theme_font_size_override("normal_font_size", 20)
-	_cleanse_label.add_theme_font_size_override("bold_font_size", 20)
-	_cleanse_label.position = Vector2(1420, 970)
-	_cleanse_label.size = Vector2(320, 34)
-	game_ui.add_child(_cleanse_label)
-	CleanseSystem.charges_changed.connect(func(_c, _m): _update_cleanse())
-	SpellSystem.spellbook_changed.connect(_update_cleanse)
-	CleanseSystem.cleanse_failed.connect(func(reason):
-		if reason == "no_charges":
-			var tw := create_tween()
-			_cleanse_label.modulate = Color(1.0, 0.3, 0.3)
-			tw.tween_property(_cleanse_label, "modulate", Color.WHITE, 0.4))
-	DebuffSystem.first_seen.connect(func(kind): _say("debuff_" + kind, 5.0))
-	_update_cleanse()
-
-
-func _update_cleanse() -> void:
-	var sp := CleanseSystem.spell()
-	if not sp:
-		_cleanse_label.text = ""
-		return
-	var full := "◆".repeat(CleanseSystem.charges)
-	var empty := "◇".repeat(maxi(0, CleanseSystem.max_charges() - CleanseSystem.charges))
-	_cleanse_label.text = "[b]%s[/b]  [color=#%s]%s[/color][color=#5a554e]%s[/color]  [color=#a9a39a]F[/color]" % [
-		sp.display_name.to_upper(), VIOLET_HEX, full, empty]
-	_cleanse_label.tooltip_text = "%s: point at a fighter and press F. %s\nFree and instant; charges come back during the round (one every %ss)." % [
-		sp.display_name, sp.description_plain(), str(sp.charge_time)]
-
-
-## The counter glows violet when F on the hovered fighter would remove something.
-func _pulse_cleanse() -> void:
-	if not _cleanse_label:
-		return
-	var helps := GameManager.in_round and CleanseSystem.would_help(SpellSystem.hovered_target)
-	var t := Time.get_ticks_msec() / 1000.0
-	_cleanse_label.modulate = Color(1.25 + 0.35 * sin(t * 8.0), 0.95, 1.45) if helps else Color.WHITE
-
-
-# ── Passive tray: 3 gold slots next to the spell bar ───
-
-const TRAY_SLOT := Vector2(84, 84)
-
-func _make_passive_tray() -> void:
-	var box := VBoxContainer.new()
-	box.position = Vector2(1290, 846)
-	box.add_theme_constant_override("separation", 4)
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var title := _slot_label("TrayTitle", "PASSIVES", 15, Color(1.0, 0.82, 0.3, 0.8), Vector2.ZERO, HORIZONTAL_ALIGNMENT_LEFT)
-	title.custom_minimum_size = Vector2(0, 20)
-	box.add_child(title)
-	_passive_tray = HBoxContainer.new()
-	_passive_tray.add_theme_constant_override("separation", 10)
-	box.add_child(_passive_tray)
-	game_ui.add_child(box)
-	_refresh_passive_tray()
-
-
-func _refresh_passive_tray() -> void:
-	if not _passive_tray:
-		return
-	for c in _passive_tray.get_children():
-		_passive_tray.remove_child(c)
-		c.queue_free()
-	for i in SpellSystem.PASSIVE_SLOTS:
-		var slot := Panel.new()
-		slot.custom_minimum_size = TRAY_SLOT
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.06, 0.05, 0.04, 0.9)
-		style.border_color = Color(1.0, 0.82, 0.3, 0.75 if i < SpellSystem.passives.size() else 0.25)
-		style.set_border_width_all(2)
-		style.set_corner_radius_all(4)
-		slot.add_theme_stylebox_override("panel", style)
-		if i < SpellSystem.passives.size():
-			var spell: SpellData = SpellSystem.passives[i]
-			slot.name = "P_" + spell.id
-			slot.tooltip_text = "%s (passive)\n%s" % [spell.display_name, spell.description_plain()]
-			var icon := TextureRect.new()
-			icon.texture = PickCards.spell_icon(spell)
-			icon.modulate = Color(1.0, 0.85, 0.45)
-			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			icon.offset_left = 8; icon.offset_top = 6; icon.offset_right = -8; icon.offset_bottom = -18
-			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			slot.add_child(icon)
-			var name_lbl := _slot_label("Name", spell.display_name, 12, Color(1.0, 0.86, 0.55), Vector2(0, 64), HORIZONTAL_ALIGNMENT_CENTER)
-			name_lbl.size = Vector2(TRAY_SLOT.x, 18)
-			name_lbl.clip_text = true
-			slot.add_child(name_lbl)
-		else:
-			slot.tooltip_text = "Empty passive slot — passives you pick go here."
-		_passive_tray.add_child(slot)
-
-
-## A passive just did something: its tray slot flashes gold.
-func _pulse_passive(spell: SpellData) -> void:
-	if not _passive_tray:
-		return
-	var slot := _passive_tray.get_node_or_null("P_" + spell.id)
-	if not slot:
-		return
-	slot.pivot_offset = TRAY_SLOT / 2.0
-	var tw := create_tween().set_parallel()
-	slot.modulate = Color(1.8, 1.5, 0.7)
-	slot.scale = Vector2.ONE * 1.12
-	tw.tween_property(slot, "modulate", Color.WHITE, 0.45)
-	tw.tween_property(slot, "scale", Vector2.ONE, 0.45)
 
 
 # ── Rounds & contracts ─────────────────────────────────
@@ -909,22 +713,22 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 	cd.visible = false
 	btn.add_child(cd)
 
-	btn.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
+	btn.add_child(HudCounters.make_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
 	if spell.is_passive():
-		btn.add_child(_slot_label("Cost", "passive", 16, Color(1.0, 0.8, 0.35), Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
+		btn.add_child(HudCounters.make_label("Cost", "passive", 16, Color(1.0, 0.8, 0.35), Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
 	else:
-		btn.add_child(_slot_label("Cost", str(int(spell.mana_cost)), 20, SpellTags.MANA_COLOR, Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+		btn.add_child(HudCounters.make_label("Cost", str(int(spell.mana_cost)), 20, SpellTags.MANA_COLOR, Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
 		# Cast time on the button too (owner, 2026-10-24): "inst" or "1.5s", bottom left.
 		var cast_txt := "inst" if spell.cast_time <= 0.0 else "%ss" % SpellData._num(spell.cast_time)
-		var cast_lbl := _slot_label("Cast", cast_txt, 18, Color(0.93, 0.89, 0.8), Vector2(6, 84), HORIZONTAL_ALIGNMENT_LEFT)
+		var cast_lbl := HudCounters.make_label("Cast", cast_txt, 18, Color(0.93, 0.89, 0.8), Vector2(6, 84), HORIZONTAL_ALIGNMENT_LEFT)
 		cast_lbl.add_theme_constant_override("outline_size", 5)
 		cast_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 		btn.add_child(cast_lbl)
-	var name_lbl := _slot_label("Name", spell.display_name, 14, Color(0.92, 0.88, 0.8), Vector2(0, 116), HORIZONTAL_ALIGNMENT_CENTER)
+	var name_lbl := HudCounters.make_label("Name", spell.display_name, 14, Color(0.92, 0.88, 0.8), Vector2(0, 116), HORIZONTAL_ALIGNMENT_CENTER)
 	name_lbl.size = Vector2(104, 22)
 	name_lbl.clip_text = true
 	btn.add_child(name_lbl)
-	var cd_label := _slot_label("CdText", "", 34, Color.WHITE, Vector2(0, 36), HORIZONTAL_ALIGNMENT_CENTER)
+	var cd_label := HudCounters.make_label("CdText", "", 34, Color.WHITE, Vector2(0, 36), HORIZONTAL_ALIGNMENT_CENTER)
 	btn.add_child(cd_label)
 	return btn
 
@@ -934,22 +738,9 @@ func _make_empty_slot(key: String) -> Control:
 	p.custom_minimum_size = Vector2(104, 116)
 	p.modulate = Color(1, 1, 1, 0.45)
 	p.tooltip_text = "Empty — you'll pick a new spell for this slot every few rounds."
-	p.add_child(_slot_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
-	p.add_child(_slot_label("Draft", "empty", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
+	p.add_child(HudCounters.make_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
+	p.add_child(HudCounters.make_label("Draft", "empty", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
 	return p
-
-
-func _slot_label(n: String, text: String, size: int, color: Color, offset: Vector2, align: HorizontalAlignment) -> Label:
-	var l := Label.new()
-	l.name = n
-	l.text = text
-	l.add_theme_font_size_override("font_size", size)
-	l.add_theme_color_override("font_color", color)
-	l.horizontal_alignment = align
-	l.position = offset
-	l.size = Vector2(104, 34)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return l
 
 
 func _update_spell_ui() -> void:

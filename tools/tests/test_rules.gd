@@ -15,7 +15,7 @@ func reset(v):
 	GM.mana = 500.0; GM.max_mana = 999.0; GM.exhausted_time = 0.0
 func rules_text() -> String:
 	var r := RegEx.new(); r.compile("\\[[^\\]]*\\]")
-	return " | ".join(game._rules_box.get_children().slice(1).map(func(l): return r.sub(l.text, "", true)))
+	return " | ".join(game.hud.rules_box.get_children().slice(1).map(func(l): return r.sub(l.text, "", true)))
 
 func _process(d):
 	if game and game.card_panel and game.card_panel.visible and not game.card_panel._locked:
@@ -34,6 +34,7 @@ func _process(d):
 		2:
 			T = TS.targets.duplicate(); T.sort_custom(func(a, b): return a.index < b.index)
 			P("rules on screen: %s" % rules_text())
+			C.ok(rules_text().contains("Diminishing") and rules_text().contains("Exhaustion") and rules_text().contains("Saturation"), "the rules panel lists all three rules")
 			P("rule text: %s" % str(ES.battlefield_rules.map(func(r): return SpellTags.fill_plain(r.describe()))))
 			# Diminishing shields
 			SS.set_spellbook_ids(PackedStringArray(["shield", "guardian_ward", "flash_heal"]))
