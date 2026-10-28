@@ -140,12 +140,28 @@ func _on_debuff_applied(t: Node, status) -> void:
 	_float_text(words.get(status.debuff, status.debuff.capitalize()), status.color(), 0.9, 30.0)
 
 
+## The line under the health bar: heal-over-time timers (green) or the armour (default).
+## Only touches the label when something changed (this runs every frame for every fighter).
+var _info_is_hot := false
+func _set_info(text: String, hot: bool) -> void:
+	if info_label.text != text:
+		info_label.text = text
+	if hot != _info_is_hot:
+		_info_is_hot = hot
+		if hot:
+			info_label.add_theme_color_override("font_color", FLOAT_HEAL)
+		else:
+			info_label.remove_theme_color_override("font_color")
+
+
 func _update_debuff_ui() -> void:
 	var list: Array = health_comp.debuffs() if not health_comp.is_dead else []
 	var parts: Array[String] = []
 	for d in list:
 		parts.append("[color=#%s]%s[/color]" % [d.color().to_html(false), d.warning_text()])
-	_debuff_label.text = "[center]%s[/center]" % "   ".join(parts) if not parts.is_empty() else ""
+	var text := "[center]%s[/center]" % "   ".join(parts) if not parts.is_empty() else ""
+	if _debuff_label.text != text:   # only re-read the BBCode when it changed
+		_debuff_label.text = text
 	var dread := health_comp.get_debuff("DREAD") if not health_comp.is_dead else null
 	_dread_line.visible = dread != null
 	if dread:
@@ -342,11 +358,9 @@ func _process(delta: float) -> void:
 		# shown, Renew + Healing Plague looked like they didn't stack; they do, and both heal).
 		var hots := health_comp.get_statuses("HOT")
 		hots.sort_custom(func(x, y): return x.time_left > y.time_left)
-		info_label.text = "\n".join(hots.map(func(s): return "%s %.1fs" % [s.label.to_upper(), s.time_left]))
-		info_label.add_theme_color_override("font_color", FLOAT_HEAL)
+		_set_info("\n".join(hots.map(func(s): return "%s %.1fs" % [s.label.to_upper(), s.time_left])), true)
 	elif not dead:
-		info_label.text = ("BOSS · " if is_boss else "") + "%s ARMOR" % armor_type
-		info_label.remove_theme_color_override("font_color")
+		_set_info(("BOSS · " if is_boss else "") + "%s ARMOR" % armor_type, false)
 
 	# Sprite tint + idle breathing
 	if dead:

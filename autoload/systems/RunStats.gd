@@ -14,7 +14,7 @@ var bandages: int = 0
 
 
 func _ready() -> void:
-	GameManager.show_spec_choice.connect(reset)
+	EventBus.run_started.connect(reset)
 	EventBus.healed.connect(func(_t, amount, over, _s, _g): restored += amount; overheal += over)
 	EventBus.shield_absorbed.connect(func(_t, amount): absorbed += amount)
 	EventBus.damage_prevented.connect(func(_t, amount): prevented += amount)

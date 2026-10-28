@@ -1,8 +1,6 @@
 extends Node
 
-signal round_started(round: int)
-signal round_ended
-signal game_over(round_reached: int, score: int)
+signal game_over(round_reached: int)
 signal show_party_choice
 ## Run start: pick a specialization (Mending / Bloom / Ward).
 signal show_spec_choice
@@ -12,13 +10,11 @@ signal show_spell_pick(offers: Array, round_cleared: int)
 var current_round: int = 1
 var round_time: float
 var in_round: bool = false
-var score: int = 0
 var best_rounds: int = 0
 var best_healing: int = 0
 var mana: float = 100.0
 var max_mana: float = 100.0
 var regen_rate: float = 4.0
-var last_run_won: bool = false
 ## Set when the F1 debug panel changes anything; such runs can't be posted online.
 var debug_used: bool = false
 ## Exhaustion (battlefield rule): mana refills slower while this counts down.
@@ -32,10 +28,38 @@ var practice: bool = false
 
 func _ready() -> void:
 	load_high_score()
+	(func(): TargetSystem.loss_condition.connect(_on_loss)).call_deferred()   # after every autoload exists
+
+
+## The round clock and mana regen. Runs only in a round; stops while the game is paused.
+func _process(delta: float) -> void:
+	if not in_round:
+		return
+	round_time -= delta
+	if round_time <= 0.0:
+		round_time = 0.0
+		end_round(true)
+		return
+	regen_mana(delta)
+
+
+## A party was chosen on the Next party screen: spawn it and start the clock.
+func start_round(contract: ContractData) -> void:
+	TargetSystem.spawn_from_contract(contract)
+	in_round = true
+	EventBus.round_started.emit(current_round)
+
+
+## Any fighter dying ends the run.
+func _on_loss() -> void:
+	if not in_round:
+		return   # already ended this round
+	SpellSystem.cancel_cast()
+	end_round(false)
+
 
 func new_game() -> void:
 	current_round = 1
-	score = 0
 	debug_used = god_mode
 	mana = DifficultySystem.max_mana_base
 	max_mana = DifficultySystem.max_mana_base
@@ -44,7 +68,7 @@ func new_game() -> void:
 	in_round = false
 	exhausted_time = 0.0
 	round_time = DifficultySystem.get_round_time(current_round)
-	DraftSystem.reset()
+	EventBus.run_started.emit()
 	show_spec_choice.emit()
 
 
@@ -52,7 +76,6 @@ func new_game() -> void:
 func start_practice() -> void:
 	practice = true
 	current_round = 1
-	score = 0
 	debug_used = true   # belt and braces: practice can never reach the leaderboard
 	mana = DifficultySystem.max_mana_base
 	max_mana = DifficultySystem.max_mana_base
@@ -61,6 +84,7 @@ func start_practice() -> void:
 	exhausted_time = 0.0
 	round_time = 1.0e9
 	in_round = false
+	EventBus.run_started.emit()
 
 
 func end_practice() -> void:
@@ -85,28 +109,20 @@ func continue_to_contracts() -> void:
 func end_round(success: bool) -> void:
 	in_round = false
 	EventBus.emit_signal("round_ended", current_round)
-	
-	if success:
-		score += current_round * 100  # later tie to gold
-		EventBus.round_cleared.emit(current_round)
-	else:
-		last_run_won = false
+
+	if not success:
 		save_high_score()
-		game_over.emit(current_round, score)
+		game_over.emit(current_round)
 		return
-	
+	EventBus.round_cleared.emit(current_round)
+
 	current_round += 1
-	if not DifficultySystem.is_endless() and current_round > DifficultySystem.total_rounds:
-		last_run_won = true
-		save_high_score()
-		game_over.emit(DifficultySystem.total_rounds, score)
-	else:
-		round_time = DifficultySystem.get_round_time(current_round)
-		max_mana = DifficultySystem.get_max_mana(current_round) + bonus_max_mana
-		regen_rate = DifficultySystem.get_regen_rate(current_round)
-		# Carry leftover mana and top up part of the pool, rewarding efficient rounds.
-		mana = minf(max_mana, mana + DifficultySystem.round_start_mana_refill * max_mana)
-		_after_round(current_round - 1)
+	round_time = DifficultySystem.get_round_time(current_round)
+	max_mana = DifficultySystem.get_max_mana(current_round) + bonus_max_mana
+	regen_rate = DifficultySystem.get_regen_rate(current_round)
+	# Carry leftover mana and top up part of the pool, rewarding efficient rounds.
+	mana = minf(max_mana, mana + DifficultySystem.round_start_mana_refill * max_mana)
+	_after_round(current_round - 1)
 
 
 ## A spell pick if this was a pick round (and there's something to offer), else contracts.

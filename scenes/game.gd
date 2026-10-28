@@ -93,9 +93,10 @@ var selected_spell: SpellData = null
 var current_contract: ContractData
 var fallen_name: String = ""
 var _pose_reset_at := 0.0
+var _orb_textures: Array = []   # mana orb, quarter by quarter (loaded once)
 var _low_mana_warned := false
 var _quip_tween: Tween
-var _last_run := {"score": 0, "round": 1, "won": false}
+var _last_run := {"rounds": 0, "healing": 0}
 var card_panel: Control
 var _passive_tray: HBoxContainer
 var _bandage_label: RichTextLabel
@@ -148,7 +149,6 @@ func _ready() -> void:
 	DraftSystem.build_complete.connect(func(): _say("build_complete", 5.0))
 	EventBus.combo_fired.connect(_on_combo_fired)
 	EffectSystem.effect_applied.connect(func(kind, _t, _v, _c): if kind == "mana": _flash_mana())
-	TargetSystem.loss_condition.connect(_on_loss)
 	SpellSystem.spell_cast_started.connect(_on_cast_start)
 	SpellSystem.spell_cast_finished.connect(_on_cast_finish)
 	SpellSystem.spell_cast_cancelled.connect(_on_cast_finish)
@@ -222,13 +222,6 @@ func _process(delta: float) -> void:
 
 	timer_label.text = "" if GameManager.practice else "%.1fs" % GameManager.round_time
 	_update_countdown()
-	GameManager.round_time -= delta
-	if GameManager.round_time <= 0:
-		GameManager.round_time = 0
-		GameManager.end_round(true)
-		return
-
-	GameManager.regen_mana(delta)
 	_update_mana_bar()
 	if BandageSystem.is_channeling():
 		cast_bar.value = BandageSystem.progress() * 100.0
@@ -460,13 +453,6 @@ static func pick_title(offers: Array) -> String:
 	return "Add a spell or passive"
 
 
-func _next_pick_round(after: int) -> int:
-	var r := after + 1
-	while not DraftSystem.is_pick_round(r) and r < after + 1000:
-		r += 1
-	return r
-
-
 func _on_card_chosen(index: int) -> void:
 	var choice = _card_options[index]
 	match _card_mode:
@@ -546,6 +532,9 @@ func spell_card(spell: SpellData) -> Dictionary:
 			header = "UPGRADES %s" % old[0].display_name.to_upper()
 	elif DraftSystem.needs_swap(spell):
 		badge = "SWAP"
+	var hint := synergy_hint_bb(spell)
+	if badge == "SWAP":
+		hint += ("\n" if hint != "" else "") + "[color=#c9c2b6][i]Your %s are full: you'll choose one to replace.[/i][/color]" % ("passives" if spell.is_passive() else "spells")
 	return {
 		"header": header, "header_color": school_color, "accent": school_color,
 		"badge": badge,
@@ -557,7 +546,7 @@ func spell_card(spell: SpellData) -> Dictionary:
 		"stats_color": SpellTags.COMBO_COLOR if spell.is_passive() else (DebuffStatus.VIOLET if spell.utility else SpellTags.MANA_COLOR),
 		"tags": spell.tags,
 		"body_bb": spell.description_bb(),
-		"hint_bb": synergy_hint_bb(spell) + (("\n" if synergy_hint_bb(spell) != "" else "") + "[color=#c9c2b6][i]Your %s are full: you'll choose one to replace.[/i][/color]" % ("passives" if spell.is_passive() else "spells") if badge == "SWAP" else ""),
+		"hint_bb": hint,
 		"flavor": spell.flavor,
 	}
 
@@ -851,10 +840,8 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	round_label.text = ("Round %d · The Crimson Baron" if chosen.is_boss else "Round %d") % GameManager.current_round
 	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
 
-	TargetSystem.spawn_from_contract(chosen)
-	GameManager.in_round = true
 	_low_mana_warned = false
-	EventBus.round_started.emit(GameManager.current_round)
+	GameManager.start_round(chosen)
 	_update_mana_bar()
 	party_area.visible = true
 	_say("boss" if chosen.is_boss else "round_start")
@@ -935,13 +922,6 @@ func _on_target_died(t: Node) -> void:
 	_say("death")
 
 
-func _on_loss() -> void:
-	if not GameManager.in_round:
-		return   # already ended this round
-	SpellSystem.cancel_cast()
-	GameManager.end_round(false)
-
-
 ## Small build stamp in the bottom-right corner (set by CI at export; "dev" locally),
 ## so a screenshot or bug report always says which build it came from.
 func _add_build_label() -> void:
@@ -983,7 +963,10 @@ func _update_mana_bar() -> void:
 		mana_label.text += "   EXHAUSTED %.0fs" % ceilf(GameManager.exhausted_time)
 	var frac := GameManager.mana / maxf(1.0, GameManager.max_mana)
 	var orb := clampi(int(ceil(frac * 4.0)), 1, 4)
-	var tex = load(ART + "ui/bars/mana_orb_%d.png" % orb)
+	if _orb_textures.is_empty():
+		for i in range(1, 5):
+			_orb_textures.append(load(ART + "ui/bars/mana_orb_%d.png" % i))
+	var tex = _orb_textures[orb - 1]
 	if tex and mana_orb.texture != tex:
 		mana_orb.texture = tex
 	if GameManager.in_round and frac < 0.2 and not _low_mana_warned:
@@ -1193,7 +1176,8 @@ func _on_target_selected(target: Node) -> void:
 # ── Pythio: poses and quips ────────────────────────────
 
 func _set_pose(pose: String, hold: float = 0.0) -> void:
-	var tex = load(ART + "characters/pythio/pythio_%s.png" % pose) if ResourceLoader.exists(ART + "characters/pythio/pythio_%s.png" % pose) else null
+	var path := ART + "characters/pythio/pythio_%s.png" % pose
+	var tex = load(path) if ResourceLoader.exists(path) else null
 	if tex:
 		pythio_sprite.texture = tex
 	_pose_reset_at = (Time.get_ticks_msec() / 1000.0 + hold) if hold > 0.0 else 0.0
@@ -1280,17 +1264,12 @@ func run_summary() -> String:
 		spells, ("  |  " + passives) if passives != "" else ""]
 
 
-func _on_game_over(round_reached: int, final_score: int) -> void:
+func _on_game_over(round_reached: int) -> void:
 	party_choice_panel.visible = false
 	card_panel.close()
 	game_over_panel.visible = true
 	cast_bar.visible = false
-	if GameManager.last_run_won:
-		final_score_label.text = "Contract fulfilled.\nAll %d rounds survived.  Score: %d" % [round_reached, final_score]
-		_set_pose("victory", 99.0)
-		_say("victory", 6.0)
-	else:
-		final_score_label.text = "%s didn't make it in round %d.\n%s" % [fallen_name if fallen_name != "" else "Someone", round_reached, run_summary()]
+	final_score_label.text = "%s didn't make it in round %d.\n%s" % [fallen_name if fallen_name != "" else "Someone", round_reached, run_summary()]
 	score_label.text = GameManager.best_text()
 	# Leaderboard entry
 	_last_run = {"rounds": GameManager.rounds_survived(), "healing": RunStats.effective_healing()}

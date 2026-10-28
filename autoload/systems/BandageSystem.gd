@@ -25,7 +25,7 @@ var _float_timer := 0.0
 func _ready() -> void:
 	EventBus.round_cleared.connect(_on_round_cleared)
 	EventBus.round_ended.connect(func(_r): _end(false))
-	GameManager.show_spec_choice.connect(reset)
+	EventBus.run_started.connect(reset)
 
 
 func reset() -> void:

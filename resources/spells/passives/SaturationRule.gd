@@ -25,8 +25,7 @@ func modify_heal(amount: float, target: Node, _tags: Array, opts: Dictionary) ->
 	var sat := hc.get_statuses("SATURATED")
 	if sat.is_empty():
 		return amount
-	hc.statuses.erase(sat[0])
-	hc.statuses_changed.emit()
+	hc.drop_status(sat[0])
 	return amount * (1.0 - weaker_by)
 
 func describe() -> String:
