@@ -16,6 +16,7 @@ func _process(d):
 	if f == 3:
 		GM = root.get_node("GameManager"); DS = root.get_node("DifficultySystem"); TS = root.get_node("TargetSystem")
 		DS.base_dps = 0.0; DS.dps_growth = 0.0; DS.burst_damage_base = 0.0; DS.burst_damage_growth = 0.0
+		DS.debuff_start_round = 9999   # no Poison/Bleed: only the scripted death may end this run
 		var BD = root.get_node("BossDirector")
 		BD.bleed_per_second = 0.0; BD.bleed_per_second_phase_3 = 0.0; BD.assassin_hit = 0.0; BD.execution_hit = 0.0
 		P("endless=%s round times 1..12 = %s" % [DS.is_endless(), range(1, 13).map(func(r): return DS.get_round_time(r))])

@@ -95,6 +95,7 @@ func _process(d):
 			ES.cast(lib("flash_heal"), T[3])
 			P("Renew then Flash Heal on a low fighter: HoT %.1fs → %.1fs (+3)" % [before, T[3].health_comp.hot_time])
 			C.near(T[3].health_comp.hot_time - before, 3.0, "Direct heal on a low fighter extends HoTs by 3s", 0.1)
+			T[3].health_comp.current_health = T[3].health_comp.max_health   # armour is random: make "full" explicit
 			P("glow: Flash Heal on a fighter at 10%% would fire=%s; at full health=%s" % [p5.passive.would_combo(lib("flash_heal"), T[0]), p5.passive.would_combo(lib("flash_heal"), T[3])])
 			C.ok(p5.passive.would_combo(lib("flash_heal"), T[0]), "glow on a low fighter"); C.ok(not p5.passive.would_combo(lib("flash_heal"), T[3]), "no glow at full health")
 			# HEAL_BOOST and cooldown
