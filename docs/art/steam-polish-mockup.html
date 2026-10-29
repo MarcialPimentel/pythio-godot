@@ -1,0 +1,938 @@
+<title>Pythio Steam Polish</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Pirata+One&family=Special+Elite&display=swap">
+<style>
+/* Layout: one long dossier. A full-width playable combat screen first, then the proposal in a 72ch column with wide tables. Dark-first, like the game. */
+:root{
+  --bg:#12100E; --surface:#1C1815; --raised:#26201B; --line:#3A3129;
+  --fg:#EDE6D6; --muted:#B3A894; --accent:#F0696D;
+  --heal:#3DDC84; --shield:#5AB0FF; --combo:#F2C14E; --danger:#F25257; --mana:#7FE6F2; --cleanse:#B88AFF;
+  --display:"Pirata One","Georgia",serif;
+  --ui:"Oswald","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --type:"Special Elite","Courier New",monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#F4EFE6; --surface:#FFFDF8; --raised:#EDE5D8; --line:#D6CBBB;
+  --fg:#1C1714; --muted:#5E5247; --accent:#A3262B;
+  --heal:#167A45; --shield:#1F5FA8; --combo:#8A6410; --danger:#A3262B; --mana:#0E6B78; --cleanse:#6A3FB5;
+  color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#F4EFE6; --surface:#FFFDF8; --raised:#EDE5D8; --line:#D6CBBB;
+  --fg:#1C1714; --muted:#5E5247; --accent:#A3262B;
+  --heal:#167A45; --shield:#1F5FA8; --combo:#8A6410; --danger:#A3262B; --mana:#0E6B78; --cleanse:#6A3FB5;
+  color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 17px/1.6 var(--ui);letter-spacing:.005em;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:1180px;margin:0 auto}
+.col{max-width:76ch}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(44px,7vw,84px)}
+h2{font-size:clamp(32px,4.4vw,48px);margin-top:72px;margin-bottom:6px}
+h3{font-size:26px;margin-bottom:6px}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+.eyebrow{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:20px;color:var(--muted);max-width:62ch;margin-top:10px}
+.secnum{font-family:var(--ui);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+hr{border:0;border-top:1px solid var(--line);margin:56px 0 0}
+:focus-visible{outline:2px solid var(--combo);outline-offset:2px}
+
+/* ---------- stage ---------- */
+.stage{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;margin-top:22px;border-radius:6px;overflow:hidden;background:#0B0908;
+  box-shadow:0 0 0 1px #000,0 18px 50px rgba(0,0,0,.45)}
+.world{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;transform:scale(var(--s,.5));
+  font-family:var(--ui);color:#EDE6D6;user-select:none;-webkit-user-select:none}
+.world canvas{position:absolute;inset:0;width:1920px;height:1080px}
+.world .shake{position:absolute;inset:0}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 46%,transparent 55%,rgba(0,0,0,.72) 100%)}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.10;mix-blend-mode:overlay;background-image:repeating-linear-gradient(35deg,#fff 0 1px,transparent 1px 5px)}
+
+/* fighters */
+.fighter{position:absolute;bottom:388px;width:300px;margin-left:-150px;height:470px;cursor:pointer}
+.fighter .shadow{position:absolute;left:50%;bottom:-8px;width:210px;height:34px;margin-left:-105px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(0,0,0,.75),transparent)}
+.fighter .hotring{position:absolute;left:50%;bottom:-20px;width:250px;height:58px;margin-left:-125px;border-radius:50%;
+  border:3px solid rgba(61,220,132,.85);box-shadow:0 0 18px rgba(61,220,132,.55),inset 0 0 14px rgba(61,220,132,.4);opacity:0;transition:opacity .3s}
+.fighter.hot .hotring{opacity:1;animation:ringpulse 1.2s ease-in-out infinite}
+.fighter .tele{position:absolute;left:50%;bottom:-24px;width:270px;height:64px;margin-left:-135px;border-radius:50%;
+  border:4px solid #F25257;box-shadow:0 0 22px rgba(242,82,87,.7);opacity:0}
+.fighter.tele-on .tele{opacity:1;animation:telepulse .45s ease-in-out infinite}
+.fighter .body{position:absolute;left:50%;bottom:0;transform-origin:50% 100%;animation:breathe 3.4s ease-in-out infinite}
+.fighter img{display:block;height:420px;width:auto;max-width:none;transform:translateX(-50%);transition:filter .25s}
+.fighter.downpose img{height:auto;width:420px}
+.fighter.hit img{filter:brightness(2.6) contrast(.6) sepia(1) hue-rotate(-30deg) saturate(3)}
+.fighter.dead img{filter:grayscale(1) brightness(.55)}
+.fighter.dead .body{animation:none}
+.fighter .bubble{position:absolute;left:50%;bottom:30px;width:300px;height:390px;margin-left:-150px;border-radius:50% 50% 46% 46%;
+  border:3px solid rgba(90,176,255,.9);background:radial-gradient(ellipse at 50% 40%,rgba(90,176,255,.06),rgba(90,176,255,.22));
+  box-shadow:0 0 26px rgba(90,176,255,.55),inset 0 0 30px rgba(90,176,255,.35);opacity:0;transform:scale(.9);transition:opacity .2s,transform .2s;pointer-events:none}
+.fighter.shielded .bubble{opacity:1;transform:scale(1)}
+.frame.sel .nm{color:#fff;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:6px}
+.frame.sel .bar{box-shadow:0 0 0 7px rgba(237,230,214,.18)}
+.flash{position:absolute;left:50%;top:44%;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;pointer-events:none;opacity:0}
+.statusrow{position:absolute;left:0;right:0;top:-12px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.warn{font:700 24px/1 var(--ui);letter-spacing:.06em;padding:6px 12px 5px;border-radius:3px;background:rgba(10,8,7,.82);border:2px solid currentColor;white-space:nowrap}
+.warn.red{color:#F25257}.warn.violet{color:#B88AFF}
+
+/* unit frames */
+.frame{position:absolute;top:698px;width:240px;margin-left:-120px;text-align:center}
+.frame .nm{font:500 25px/1 var(--ui);letter-spacing:.02em;text-shadow:0 2px 0 #000}
+.frame .ar{display:block;font:500 18px/1 var(--ui);letter-spacing:.12em;color:#ADA290;margin-top:7px;text-transform:uppercase}
+.bar{position:relative;height:34px;margin-top:9px;background:#0E0C0B}
+.bar::before{content:"";position:absolute;inset:-4px;border:3px solid #EDE6D6;border-radius:2px;filter:url(#ink);pointer-events:none;z-index:3}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#D9454A,#8E1E22);transition:width .25s}
+.bar .lag{position:absolute;left:0;top:0;bottom:0;background:#EDE6D6;opacity:.55;transition:width .7s .25s}
+.bar .sh{position:absolute;left:0;top:0;height:9px;background:linear-gradient(#bfe0ff,#5AB0FF);box-shadow:0 0 10px #5AB0FF;transition:width .2s;z-index:2}
+.bar .dread{position:absolute;top:-6px;bottom:-6px;width:4px;background:#B88AFF;box-shadow:0 0 10px #B88AFF;z-index:4;display:none}
+.bar .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 22px/1 var(--ui);text-shadow:0 2px 0 #000,0 0 6px #000;z-index:2;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px;min-height:30px}
+.chip{font:500 18px/1 var(--ui);letter-spacing:.06em;padding:5px 8px 4px;border-radius:2px;background:rgba(10,8,7,.8);border:1.5px solid currentColor;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip.g{color:#3DDC84}.chip.b{color:#5AB0FF}.chip.v{color:#B88AFF}
+
+/* floating numbers */
+.float{position:absolute;font:700 46px/1 var(--ui);text-shadow:0 3px 0 #000,0 0 10px #000;pointer-events:none;white-space:nowrap;will-change:transform,opacity}
+.float.g{color:#3DDC84}.float.r{color:#F25257}.float.b{color:#5AB0FF}.float.y{color:#F2C14E;font-family:var(--display);font-size:64px}.float.v{color:#B88AFF}
+
+/* top bar */
+.contract{position:absolute;left:44px;top:34px;display:flex;gap:18px;align-items:center}
+.poster{width:86px;height:108px;background:#D9CDB4;color:#1C1714;transform:rotate(-3deg);box-shadow:3px 4px 0 #000;display:flex;flex-direction:column;align-items:center;padding-top:6px;filter:url(#ink)}
+.poster b{font:400 22px/1 var(--display)}
+.poster i{display:block;width:52px;height:56px;margin-top:5px;background:repeating-linear-gradient(35deg,#1C1714 0 1.5px,transparent 1.5px 5px);border:2px solid #1C1714}
+.contract .k{font:500 18px/1 var(--ui);letter-spacing:.16em;color:#ADA290}
+.contract .t{font:400 44px/1.05 var(--display)}
+.contract .p{font:500 19px/1 var(--ui);letter-spacing:.12em;color:#F25257;margin-top:4px}
+.roundbox{position:absolute;left:50%;top:22px;transform:translateX(-50%);display:flex;align-items:center;gap:22px}
+.roundbox .r{font:400 84px/1 var(--display);text-shadow:0 4px 0 #000}
+.timer{position:relative;width:86px;height:86px}
+.timer svg{position:absolute;inset:0}
+.timer span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 28px/1 var(--ui);font-variant-numeric:tabular-nums}
+.timer.low span{color:#F25257}
+.rules{position:absolute;right:44px;top:36px;text-align:right}
+.rules .k{font:500 18px/1 var(--ui);letter-spacing:.16em;color:#F25257;margin-bottom:10px}
+.rules div.rl{font:500 21px/1.2 var(--ui);color:#EDE6D6;margin-top:6px}
+.rules div.rl small{color:#ADA290;font-size:18px;margin-left:8px}
+.actname{position:absolute;left:50%;top:126px;transform:translateX(-50%);font:500 19px/1 var(--ui);letter-spacing:.22em;color:#ADA290;text-transform:uppercase;white-space:nowrap}
+
+/* pythio */
+.pythio{position:absolute;left:30px;bottom:-30px;height:600px;pointer-events:none}
+.pythio img{height:600px;width:auto;max-width:none;display:block}
+.say{position:absolute;left:392px;top:452px;width:320px;padding:16px 20px;background:#E6DCC6;color:#1C1714;font:400 23px/1.3 var(--type);border-radius:3px;box-shadow:4px 5px 0 #000;transition:opacity .3s}
+.say::before{content:"";position:absolute;left:-22px;top:36px;border:12px solid transparent;border-right:22px solid #E6DCC6}
+.say::after{content:"";position:absolute;inset:-4px;border:3px solid #0B0908;filter:url(#ink);pointer-events:none}
+
+/* bottom hud */
+.hud{position:absolute;left:760px;bottom:26px;width:860px}
+.castbar{position:absolute;left:0;top:-44px;width:520px;height:32px;background:#0E0C0B;opacity:0;transition:opacity .15s}
+.castbar.on{opacity:1}
+.castbar::before{content:"";position:absolute;inset:-4px;border:3px solid #EDE6D6;filter:url(#ink);z-index:2}
+.castbar .cf{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#7DF0B0,#1E9A5A)}
+.castbar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 20px/1 var(--ui);letter-spacing:.05em;text-shadow:0 2px 0 #000;z-index:1}
+.slots{display:flex;gap:16px;align-items:flex-end}
+.slot{position:relative;width:118px;height:118px;padding:0;border:0;background:none;cursor:pointer;color:#EDE6D6;font-family:var(--ui)}
+.slot svg{width:118px;height:118px;display:block}
+.slot .key{position:absolute;left:-8px;top:-10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#0E0C0B;border:2px solid #EDE6D6;font:700 22px/1 var(--ui);transform:rotate(-4deg)}
+.slot .cost{position:absolute;right:6px;bottom:6px;font:700 21px/1 var(--ui);color:#7FE6F2;text-shadow:0 2px 0 #000,0 0 4px #000}
+.slot .ct{position:absolute;left:8px;bottom:6px;font:500 18px/1 var(--ui);color:#EDE6D6;text-shadow:0 2px 0 #000,0 0 4px #000}
+.slot .cd{position:absolute;inset:4px;background:conic-gradient(rgba(0,0,0,.72) calc(var(--cd,0)*360deg),transparent 0);pointer-events:none}
+.slot .cdn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 38px/1 var(--ui);text-shadow:0 2px 0 #000}
+.slot .nm{position:absolute;left:0;right:0;top:124px;text-align:center;font:500 18px/1 var(--ui);color:#ADA290;white-space:nowrap}
+.slot.ready{animation:goldpulse .9s ease-in-out infinite}
+.slot.poor svg{filter:grayscale(.8) brightness(.6)}
+.slot:hover svg,.slot:focus-visible svg{filter:brightness(1.25)}
+.tray{display:flex;gap:10px;margin-left:24px;align-items:flex-end;padding-bottom:30px}
+.tray .tk{position:absolute;margin-top:-34px;font:500 16px/1 var(--ui);letter-spacing:.16em;color:#F2C14E}
+.pslot{position:relative;width:82px;height:82px;border:2px solid #F2C14E;background:#15110F;box-shadow:inset 0 0 0 4px #0B0908}
+.pslot svg{width:100%;height:100%}
+.pslot.empty{border-color:rgba(242,193,78,.45);border-style:dashed}
+.pslot.fire{animation:passfire .6s ease-out}
+.counters{position:absolute;left:880px;top:16px;width:max-content;white-space:nowrap;display:flex;flex-direction:column;gap:14px}
+.ctr{display:flex;align-items:center;gap:10px;font:500 19px/1 var(--ui);letter-spacing:.12em}
+.ctr .kk{display:inline-flex;width:auto;min-width:32px;height:32px;padding:0 6px;align-items:center;justify-content:center;border:2px solid #EDE6D6;font-weight:700;letter-spacing:0}
+.pip{width:20px;height:20px;transform:rotate(45deg);border:2px solid currentColor;display:inline-block;margin-left:4px}
+.pip.on{background:currentColor}
+.manarow{position:absolute;left:-124px;bottom:-18px;display:flex;align-items:center;gap:14px}
+.orb{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 38% 34%,#E9FDFF 0 8%,#7FE6F2 22%,#1E7F8E 62%,#0A2A30 100%);
+  box-shadow:0 0 0 4px #0B0908,0 0 0 7px #EDE6D6,0 0 26px rgba(127,230,242,.5)}
+.orb.low{box-shadow:0 0 0 4px #0B0908,0 0 0 7px #F25257,0 0 26px rgba(242,82,87,.6);animation:telepulse 1s infinite}
+.manabar{position:relative;width:600px;height:34px;background:#0E0C0B;margin-top:40px}
+.manabar::before{content:"";position:absolute;inset:-4px;border:3px solid #EDE6D6;filter:url(#ink);z-index:2}
+.manabar .mf{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#C8F7FC,#3FB6C6 55%,#1E7F8E);transition:width .2s}
+.manabar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 22px/1 var(--ui);text-shadow:0 2px 0 #000;z-index:1;font-variant-numeric:tabular-nums}
+
+.before{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:50}
+.beforetag{position:absolute;left:12px;top:12px;z-index:51;font:500 13px/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;background:#0B0908;color:#EDE6D6;padding:7px 10px;border:1px solid #EDE6D6}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ADA290;font:500 16px var(--ui);z-index:0}
+
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.012) translateY(-1px)}}
+@keyframes ringpulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.05);opacity:1}}
+@keyframes telepulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes goldpulse{0%,100%{filter:drop-shadow(0 0 4px #F2C14E)}50%{filter:drop-shadow(0 0 16px #F2C14E) drop-shadow(0 0 4px #F2C14E)}}
+@keyframes passfire{0%{box-shadow:inset 0 0 0 4px #0B0908,0 0 0 #F2C14E}40%{box-shadow:inset 0 0 0 4px #0B0908,0 0 30px 6px #F2C14E}100%{box-shadow:inset 0 0 0 4px #0B0908,0 0 0 #F2C14E}}
+
+/* controls under the stage */
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin-top:14px}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group .lbl{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.btn{font:500 15px/1 var(--ui);letter-spacing:.04em;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);padding:9px 12px 8px;border-radius:3px;cursor:pointer}
+.btn:hover{border-color:var(--fg)}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn kbd{font:700 13px var(--ui);border:1px solid currentColor;padding:1px 5px;margin-right:6px;border-radius:2px}
+.help{font-size:15px;color:var(--muted);margin-top:10px}
+
+/* proposal */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:20px}
+.card{background:var(--surface);border:1px solid var(--line);padding:16px 18px;border-radius:4px;min-width:0}
+.card h3{font-size:24px}
+.card p{font-size:15.5px;color:var(--muted);margin:0}
+.card .tag{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.opt{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:18px}
+.opt .card{padding:20px 22px}
+.opt .card.rec{border-color:var(--fg)}
+.opt ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:15.5px}
+.tbl{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:4px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:15.5px}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{font-weight:500;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:var(--surface)}
+tr:last-child td{border-bottom:0}
+td code,p code,li code{font:13.5px/1.4 ui-monospace,Consolas,monospace;background:var(--raised);padding:1px 5px;border-radius:2px;word-break:break-word}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:16px}
+.sw{border-radius:4px;padding:14px 14px 12px;min-height:118px;display:flex;flex-direction:column;justify-content:flex-end;border:1px solid #000}
+.sw b{font:500 17px/1.1 var(--ui)}
+.sw span{font:13px/1.35 var(--ui);opacity:.9}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:16px}
+.ink{background:#15110F;color:#EDE6D6;border:1px solid #000;border-radius:4px;padding:20px 22px}
+.ink .d{font:400 54px/1 var(--display)}
+.ink .u{font:500 21px/1.35 var(--ui);margin-top:12px}
+.ink .s{font:400 20px/1.35 var(--type);color:#1C1714;background:#E6DCC6;padding:10px 14px;margin-top:14px;display:inline-block}
+.ink small{display:block;font:500 13px/1.4 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:#ADA290;margin-top:14px}
+.icons{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px}
+.icons figure{margin:0;text-align:center;font:500 14px var(--ui);color:#ADA290}
+.icons svg{width:86px;height:86px;display:block;margin-bottom:6px}
+.layers{display:grid;gap:8px;margin-top:16px}
+.layer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+.layer.new{border-color:var(--combo)}
+.layer b{font-weight:500}
+.layer span{color:var(--muted);font-size:15px}
+.pill{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;padding:3px 7px;border-radius:2px;border:1px solid currentColor;margin-left:8px;white-space:nowrap}
+.pill.n{color:var(--combo)}.pill.u{color:var(--muted)}
+ol.steps{padding-left:22px;margin:10px 0 0}
+ol.steps li{margin-bottom:6px}
+.prompt{position:relative;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);padding:14px 16px;margin-top:12px;font:15px/1.55 var(--type);border-radius:3px}
+.prompt .cp{position:absolute;right:8px;top:8px;font-family:var(--ui)}
+.prompt .h{font:500 12.5px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;padding-right:70px}
+.decide{background:var(--surface);border:2px solid var(--fg);border-radius:4px;padding:22px 24px;margin-top:20px}
+.decide ol{margin:8px 0 0;padding-left:22px}
+.decide li{margin-bottom:10px}
+.decide li b{font-weight:500}
+.note{font-size:15px;color:var(--muted)}
+@media (max-width:640px){body{font-size:16px}.lead{font-size:18px}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="ink" x="-5%" y="-30%" width="110%" height="160%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.035 0.09" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4"/>
+  </filter>
+</svg>
+
+<div class="wrap">
+  <div class="eyebrow">Pythio · art direction · road to Steam · draft for Marz · 29 Oct 2026</div>
+  <h1>The Contract Road</h1>
+  <p class="lead">From a red gradient with characters floating in it, to a place: every job happens somewhere on the road, the UI is one inked kit, and every spell lands with weight. Same noir, same colour language, same art you already made.</p>
+
+  <div class="stage" id="stage">
+    <div class="loading">Setting up the scene…</div>
+    <div class="world" id="world" role="application" aria-label="Mock-up of a polished Pythio combat screen: four fighters on a road at night, Pythio in the foreground, spell bar at the bottom. Use the buttons below the scene or the keys Q, W, E, R and F.">
+      <div class="shake" id="shake">
+        <canvas id="bg" width="1920" height="1080"></canvas>
+        <canvas id="fx" width="1920" height="1080"></canvas>
+        <div id="fighters"></div>
+        <div class="vignette"></div>
+        <div class="grain"></div>
+        <div class="contract"><div class="poster"><b>WANTED</b><i></i></div>
+          <div><div class="k">CONTRACT</div><div class="t" id="ctitle">Desperate caravan</div><div class="p">PARTY OF 4</div></div></div>
+        <div class="roundbox"><div class="r" id="rnd">Round 3</div>
+          <div class="timer" id="timer"><svg viewBox="0 0 86 86"><circle cx="43" cy="43" r="37" fill="#0E0C0B" stroke="#3A3129" stroke-width="6"/><circle id="tarc" cx="43" cy="43" r="37" fill="none" stroke="#EDE6D6" stroke-width="6" stroke-dasharray="232.5" stroke-dashoffset="0" transform="rotate(-90 43 43)"/></svg><span id="tnum">21.0</span></div></div>
+        <div class="actname" id="actname">Act I · The Mudroad</div>
+        <div class="rules"><div class="k">BATTLEFIELD RULES</div>
+          <div class="rl">Diminishing shields<small>−20% each</small></div><div class="rl">Exhaustion<small>at 0 mana</small></div><div class="rl">Saturation<small>overheal</small></div></div>
+        <div class="pythio"><img id="pyimg" alt="" src="../../assets/art/characters/pythio/pythio_idle.png"></div>
+        <div class="say" id="say">I charge by the hour. Try not to bleed by the minute.</div>
+        <div class="hud">
+          <div class="castbar" id="castbar"><div class="cf" id="cf"></div><span id="cname">Heal 1.5s</span></div>
+          <div class="slots" id="slots"></div>
+          <div class="manarow"><div class="orb" id="orb"></div></div>
+          <div class="manabar" id="manabar" style="margin-left:0"><div class="mf" id="mf"></div><span id="mnum">100 / 100</span></div>
+          <div class="counters">
+            <div class="ctr" style="color:#B88AFF"><span class="kk">F</span>CLEANSE <span id="cpips"></span></div>
+            <div class="ctr" style="color:#3DDC84"><span class="kk" style="font-size:14px">SPACE</span>BANDAGE <span id="bpips"></span></div>
+          </div>
+        </div>
+      </div>
+      <img class="before" id="before" alt="The live build today: the same round, with a flat red background and smaller interface" src="steam-polish-before.jpg" hidden>
+      <div class="beforetag" id="beforetag" hidden>Today · Build 116 (live)</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="group" role="group" aria-label="Cast on the selected fighter">
+      <span class="lbl">Cast</span>
+      <button class="btn" data-cast="heal"><kbd>Q</kbd>Heal</button>
+      <button class="btn" data-cast="renew"><kbd>W</kbd>Renew</button>
+      <button class="btn" data-cast="shield"><kbd>E</kbd>Shield</button>
+      <button class="btn" data-cast="surge"><kbd>R</kbd>Spirit Surge</button>
+      <button class="btn" data-cast="cleanse"><kbd>F</kbd>Cleanse</button>
+    </div>
+    <div class="group" role="group" aria-label="Make something happen">
+      <span class="lbl">Threats</span>
+      <button class="btn" id="tBurst">Burst incoming</button>
+      <button class="btn" id="tPoison">Poison</button>
+      <button class="btn" id="tDread">Dread</button>
+      <button class="btn" id="tPause" aria-pressed="false">Pause damage</button>
+    </div>
+    <div class="group" role="group" aria-label="Place">
+      <span class="lbl">Place</span>
+      <button class="btn" data-act="0" aria-pressed="true">Mudroad</button>
+      <button class="btn" data-act="1" aria-pressed="false">Drowned Marsh</button>
+      <button class="btn" data-act="2" aria-pressed="false">Crimson Keep</button>
+    </div>
+    <div class="group"><button class="btn" id="tBefore" aria-pressed="false">Show today's screen</button></div>
+  </div>
+  <p class="help">Click or hover a fighter to target, then press Q, W, E, R or F (or use the buttons). Shield someone, then Spirit Surge them: the R slot glows gold first because it would combo. Numbers and timing are made up for the mock-up; the real game keeps its own.</p>
+
+  <hr>
+  <div class="col">
+    <div class="secnum">1 · The short version</div>
+    <h2>Five changes, one look</h2>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="tag">Place</div><h3>The Contract Road</h3><p>Every job has a backdrop: the Mudroad, the Drowned Marsh, the Crimson Keep. The place changes when the threats do, so you can see things getting worse.</p></div>
+    <div class="card"><div class="tag">UI kit</div><h3>One inked kit</h3><p>Every panel, bar, slot, card and button drawn in the same hand-inked style. No more flat Godot boxes next to inked frames.</p></div>
+    <div class="card"><div class="tag">Type</div><h3>Bigger, fewer sizes</h3><p>Keep your three fonts. Nothing on screen under 18 px at 1080p, five sizes in total. It reads on a Steam Deck.</p></div>
+    <div class="card"><div class="tag">Life</div><h3>Weight on every hit</h3><p>Fighters breathe, flinch, stand on the ground and fall. Heals burst, combos punch, bursts shake the screen. All shaders and particles, no new drawings.</p></div>
+    <div class="card"><div class="tag">Steam</div><h3>A store kit</h3><p>Key art, logo, the eight capsule images, screenshots and a trailer. The capsule is the most important image you'll make.</p></div>
+  </div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">2 · Setting</div>
+    <h2>Where the jobs happen</h2>
+    <p>Today the fights happen nowhere. A dark red gradient sits behind the party, the fighters float above it with no ground or shadow, and every round looks the same. Steam players judge a game from screenshots in a few seconds, and a screenshot with no place in it reads as a prototype. The fix is to give the game a place without taking colour away from the meanings.</p>
+  </div>
+  <div class="opt">
+    <div class="card rec"><div class="tag">A · Recommended</div><h3>The Contract Road, in acts</h3>
+      <p>Pythio follows the work down one road. Each stretch between Barons is an act with its own backdrop, and the backdrop changes on the round when a new kind of threat arrives.</p>
+      <ul><li>Fits the story: a washed-up healer taking whatever job is next down the road.</li>
+      <li>Fits <b>escalating chaos</b>: the marsh arrives with poison at round 6, so you can see the danger coming.</li>
+      <li>Cost: 4 backdrops (3 acts + the Keep), each in 3–4 layers. You can make them in ChatGPT.</li></ul></div>
+    <div class="card"><div class="tag">B · Low-change</div><h3>One road at night</h3>
+      <p>One backdrop behind every round and a red-lit hall for the Baron. It costs about a third as much, and the game stops looking like a prototype.</p>
+      <ul><li>Two backdrops in total.</li><li>Gives nothing to escalation: round 20 looks like round 2.</li><li>Easy to upgrade to A later; it uses the same slot.</li></ul></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Rounds</th><th>Place</th><th>What changes on screen</th><th>Why then</th></tr></thead>
+    <tbody>
+      <tr><td>1–4</td><td><b>Act I · The Mudroad</b></td><td>Rutted road, dead trees, a gallows signpost, a far town with a few lit windows. Dry, still, light fog.</td><td>The tutorial-feeling rounds. Calm, readable.</td></tr>
+      <tr><td>5, 10, 15 …</td><td><b>The Crimson Keep</b></td><td>Stone arches, torn crimson banners, braziers, rising embers. The only place that leans red.</td><td>The Baron. Red already means danger.</td></tr>
+      <tr><td>6–9</td><td><b>Act II · The Drowned Marsh</b></td><td>Reeds, drowned trunks, black water, rain and low fog.</td><td>Debuffs start at round 6. Poison and a swamp belong together.</td></tr>
+      <tr><td>11–14</td><td><b>Act III · The Plague Chapel</b> (not in the mock-up)</td><td>A broken chapel yard, gravestones, ash falling.</td><td>Hex and Dread feel at home here.</td></tr>
+      <tr><td>16+</td><td>The road loops</td><td>Acts repeat with heavier weather and less light each lap.</td><td>Endless mode needs no new art to keep feeling worse.</td></tr>
+    </tbody></table></div>
+  <div class="col">
+    <p class="note" style="margin-top:12px"><b>Tone rule: the place is mood, never information.</b> Backdrops stay grey, dim and low-contrast behind a vignette. They never use emerald, electric blue, gold, icy cyan or violet, and only the Keep uses a muted red. If a backdrop ever competes with a health bar, the backdrop loses. Nothing is renamed: spell, fighter and file names stay exactly as they are (Phase H is yours).</p>
+  </div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">3 · Palette</div>
+    <h2>Same meanings, fixed values</h2>
+    <p>The colour language stays exactly as decided. What changes is that each colour gets one exact value used everywhere: today the greens, reds and golds drift from screen to screen. The neutrals are new: ink, bone and sepia replace the default Godot greys. Every text colour below passes WCAG AA (4.5:1) on all three game backgrounds.</p>
+  </div>
+  <div class="swatches">
+    <div class="sw" style="background:#0E0C0B;color:#EDE6D6"><b>Ink</b><span>#0E0C0B · screen ground</span></div>
+    <div class="sw" style="background:#1A1614;color:#EDE6D6"><b>Panel</b><span>#1A1614 · every panel</span></div>
+    <div class="sw" style="background:#26201B;color:#EDE6D6"><b>Raised</b><span>#26201B · cards, hover</span></div>
+    <div class="sw" style="background:#EDE6D6;color:#1C1714"><b>Bone</b><span>#EDE6D6 · text, ink lines · 15.7:1</span></div>
+    <div class="sw" style="background:#ADA290;color:#1C1714"><b>Sepia</b><span>#ADA290 · labels · 7.8:1</span></div>
+    <div class="sw" style="background:#3DDC84;color:#0E0C0B"><b>Emerald</b><span>#3DDC84 · healing · 10.9:1</span></div>
+    <div class="sw" style="background:#5AB0FF;color:#0E0C0B"><b>Electric blue</b><span>#5AB0FF · shields · 8.5:1</span></div>
+    <div class="sw" style="background:#F2C14E;color:#0E0C0B"><b>Gold</b><span>#F2C14E · combos, passives · 11.6:1</span></div>
+    <div class="sw" style="background:#F25257;color:#0E0C0B"><b>Blood red</b><span>#F25257 · danger, Bleed · 5.7:1</span></div>
+    <div class="sw" style="background:#7FE6F2;color:#0E0C0B"><b>Icy cyan</b><span>#7FE6F2 · mana · 13.5:1</span></div>
+    <div class="sw" style="background:#B88AFF;color:#0E0C0B"><b>Violet</b><span>#B88AFF · cleansable, Cleanse · 7.5:1</span></div>
+  </div>
+  <div class="col">
+    <p class="note" style="margin-top:12px">Ratios are each colour as text on Ink. The lowest pair is Blood red on Raised at 4.69:1, which still passes. <b>World-only colours</b> (never used for UI text): mud browns <code>#221B16</code>–<code>#4A3B2E</code>, marsh olive-greys <code>#232822</code>–<code>#6B725A</code>, keep crimson <code>#3A1416</code> and ember orange <code>#D0663A</code> for braziers only. Gold stays off backdrops completely, so a gold flash is always a combo.</p>
+  </div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">4 · Type, icons and the UI kit</div>
+    <h2>Readable from the couch</h2>
+    <p>Your three fonts already fit: Pirata One for titles, Oswald for the interface, Special Elite for Pythio. The problem is size. Today labels like "LIGHT ARMOR" and the battlefield rules are around 10–12 px at 1080p, and they shrink further on a Steam Deck. Valve's Deck checklist wants text at least 9 px tall at 1280×800. A floor of 18 px at 1080p gives 12 px on the Deck.</p>
+  </div>
+  <div class="spec">
+    <div class="ink"><div class="d">Round 7</div><div class="u">Desperate Mercenary · 71 / 75 · RENEW 5.8s</div><div class="s">Big man, big wounds, big invoice.</div>
+      <small>Pirata One 84 / 44 · Oswald 25 / 21 / 18 · Special Elite 23</small></div>
+    <div class="tbl" style="margin-top:0"><table style="min-width:0">
+      <thead><tr><th>Use</th><th>Face</th><th>At 1080p</th></tr></thead>
+      <tbody>
+        <tr><td>Round number, screen titles</td><td>Pirata One</td><td>84</td></tr>
+        <tr><td>Contract name, card titles, combo pop</td><td>Pirata One</td><td>44–64</td></tr>
+        <tr><td>Fighter names, numbers on bars</td><td>Oswald 500/700</td><td>22–25</td></tr>
+        <tr><td>Rules, chips, timers, costs</td><td>Oswald 500</td><td>19–21</td></tr>
+        <tr><td>Smallest labels (armour, key hints)</td><td>Oswald 500, spaced caps</td><td>18 minimum</td></tr>
+        <tr><td>Pythio's lines, card flavour</td><td>Special Elite</td><td>23</td></tr>
+      </tbody></table></div>
+  </div>
+  <div class="col" style="margin-top:22px">
+    <h3>Icon rules</h3>
+    <p>Square, dark tile, a rough double inked frame in bone, faint crosshatch inside, and <b>one</b> symbol glowing in its meaning colour with a black outline. Readable at 64 px. No text, no second colour unless it's part of a combo (Spirit Surge carries a blue line because it feeds on shields). These five are drawn as vector starters you can use as references in ChatGPT.</p>
+  </div>
+  <div class="icons">
+    <figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-heal" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-heal" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-heal)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><g stroke="#3DDC84" stroke-width="1.6" stroke-linecap="round" opacity=".8"><path d="M32 12v6M32 46v6M12 32h6M46 32h6M18 18l4 4M42 42l4 4M46 18l-4 4M22 42l-4 4"/></g>
+<path d="M27 19h10v8h8v10h-8v8H27v-8h-8V27h8z" fill="#3DDC84" stroke="#0B0908" stroke-width="2" filter="url(#gl-heal)"/>
+<path d="M29.5 21.5h3v8h-3z" fill="#E9FFF2" opacity=".8"/></svg>Heal</figure>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-renew" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-renew" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-renew)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><circle cx="32" cy="33" r="17" fill="none" stroke="#3DDC84" stroke-width="2.2" stroke-dasharray="7 4" opacity=".85"/>
+<path d="M32 46 C31 38 31 32 33 26" fill="none" stroke="#3DDC84" stroke-width="2.6" stroke-linecap="round" filter="url(#gl-renew)"/>
+<path d="M33 30 C38 22 46 21 47 21 C46 29 40 33 33 31 Z" fill="#3DDC84" stroke="#0B0908" stroke-width="1.6" filter="url(#gl-renew)"/>
+<path d="M32 37 C27 31 20 31 18 31 C20 38 26 40 32 38 Z" fill="#3DDC84" stroke="#0B0908" stroke-width="1.6" filter="url(#gl-renew)"/>
+<path d="M36 28 C40 25 43 24 44 24" stroke="#E9FFF2" stroke-width="1" fill="none" opacity=".8"/></svg>Renew</figure>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-shield" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-shield" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-shield)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><path d="M32 13 L47 19 C47 34 42 44 32 51 C22 44 17 34 17 19 Z" fill="#5AB0FF" fill-opacity=".22" stroke="#5AB0FF" stroke-width="3" stroke-linejoin="round" filter="url(#gl-shield)"/>
+<path d="M32 18 L42 22 C42 33 38 40 32 45 C26 40 22 33 22 22 Z" fill="none" stroke="#DDEEFF" stroke-width="1.3" opacity=".9"/>
+<path d="M32 20v24M24 27h16" stroke="#5AB0FF" stroke-width="1.4" opacity=".7"/></svg>Shield</figure>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-spirit_surge" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-spirit_surge" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-spirit_surge)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><path d="M32 50 C22 46 21 36 27 29 C27 34 29 36 31 36 C29 29 32 20 38 14 C37 22 44 27 44 36 C44 44 39 49 32 50 Z" fill="#3DDC84" fill-opacity=".85" stroke="#0B0908" stroke-width="1.8" filter="url(#gl-spirit_surge)"/>
+<path d="M33 46 C29 44 28 39 31 35 C32 39 35 40 36 38 C38 42 37 45 33 46 Z" fill="#E9FFF2" opacity=".85"/>
+<path d="M14 50 C22 44 42 44 50 50" fill="none" stroke="#5AB0FF" stroke-width="2" stroke-linecap="round" opacity=".8"/></svg>Spirit Surge</figure>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-cleanse" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-cleanse" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-cleanse)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><path d="M32 12 C32 12 20 28 20 36 C20 43 25.5 49 32 49 C38.5 49 44 43 44 36 C44 28 32 12 32 12 Z" fill="#B88AFF" fill-opacity=".25" stroke="#B88AFF" stroke-width="2.8" filter="url(#gl-cleanse)"/>
+<path d="M26 37 C26 41 28.5 44 32 44.5" fill="none" stroke="#F1E6FF" stroke-width="2" stroke-linecap="round"/>
+<g stroke="#B88AFF" stroke-width="1.6" stroke-linecap="round" opacity=".75"><path d="M12 22l4 2M52 22l-4 2M14 46l4-2M50 46l-4-2"/></g></svg>Cleanse</figure>
+  </div>
+  <div class="col" style="margin-top:22px">
+    <h3>The UI kit (one set of pieces)</h3>
+    <p>Godot can stretch an image to any size as long as its corners stay fixed (a "9-slice"). So the whole interface needs only a handful of inked images, each made once:</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Piece</th><th>Used for</th><th>File (new)</th><th>Size</th></tr></thead>
+    <tbody>
+      <tr><td>Panel</td><td>Pick cards, Next party, Job finished, pause menu, leaderboard, tooltips</td><td><code>ui/kit/panel.png</code></td><td>256 × 256</td></tr>
+      <tr><td>Button (normal, hover, pressed)</td><td>Every button</td><td><code>ui/kit/button_*.png</code></td><td>384 × 96</td></tr>
+      <tr><td>Bar frame</td><td>Health, mana, cast bar (one frame, three fills)</td><td><code>ui/kit/bar_frame.png</code></td><td>512 × 64</td></tr>
+      <tr><td>Slot frame</td><td>Spell slots, passive tray (gold version)</td><td><code>ui/kit/slot.png</code>, <code>slot_gold.png</code></td><td>256 × 256</td></tr>
+      <tr><td>Paper</td><td>Speech bubble, wanted poster, title-screen leaderboard</td><td><code>ui/kit/paper.png</code></td><td>512 × 512</td></tr>
+      <tr><td>Chip</td><td>Heal-over-time timers, debuff warnings, rule tags</td><td><code>ui/kit/chip.png</code></td><td>128 × 48</td></tr>
+    </tbody></table></div>
+  <div class="col"><p class="note" style="margin-top:12px">Drawn in bone on transparent, so one image can be tinted gold, violet or red in the game. The mock-up draws them with a CSS "ink wobble" to preview the feel.</p></div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">5 · Feedback map</div>
+    <h2>Every event gets a look and a sound</h2>
+    <p>The rule: everything that happens to a fighter shows <b>on that fighter</b>, in its meaning colour, within a tenth of a second, and with a sound from your list. The game already announces every one of these moments, so each row is visual work only; no rules change.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Moment</th><th>Where</th><th>What you see</th><th>Already announced by</th></tr></thead>
+    <tbody>
+      <tr><td>Heal lands</td><td>On the fighter</td><td>Green burst and rising sparks, bar fills with a short white trail, green number</td><td><code>healed</code></td></tr>
+      <tr><td>Heal-over-time</td><td>At the feet, under the bar</td><td>Pulsing green ring, a small "+5" each tick, a chip with time left</td><td><code>hot_ticked</code></td></tr>
+      <tr><td>Shield goes on / absorbs / breaks</td><td>Around the fighter, top of the bar</td><td>Blue bubble; blue strip on the bar; blue flash on absorb; shards on break</td><td><code>shield_absorbed</code>, <code>shield_ended</code></td></tr>
+      <tr><td>Combo fires</td><td>Fighter, then the whole screen</td><td>Gold flash, gold "COMBO" in Pirata One, 2% screen punch, gold sparkles</td><td><code>combo_fired</code></td></tr>
+      <tr><td>Passive fires</td><td>Passive tray</td><td>The slot flares gold</td><td><code>passive_triggered</code></td></tr>
+      <tr><td>Burst warned</td><td>At the feet, above the head</td><td>Red ring pulsing faster as it nears, "! INCOMING" chip</td><td><code>burst_warned</code></td></tr>
+      <tr><td>Burst lands</td><td>Fighter, then the screen</td><td>Hit flash on the sprite, red splash, screen shake scaled by damage</td><td><code>burst_landed</code></td></tr>
+      <tr><td>Debuff applied</td><td>Above the head, on the bar</td><td>Violet or red warning chip; Dread draws its violet line on the bar</td><td><code>debuff_applied</code>, <code>dread_struck</code></td></tr>
+      <tr><td>Cleanse</td><td>On the fighter</td><td>Violet wipe upward, the chip shatters</td><td><code>cleansed</code></td></tr>
+      <tr><td>Low mana</td><td>Mana orb, Pythio</td><td>Orb rim turns red and pulses; Pythio kneels (exists)</td><td>mana in <code>GameManager</code></td></tr>
+      <tr><td>Fighter dies</td><td>On the fighter</td><td>Sprite greys out, fallen pose, slow zoom and desaturate before the summary</td><td><code>target_died</code></td></tr>
+      <tr><td>Baron phase</td><td>Whole screen</td><td>Braziers flare, title card "Phase 2", screen darkens a step</td><td><code>boss_phase</code></td></tr>
+      <tr><td>Round start / cleared</td><td>Whole screen</td><td>Act title fades in; on clear, a paper "PAID" stamp</td><td><code>round_started</code>, <code>round_cleared</code></td></tr>
+    </tbody></table></div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">6 · Technology</div>
+    <h2>Stay in Godot 2D</h2>
+    <p>Nothing here needs a new engine or 3D. It's Godot 4.3 doing things it's good at: themes, shaders, particles and its new Parallax2D node for layered backdrops. The web build keeps working.</p>
+  </div>
+  <div class="layers">
+    <div class="layer new"><b>Theme and UI kit<span class="pill n">new</span></b><span>One <code>pythio_theme.tres</code> using the 9-slice images instead of flat boxes</span></div>
+    <div class="layer new"><b>Feel layer<span class="pill n">new</span></b><span>Shaders on the fighter sprite (breathing, hit flash, ink-dissolve death), particles, screen shake, all driven by EventBus</span></div>
+    <div class="layer new"><b>Backdrop per act<span class="pill n">new</span></b><span>3–4 image layers in a Parallax2D, fog and rain particles, one scene per place</span></div>
+    <div class="layer"><b>Game systems<span class="pill u">unchanged</span></b><span>GameManager, EffectSystem, DraftSystem and the rest: no rule changes</span></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>How fighters come alive</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><b>Shaders and tweens on the existing images</b> (breathing, flinch, hit flash, fall)</td><td>Recommended. Works with every image you've already made, costs no art.</td></tr>
+      <tr><td>Cut-out rigs (Godot Skeleton2D: limbs as separate pieces)</td><td>Later, maybe for Pythio only. Each character needs to be redrawn in parts.</td></tr>
+      <tr><td>Frame-by-frame animation from AI images</td><td>No. Frames don't match each other; it flickers.</td></tr>
+      <tr><td>3D</td><td>No. It throws away the inked look, which is the game's best asset.</td></tr>
+    </tbody></table></div>
+  <div class="col" style="margin-top:18px">
+    <h3>Screens, sizes and budgets</h3>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="tag">Any screen shape</div><p>Switch the window stretch to <code>canvas_items</code> with <code>expand</code>. Today a Steam Deck (16:10) and ultrawide monitors get black bars; with expand, the backdrop fills the extra space and the HUD pins to the edges.</p></div>
+    <div class="card"><div class="tag">Sharp at 1440p and 4K</div><p>Characters at 1024 px tall (today 512), backdrop layers at 3840 × 2160. The web build can ship half-size copies.</p></div>
+    <div class="card"><div class="tag">Frame rate</div><p>60 fps on a Steam Deck with 8 fighters and a Baron fight. Under 300 particles on screen, under 512 MB of textures, under 500 MB download.</p></div>
+  </div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">7 · Making the art</div>
+    <h2>Same workflow, bigger pieces</h2>
+    <p>Keep the workflow that made the characters: you make images in ChatGPT, send them to me with the file name, I cut them out, place them, screenshot them and open a PR.</p>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="tag">Now · you + ChatGPT</div><p>Backdrops (one layer per request), the UI kit pieces, tag and spell icons, the knight and mercenary fallen poses.</p></div>
+    <div class="card"><div class="tag">Upscaling</div><p>ChatGPT tops out around 1536 px. Run backdrops and characters through a free upscaler such as Upscayl (runs on your PC) to reach 4K and 1024 px.</p></div>
+    <div class="card"><div class="tag">Hire for the capsule</div><p>The key art and capsule decide whether people click. A human illustrator, working from your characters, is the best-spent money on the whole store page.</p></div>
+  </div>
+  <div class="col">
+    <h3 style="margin-top:22px">Making one backdrop (Act I)</h3>
+    <ol class="steps">
+      <li>Open ChatGPT, attach <code>characters/knight/knight_1.png</code> and the concept sheet as style references.</li>
+      <li>Paste the "far layer" prompt below. Landscape, 3:2. Repeat until the horizon sits about a third of the way down.</li>
+      <li>Do the same for the mid layer (props on a plain white background) and the ground (a road strip seen at a low angle).</li>
+      <li>Upscale each layer 2.5× in Upscayl, then send them to me as <code>backdrops/mudroad/far.png</code>, <code>mid.png</code>, <code>ground.png</code>.</li>
+      <li>I cut out the mid layer, set up the Parallax2D scene and send you a screenshot and a build to try.</li>
+    </ol>
+    <div class="prompt"><div class="h">Backdrop, far layer (Act I · The Mudroad)</div><button class="btn cp" type="button">Copy</button><span class="ptext">Gritty inked comic noir illustration in the style of the attached images: heavy black linework, crosshatching, desaturated grey and sepia tones only, no saturated colour. A wide empty landscape at dusk: a muddy rutted road leading away between low bare hills, a distant small town on a ridge with two or three faint lit windows, a leaning gallows signpost, dead trees, thin fog in the low ground, an overcast sky with a dim moon. The lower third of the image is empty ground where characters will stand. No people, no text, no border. Wide landscape framing, 3:2.</span></div>
+    <div class="prompt"><div class="h">UI kit, panel frame</div><button class="btn cp" type="button">Copy</button><span class="ptext">Game UI element in gritty inked comic noir style, matching the attached image: a rectangular empty panel frame drawn with a rough double inked line in off-white bone colour, small ink splatters at the corners, slightly uneven hand-drawn edges, completely empty flat black interior. Only the frame, no decoration in the middle, no text. Isolated on a plain solid black background, 1:1.</span></div>
+    <div class="prompt"><div class="h">Key art (reference for the capsule, or for an illustrator)</div><button class="btn cp" type="button">Copy</button><span class="ptext">Gritty inked comic noir illustration in the style of the attached images: heavy black linework, crosshatching, grey and sepia figures. A weary healer in a long tattered grey coat seen from behind in the foreground, raising a staff with a glowing emerald ring, facing four battered fighters (a plate knight with a red cross, a scarred mercenary, a hooded rogue, a wounded young adventurer) who stand on a muddy road at night. Behind them, far away, the silhouette of a towering warlord in a blood-red cape. Colour only from the healer's green light and the warlord's red cape. Leave clear empty space at the top for a logo. No text. Wide 16:9.</span></div>
+    <p class="note" style="margin-top:14px"><b>Steam and AI images.</b> Steam allows AI-generated art, but its content survey asks you to say so, and the answer shows on your store page. Check that the tool's terms give you commercial rights (ChatGPT's currently do). A hand-made capsule and key art also avoid some players' reaction to AI art on the store front.</p>
+  </div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">8 · The Steam store kit</div>
+    <h2>What the store page needs</h2>
+    <p>Steam asks for these images before a store page can go live. Sizes are Valve's current ones; I'll check them against Steamworks again before exporting. Capsules may only show game art and the logo: no review quotes, award badges or "Wishlist now" text.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Image</th><th>Size (px)</th><th>What goes in it</th></tr></thead>
+    <tbody>
+      <tr><td>Header capsule</td><td>920 × 430</td><td>Key art crop with the logo. Shows at the top of the store page and in many lists.</td></tr>
+      <tr><td>Small capsule</td><td>462 × 174</td><td>Logo and Pythio's green ring only. Must read at thumbnail size.</td></tr>
+      <tr><td>Main capsule</td><td>1232 × 706</td><td>Full key art with the logo. Front-page features.</td></tr>
+      <tr><td>Vertical capsule</td><td>748 × 896</td><td>Pythio from behind, staff raised, the party above.</td></tr>
+      <tr><td>Page background</td><td>1438 × 810</td><td>A dim Mudroad backdrop (optional, but it sets the mood).</td></tr>
+      <tr><td>Library capsule</td><td>600 × 900</td><td>Same as the vertical, taller crop.</td></tr>
+      <tr><td>Library hero + logo</td><td>3840 × 1240, logo on transparent</td><td>Wide Mudroad backdrop; the logo on its own.</td></tr>
+      <tr><td>Screenshots</td><td>1920 × 1080, at least 5</td><td>A combo firing, a Baron phase, a pick screen with 3 cards, the marsh with debuffs, a near-death save.</td></tr>
+      <tr><td>Trailer</td><td>1080p, 30–60 s</td><td>First 5 seconds show play, not a logo. I can build a capture script.</td></tr>
+      <tr><td>Icons</td><td>32 × 32 .ico, 184 × 184</td><td>The green ring on black. Replaces the default Godot icon.</td></tr>
+    </tbody></table></div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">9 · Conflicts with the design docs</div>
+    <h2>What the docs would say</h2>
+    <p>I haven't edited any of these. Once you approve, I'll update them in the same PR as the first visual work, with a changelog line.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Where</th><th>Says today</th><th>Would say</th></tr></thead>
+    <tbody>
+      <tr><td><code>game-design.md</code> §2 Tone and look</td><td>Look: inked noir, colour only where it means something. No place.</td><td>Adds the Contract Road and its acts, the tone rule for backdrops, and exact hex values for each meaning.</td></tr>
+      <tr><td><code>game-design.md</code> §11 Combat screen</td><td>Portrait bottom-right; small labels; rules panel top-right.</td><td>Portrait removed (Pythio is already on screen); 18 px floor; counters beside the spell bar; act name under the round.</td></tr>
+      <tr><td><code>game-design.md</code> §12 Phase G</td><td>Basic sound, high-res art, mana colour.</td><td>Adds the UI kit, the feel layer, backdrops and the Steam store kit.</td></tr>
+      <tr><td><code>art.md</code> prompt pack</td><td>Mana bar prompt says "gold".</td><td>Icy cyan (already decided in #63, the prompt is stale). Adds backdrop and UI kit prompts.</td></tr>
+      <tr><td><code>art-assets.md</code></td><td>Characters at 512 tall; no backdrops; bars and frames as single stand-ins.</td><td>Characters at 1024; new Backdrops, UI kit and Steam store sections.</td></tr>
+      <tr><td><code>project.godot</code> display</td><td>Stretch <code>viewport</code>, letterboxed.</td><td><code>canvas_items</code> + <code>expand</code>.</td></tr>
+    </tbody></table></div>
+
+  <div class="col">
+    <hr>
+    <div class="secnum">10 · Plan</div>
+    <h2>In this order</h2>
+    <p>Each step ships on its own and the game looks better after every one, so you can stop at any point.</p>
+    <ol class="steps">
+      <li><b>Fix and resize (no new art).</b> 18 px floor, the type scale, ink/bone colours, the overlapping titles on the pick and Next party screens, stretch to any screen shape, portrait removed.</li>
+      <li><b>The feel layer (no new art).</b> Ground shadows, breathing, hit flash, screen shake, heal bursts, combo punch, death fade. Everything in the mock-up above.</li>
+      <li><b>The UI kit.</b> You make the six pieces; I swap the theme over.</li>
+      <li><b>Act I backdrop and the Keep.</b> The two places you see most.</li>
+      <li><b>Icons.</b> The 7 tag icons, then one per spell (already on your list).</li>
+      <li><b>Marsh, Chapel, and characters at 1024 px.</b></li>
+      <li><b>The store kit.</b> Key art and capsules, screenshots, trailer, icons.</li>
+    </ol>
+  </div>
+  <div class="decide">
+    <h3>What I need from you</h3>
+    <ol>
+      <li><b>Setting:</b> the Contract Road in acts (A, my pick) or one road at night (B)?</li>
+      <li><b>Act names:</b> Mudroad, Drowned Marsh, Plague Chapel, Crimson Keep. Keep them, or will you name them in Phase H?</li>
+      <li><b>Portrait:</b> can the bottom-right portrait go? Pythio is already on screen.</li>
+      <li><b>Fonts:</b> keep your three and add the 18 px floor (my pick), or reopen fonts now?</li>
+      <li><b>Screen shape:</b> switch to fill any screen shape, which fixes black bars on Steam Deck and ultrawide?</li>
+      <li><b>Capsule and key art:</b> make them yourself in ChatGPT, or budget for an illustrator (my pick)?</li>
+      <li><b>Start:</b> shall I start on steps 1 and 2 now? They need no art from you.</li>
+    </ol>
+    <p class="note" style="margin:10px 0 0">Risks: art is the slow part, and backdrops are the biggest images you've made so far. Screen shake and flashes need a "reduce effects" option in the pause menu for comfort and accessibility; I'll add one with step 2.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+const IMG = {
+  adventurer:"../../assets/art/characters/adventurer/adventurer_1.png", adventurer_down:"../../assets/art/characters/adventurer/adventurer_down.png",
+  mercenary:"../../assets/art/characters/mercenary/mercenary_1.png", rogue:"../../assets/art/characters/rogue/rogue_1.png", rogue_down:"../../assets/art/characters/rogue/rogue_down.png",
+  knight:"../../assets/art/characters/knight/knight_1.png",
+  idle:"../../assets/art/characters/pythio/pythio_idle.png", heal:"../../assets/art/characters/pythio/pythio_cast_heal.png", hot:"../../assets/art/characters/pythio/pythio_cast_hot.png",
+  shield:"../../assets/art/characters/pythio/pythio_cast_shield.png", low:"../../assets/art/characters/pythio/pythio_low_mana.png", hurt:"../../assets/art/characters/pythio/pythio_hurt.png"
+};
+Object.values(IMG).forEach(s => { const i = new Image(); i.src = s; });
+const ICON = {heal:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-heal" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-heal" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-heal)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><g stroke="#3DDC84" stroke-width="1.6" stroke-linecap="round" opacity=".8"><path d="M32 12v6M32 46v6M12 32h6M46 32h6M18 18l4 4M42 42l4 4M46 18l-4 4M22 42l-4 4"/></g>
+<path d="M27 19h10v8h8v10h-8v8H27v-8h-8V27h8z" fill="#3DDC84" stroke="#0B0908" stroke-width="2" filter="url(#gl-heal)"/>
+<path d="M29.5 21.5h3v8h-3z" fill="#E9FFF2" opacity=".8"/></svg>`, renew:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-renew" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-renew" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-renew)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><circle cx="32" cy="33" r="17" fill="none" stroke="#3DDC84" stroke-width="2.2" stroke-dasharray="7 4" opacity=".85"/>
+<path d="M32 46 C31 38 31 32 33 26" fill="none" stroke="#3DDC84" stroke-width="2.6" stroke-linecap="round" filter="url(#gl-renew)"/>
+<path d="M33 30 C38 22 46 21 47 21 C46 29 40 33 33 31 Z" fill="#3DDC84" stroke="#0B0908" stroke-width="1.6" filter="url(#gl-renew)"/>
+<path d="M32 37 C27 31 20 31 18 31 C20 38 26 40 32 38 Z" fill="#3DDC84" stroke="#0B0908" stroke-width="1.6" filter="url(#gl-renew)"/>
+<path d="M36 28 C40 25 43 24 44 24" stroke="#E9FFF2" stroke-width="1" fill="none" opacity=".8"/></svg>`, shield:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-shield" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-shield" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-shield)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><path d="M32 13 L47 19 C47 34 42 44 32 51 C22 44 17 34 17 19 Z" fill="#5AB0FF" fill-opacity=".22" stroke="#5AB0FF" stroke-width="3" stroke-linejoin="round" filter="url(#gl-shield)"/>
+<path d="M32 18 L42 22 C42 33 38 40 32 45 C26 40 22 33 22 22 Z" fill="none" stroke="#DDEEFF" stroke-width="1.3" opacity=".9"/>
+<path d="M32 20v24M24 27h16" stroke="#5AB0FF" stroke-width="1.4" opacity=".7"/></svg>`, surge:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-spirit_surge" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-spirit_surge" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-spirit_surge)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><path d="M32 50 C22 46 21 36 27 29 C27 34 29 36 31 36 C29 29 32 20 38 14 C37 22 44 27 44 36 C44 44 39 49 32 50 Z" fill="#3DDC84" fill-opacity=".85" stroke="#0B0908" stroke-width="1.8" filter="url(#gl-spirit_surge)"/>
+<path d="M33 46 C29 44 28 39 31 35 C32 39 35 40 36 38 C38 42 37 45 33 46 Z" fill="#E9FFF2" opacity=".85"/>
+<path d="M14 50 C22 44 42 44 50 50" fill="none" stroke="#5AB0FF" stroke-width="2" stroke-linecap="round" opacity=".8"/></svg>`, cleanse:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><pattern id="hx-cleanse" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-cleanse" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-cleanse)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><path d="M32 12 C32 12 20 28 20 36 C20 43 25.5 49 32 49 C38.5 49 44 43 44 36 C44 28 32 12 32 12 Z" fill="#B88AFF" fill-opacity=".25" stroke="#B88AFF" stroke-width="2.8" filter="url(#gl-cleanse)"/>
+<path d="M26 37 C26 41 28.5 44 32 44.5" fill="none" stroke="#F1E6FF" stroke-width="2" stroke-linecap="round"/>
+<g stroke="#B88AFF" stroke-width="1.6" stroke-linecap="round" opacity=".75"><path d="M12 22l4 2M52 22l-4 2M14 46l4-2M50 46l-4-2"/></g></svg>`};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+const stage = $('stage'), world = $('world');
+new ResizeObserver(() => world.style.setProperty('--s', stage.clientWidth / 1920)).observe(stage);
+world.style.setProperty('--s', stage.clientWidth / 1920);
+
+/* ---------- backdrop ---------- */
+const bg = $('bg').getContext('2d'), fx = $('fx').getContext('2d');
+let act = 0;
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const ACTS = [
+  {name:'Act I · The Mudroad', sky:['#141110','#2b231d','#4a3b2e'], moon:'rgba(220,205,180,.16)', far:'#2a231e', mid:'#1a1512', ground:['#2a221b','#0f0c0a'], fog:'200,188,165', weather:'fog'},
+  {name:'Act II · The Drowned Marsh', sky:['#0f1211','#1e241f','#39402f'], moon:'rgba(190,200,170,.10)', far:'#222822', mid:'#141814', ground:['#1d221d','#0a0c0a'], fog:'150,160,130', weather:'rain'},
+  {name:'The Crimson Keep · the Baron', sky:['#120a0a','#25110f','#3a1a17'], moon:'rgba(0,0,0,0)', far:'#241a18', mid:'#160f0e', ground:['#261b18','#0d0908'], fog:'120,60,50', weather:'embers'}
+];
+function hatch(ctx, x0, y0, w, h, ang, gap, col, a){
+  ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 1.2;
+  ctx.beginPath(); const d = w + h;
+  for (let i = -d; i < d; i += gap){ ctx.moveTo(x0 + i, y0); ctx.lineTo(x0 + i + Math.cos(ang) * d, y0 + Math.sin(ang) * d); }
+  ctx.stroke(); ctx.restore();
+}
+function ridge(ctx, r, base, amp, col, seg){
+  ctx.beginPath(); ctx.moveTo(0, 1080); let y = base;
+  for (let x = 0; x <= 1920; x += seg){ y = base + Math.sin(x/260 + r()*0.4) * amp * .5 + (r() - .5) * amp; ctx.lineTo(x, y); }
+  ctx.lineTo(1920, 1080); ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  ctx.save(); ctx.clip(); hatch(ctx, 0, base - amp, 1920, 700, Math.PI*0.62, 9, '#000', .2); ctx.restore();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.stroke();
+}
+function tree(ctx, r, x, y, len, ang, w, depth){
+  if (depth === 0 || len < 6) return;
+  const x2 = x + Math.cos(ang) * len, y2 = y + Math.sin(ang) * len;
+  ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
+  const n = depth > 3 ? 2 : 2 + (r() < .4);
+  for (let i = 0; i < n; i++) tree(ctx, r, x2, y2, len * (.62 + r()*.18), ang + (r() - .5) * 1.1, w * .66, depth - 1);
+}
+function drawBackdrop(){
+  const A = ACTS[act], c = bg, r = rng(11 + act * 7);
+  const g = c.createLinearGradient(0, 0, 0, 640); A.sky.forEach((s, i) => g.addColorStop(i / (A.sky.length - 1), s));
+  c.fillStyle = g; c.fillRect(0, 0, 1920, 1080);
+  const m = c.createRadialGradient(1380, 190, 10, 1380, 190, 420); m.addColorStop(0, A.moon); m.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = m; c.fillRect(0, 0, 1920, 700);
+  hatch(c, 0, 0, 1920, 640, Math.PI*0.6, 11, '#000', .18);
+  ridge(c, r, 470, 90, A.far, 40);
+  c.strokeStyle = '#050403'; c.fillStyle = '#050403';
+  if (act === 0){
+    for (let i = 0; i < 9; i++){ const x = 1060 + i * 26 + r()*8, h = 22 + r()*40; c.fillStyle = '#17120f'; c.fillRect(x, 452 - h, 22, h + 12);
+      if (r() < .35){ c.fillStyle = 'rgba(201,150,90,.38)'; c.fillRect(x + 7, 452 - h + 10, 5, 7); } }
+    ridge(c, r, 590, 60, A.mid, 60);
+    c.strokeStyle = '#060504';
+    [[180, 650, 150], [1700, 640, 170], [1830, 660, 120], [80, 680, 110]].forEach(([x, y, l]) => tree(c, r, x, y, l, -Math.PI/2 + (r()-.5)*.2, 14, 7));
+    c.lineWidth = 12; c.beginPath(); c.moveTo(1560, 690); c.lineTo(1560, 470); c.lineTo(1660, 470); c.stroke();
+    c.lineWidth = 3; c.beginPath(); c.moveTo(1640, 470); c.lineTo(1640, 520); c.stroke();
+    c.fillStyle = '#060504'; c.beginPath(); c.ellipse(1640, 530, 9, 12, 0, 0, 7); c.fill();
+  } else if (act === 1){
+    ridge(c, r, 560, 50, A.mid, 50);
+    c.fillStyle = '#0b0d0b'; c.fillRect(0, 620, 1920, 80);
+    c.strokeStyle = 'rgba(160,170,140,.08)'; c.lineWidth = 2;
+    for (let i = 0; i < 40; i++){ const y = 630 + r()*60, x = r()*1920; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 40 + r()*90, y); c.stroke(); }
+    c.strokeStyle = '#060706';
+    [[260, 680, 120], [1650, 670, 150], [1500, 690, 90], [90, 700, 100]].forEach(([x, y, l]) => tree(c, r, x, y, l, -Math.PI/2 + (r()-.5)*.5, 16, 5));
+    c.lineWidth = 3;
+    for (let i = 0; i < 160; i++){ const x = r()*1920; if (x > 520 && x < 1480 && r() < .8) continue; const h = 40 + r()*90;
+      c.beginPath(); c.moveTo(x, 720); c.quadraticCurveTo(x + (r()-.5)*20, 720 - h/2, x + (r()-.5)*30, 720 - h); c.stroke(); }
+  } else {
+    c.fillStyle = '#120c0b';
+    for (let i = 0; i < 6; i++){ const x = 80 + i * 330; c.fillRect(x, 160, 70, 560);
+      c.beginPath(); c.moveTo(x + 70, 300); c.quadraticCurveTo(x + 200, 120, x + 330, 300); c.lineTo(x + 330, 230); c.quadraticCurveTo(x + 200, 60, x + 70, 230); c.fill(); }
+    hatch(c, 0, 0, 1920, 720, Math.PI*0.66, 6, '#000', .25);
+    for (let i = 0; i < 5; i++){ const x = 230 + i * 330; c.fillStyle = '#3A1416'; c.beginPath(); c.moveTo(x, 210); c.lineTo(x + 90, 210); c.lineTo(x + 90, 420); c.lineTo(x + 45, 380); c.lineTo(x, 420); c.closePath(); c.fill();
+      c.strokeStyle = '#000'; c.lineWidth = 3; c.stroke(); }
+    [[140, 690], [1780, 690]].forEach(([x, y]) => { const gl = c.createRadialGradient(x, y - 60, 5, x, y - 60, 220); gl.addColorStop(0, 'rgba(208,102,58,.45)'); gl.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = gl; c.fillRect(x - 240, y - 300, 480, 480); c.fillStyle = '#080505'; c.fillRect(x - 26, y - 70, 52, 70); c.fillRect(x - 40, y - 82, 80, 16); });
+  }
+  const gg = c.createLinearGradient(0, 690, 0, 1080); gg.addColorStop(0, A.ground[0]); gg.addColorStop(1, A.ground[1]);
+  c.fillStyle = gg; c.fillRect(0, 690, 1920, 390);
+  c.strokeStyle = 'rgba(0,0,0,.55)'; c.lineWidth = 2;
+  for (let i = 0; i < 70; i++){ const y = 700 + r()*360, x = r()*1920, w = 30 + r()*140; c.beginPath(); c.moveTo(x, y); c.lineTo(x + w, y + (r()-.5)*6); c.stroke(); }
+  if (act === 0){ c.strokeStyle = 'rgba(0,0,0,.5)'; c.lineWidth = 5; c.beginPath(); c.moveTo(820, 690); c.lineTo(520, 1080); c.moveTo(1100, 690); c.lineTo(1420, 1080); c.stroke(); }
+  c.fillStyle = '#000'; c.fillRect(0, 688, 1920, 3);
+  $('actname').textContent = A.name;
+}
+
+/* ---------- fx (fog, rain, embers, particles) ---------- */
+let parts = [], fogT = 0, weather = [];
+function initWeather(){ weather = []; const r = rng(3);
+  const n = act === 1 ? 260 : act === 2 ? 70 : 0;
+  for (let i = 0; i < n; i++) weather.push({x: r()*1920, y: r()*1080, v: act === 1 ? 1500 + r()*500 : 30 + r()*50, s: r()}); }
+function burst(x, y, col, n, spd, up, life){ if (reduce) n = Math.min(n, 6);
+  for (let i = 0; i < n; i++){ const a = Math.random()*Math.PI*2, s = spd*(.3 + Math.random()*.7);
+    parts.push({x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s - up, life, max: life, col, r: 2 + Math.random()*4}); } }
+function drawFx(dt){
+  fx.clearRect(0, 0, 1920, 1080); const A = ACTS[act]; fogT += dt;
+  for (let i = 0; i < 4; i++){ const x = ((fogT * (14 + i*6) + i * 600) % 2600) - 340, y = 640 + i * 38;
+    const g = fx.createRadialGradient(x, y, 10, x, y, 520); g.addColorStop(0, `rgba(${A.fog},${act === 1 ? .10 : .07})`); g.addColorStop(1, `rgba(${A.fog},0)`);
+    fx.fillStyle = g; fx.fillRect(x - 520, y - 300, 1040, 600); }
+  if (act === 1){ fx.strokeStyle = 'rgba(190,200,190,.22)'; fx.lineWidth = 1.5; fx.beginPath();
+    for (const w of weather){ w.y += w.v * dt; w.x -= w.v * dt * .18; if (w.y > 1080){ w.y = -30; w.x = Math.random()*2100; } fx.moveTo(w.x, w.y); fx.lineTo(w.x + 5, w.y - 26); } fx.stroke(); }
+  if (act === 2){ for (const w of weather){ w.y -= w.v * dt; w.x += Math.sin(fogT * 2 + w.s * 9) * .6; if (w.y < -10){ w.y = 1090; w.x = Math.random()*1920; }
+      fx.fillStyle = `rgba(232,${120 + (w.s*60|0)},70,${.35 + w.s*.4})`; fx.fillRect(w.x, w.y, 3, 3); } }
+  for (let i = parts.length - 1; i >= 0; i--){ const p = parts[i]; p.life -= dt; if (p.life <= 0){ parts.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 40 * dt; const a = p.life / p.max;
+    fx.globalAlpha = a; fx.fillStyle = p.col; fx.beginPath(); fx.arc(p.x, p.y, p.r * (.6 + a*.4), 0, 7); fx.fill(); }
+  fx.globalAlpha = 1;
+}
+
+/* ---------- game state (fake numbers) ---------- */
+const X = [790, 1058, 1326, 1594];
+const F = [
+  {name:'Injured Adventurer', ar:'Light armour', img:'adventurer', down:'adventurer_down', max:50},
+  {name:'Desperate Mercenary', ar:'Medium armour', img:'mercenary', max:75},
+  {name:'Cursed Rogue', ar:'Light armour', img:'rogue', down:'rogue_down', max:50},
+  {name:'Heavy Knight', ar:'Heavy armour', img:'knight', max:100}
+].map((f, i) => Object.assign(f, {i, hp: Math.round(f.max * [.62, .8, .7, .9][i]), shield: 0, hot: 0, hotT: 0, poison: 0, dread: 0, tele: 0, dead: 0}));
+let sel = 1, hover = -1, mana = 100, cast = null, gcd = 0, cds = {surge: 0}, cleanseCh = 2, bandCh = 3, paused = false, roundT = 21, sayT = 0;
+const SPELLS = [
+  {id:'heal', key:'Q', nm:'Heal', cost:10, ct:1.5, icon:'heal'},
+  {id:'renew', key:'W', nm:'Renew', cost:12, ct:0, icon:'renew'},
+  {id:'shield', key:'E', nm:'Shield', cost:14, ct:0, icon:'shield'},
+  {id:'surge', key:'R', nm:'Spirit Surge', cost:16, ct:0, cd:6, icon:'surge'}
+];
+const fWrap = $('fighters');
+F.forEach(f => {
+  const el = document.createElement('div'); el.className = 'fighter'; el.style.left = X[f.i] + 'px';
+  el.innerHTML = `<div class="tele"></div><div class="hotring"></div><div class="shadow"></div><div class="body"><img alt="" src="${IMG[f.img]}"></div><div class="bubble"></div><div class="flash"></div><div class="statusrow"></div>`;
+  el.querySelector('.body').style.animationDelay = (-f.i * .9) + 's';
+  el.addEventListener('pointerenter', () => { hover = f.i; refresh(); });
+  el.addEventListener('pointerleave', () => { hover = -1; refresh(); });
+  el.addEventListener('click', () => { sel = f.i; refresh(); });
+  fWrap.appendChild(el); f.el = el;
+  const fr = document.createElement('div'); fr.className = 'frame'; fr.style.left = X[f.i] + 'px';
+  fr.innerHTML = `<div class="nm">${f.name}</div><div class="bar"><div class="lag"></div><div class="fill"></div><div class="sh"></div><div class="dread"></div><div class="num"></div></div><div class="ar">${f.ar}</div><div class="chips"></div>`;
+  fWrap.appendChild(fr); f.fr = fr;
+});
+const slotsEl = $('slots');
+SPELLS.forEach(s => {
+  const b = document.createElement('button'); b.className = 'slot'; b.type = 'button'; b.setAttribute('aria-label', `${s.nm} (${s.key}), ${s.cost} mana`);
+  b.innerHTML = ICON[s.icon] + `<span class="key">${s.key}</span><span class="ct">${s.ct ? s.ct + 's' : 'inst'}</span><span class="cost">${s.cost}</span><span class="cd"></span><span class="cdn"></span><span class="nm">${s.nm}</span>`;
+  b.addEventListener('click', () => doCast(s.id)); slotsEl.appendChild(b); s.el = b;
+});
+const tray = document.createElement('div'); tray.className = 'tray';
+tray.innerHTML = `<span class="tk">PASSIVES</span><div class="pslot" id="p0">${ICON.shield}</div><div class="pslot empty"></div><div class="pslot empty"></div>`;
+slotsEl.appendChild(tray);
+
+const tgt = () => F[hover >= 0 ? hover : sel];
+function say(t){ $('say').textContent = t; sayT = 4; $('say').style.opacity = 1; }
+function pose(p, t){ $('pyimg').src = IMG[p]; clearTimeout(pose.h); if (t) pose.h = setTimeout(() => $('pyimg').src = IMG[mana < 20 ? 'low' : 'idle'], t); }
+function floatNum(f, txt, cls, dx = 0){
+  const d = document.createElement('div'); d.className = 'float ' + cls; d.textContent = txt;
+  const x = X[f.i] + dx + (Math.random() - .5) * 60, y = 330; d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.transform = 'translateX(-50%)';
+  fWrap.appendChild(d);
+  d.animate([{transform:'translate(-50%,10px) scale(.7)', opacity:0}, {transform:'translate(-50%,-10px) scale(1.15)', opacity:1, offset:.15}, {transform:'translate(-50%,-90px) scale(1)', opacity:0}], {duration: cls === 'y' ? 1400 : 1000, easing:'ease-out'}).onfinish = () => d.remove();
+}
+function flash(f, color, size = 1){
+  const el = f.el.querySelector('.flash'); el.style.background = `radial-gradient(closest-side, ${color} 0%, transparent 70%)`;
+  el.animate([{opacity:0, transform:`scale(${.4*size})`}, {opacity:.95, transform:`scale(${.9*size})`, offset:.25}, {opacity:0, transform:`scale(${1.2*size})`}], {duration:550, easing:'ease-out'});
+}
+function shake(px, ms){ if (reduce) return; const s = $('shake'); s.animate(Array.from({length: 8}, (_, k) => ({transform: `translate(${(Math.random()-.5)*px*(1-k/8)}px,${(Math.random()-.5)*px*(1-k/8)}px)`})).concat([{transform:'none'}]), {duration: ms}); }
+function punch(){ if (reduce) return; $('shake').animate([{transform:'scale(1)'}, {transform:'scale(1.02)'}, {transform:'scale(1)'}], {duration:260, easing:'ease-out'}); }
+function heal(f, amt, cls = 'g'){
+  if (f.dead) return; const before = f.hp; f.hp = Math.min(f.max, f.hp + amt);
+  floatNum(f, '+' + Math.round(amt), cls); burst(X[f.i], 520, cls === 'y' ? '#F2C14E' : '#3DDC84', 16, 180, 160, .9);
+  return f.hp - before;
+}
+function damage(f, amt, big){
+  if (f.dead) return;
+  let a = amt; if (f.shield > 0){ const ab = Math.min(f.shield, a); f.shield -= ab; a -= ab; if (ab > 0){ flash(f, 'rgba(90,176,255,.8)', .9); if (big) floatNum(f, 'ABSORBED ' + Math.round(ab), 'b'); } }
+  if (a <= 0) return;
+  f.hp -= a; if (big){ floatNum(f, '−' + Math.round(a), 'r'); burst(X[f.i], 470, '#B32A2F', 22, 320, 60, .8); shake(Math.min(24, a * .5), 380); }
+  f.el.classList.add('hit'); setTimeout(() => f.el.classList.remove('hit'), big ? 140 : 70);
+  if (f.hp <= 0) die(f);
+}
+function die(f){
+  f.hp = 0; f.dead = 4; f.shield = 0; f.hot = 0; f.poison = 0; f.dread = 0; f.tele = 0;
+  f.el.classList.add('dead'); if (f.down){ f.el.classList.add('downpose'); f.el.querySelector('img').src = IMG[f.down]; }
+  burst(X[f.i], 470, '#8E1E22', 40, 380, 80, 1.1); shake(26, 520);
+  pose('hurt', 2500); say("Should've ducked. (In the real game, a death ends the run.)");
+}
+function revive(f){ f.dead = 0; f.hp = Math.round(f.max * .6); f.el.classList.remove('dead', 'downpose'); f.el.querySelector('img').src = IMG[f.img]; floatNum(f, 'BACK UP', 'g'); }
+function canAfford(s){ return mana >= s.cost; }
+function comboReady(s, f){ return s.id === 'surge' && f && f.shield > 0 && !f.dead; }
+function doCast(id){
+  if (id === 'cleanse') return doCleanse();
+  const s = SPELLS.find(x => x.id === id), f = tgt();
+  if (cast || gcd > 0 || !s || f.dead) return;
+  if (!canAfford(s)){ say("Running on fumes."); return; }
+  if (s.cd && cds[s.id] > 0) return;
+  if (s.ct){ cast = {s, f, t: 0}; pose('heal'); $('castbar').classList.add('on'); $('cname').textContent = `${s.nm}  ${s.ct}s`; return; }
+  resolve(s, f);
+}
+function resolve(s, f){
+  mana -= s.cost; gcd = .4;
+  if (s.id === 'heal'){ heal(f, 30); flash(f, 'rgba(61,220,132,.85)'); pose('heal', 500); }
+  if (s.id === 'renew'){ f.hot = 8; f.hotT = 0; pose('hot', 600); flash(f, 'rgba(61,220,132,.5)', .7); }
+  if (s.id === 'shield'){ f.shield = 30; pose('shield', 600); flash(f, 'rgba(90,176,255,.85)'); }
+  if (s.id === 'surge'){
+    cds.surge = s.cd; pose('heal', 500);
+    if (f.shield > 0){ heal(f, 40, 'y'); flash(f, 'rgba(242,193,78,.95)', 1.3); floatNum(f, 'COMBO', 'y', 0); burst(X[f.i], 450, '#F2C14E', 40, 420, 120, 1.2); punch();
+      const p = $('p0'); p.classList.remove('fire'); void p.offsetWidth; p.classList.add('fire');
+      say(["Two spells, one invoice.", "Elegant. Expensive, but elegant.", "Put that on the bill."][Math.random()*3|0]); }
+    else { heal(f, 15); flash(f, 'rgba(61,220,132,.7)'); }
+  }
+  refresh();
+}
+function doCleanse(){
+  const f = tgt(); if (f.dead || cleanseCh <= 0) return;
+  if (!f.poison && !f.dread){ say("Nothing on him to Cleanse."); return; }
+  cleanseCh--; f.poison = 0; f.dread = 0; flash(f, 'rgba(184,138,255,.9)'); burst(X[f.i], 520, '#B88AFF', 26, 260, 220, .9); floatNum(f, 'CLEANSED', 'v');
+  setTimeout(() => { cleanseCh = Math.min(2, cleanseCh + 1); refresh(); }, 9000); refresh();
+}
+function threat(kind){
+  const alive = F.filter(f => !f.dead); if (!alive.length) return;
+  const f = alive[Math.random()*alive.length|0];
+  if (kind === 'burst'){ f.tele = 2.2; f.teleDmg = Math.round(f.max * .55); }
+  if (kind === 'poison'){ f.poison = Math.min(3, f.poison + 1); say("Poison. Press F to Cleanse it before it stacks."); }
+  if (kind === 'dread'){ f.dread = .35; say("Dread. If he drops to that line, he's gone. Cleanse it (F)."); }
+  refresh();
+}
+function refresh(){
+  F.forEach(f => {
+    const pct = Math.max(0, f.hp) / f.max, fr = f.fr;
+    fr.querySelector('.fill').style.width = pct * 100 + '%'; fr.querySelector('.lag').style.width = pct * 100 + '%';
+    fr.querySelector('.sh').style.width = Math.min(1, f.shield / f.max) * 100 + '%';
+    const dr = fr.querySelector('.dread'); dr.style.display = f.dread ? 'block' : 'none'; dr.style.left = f.dread * 100 + '%';
+    fr.querySelector('.num').textContent = f.dead ? 'FALLEN' : `${Math.ceil(f.hp)} / ${f.max}`;
+    let chips = ''; if (f.hot > 0) chips += `<span class="chip g">RENEW ${f.hot.toFixed(1)}s</span>`; if (f.shield > 0) chips += `<span class="chip b">SHIELD ${Math.round(f.shield)}</span>`;
+    fr.querySelector('.chips').innerHTML = chips;
+    let w = ''; if (f.tele > 0) w += `<span class="warn red">! INCOMING</span>`; if (f.poison) w += `<span class="warn violet">☠ POISON ×${f.poison}</span>`; if (f.dread) w += `<span class="warn violet">DREAD</span>`;
+    const sr = f.el.querySelector('.statusrow'); if (sr.innerHTML !== w) sr.innerHTML = w;
+    f.el.classList.toggle('hot', f.hot > 0); f.el.classList.toggle('shielded', f.shield > 0); f.el.classList.toggle('tele-on', f.tele > 0);
+    f.fr.classList.toggle('sel', f.i === (hover >= 0 ? hover : sel));
+  });
+  const t = tgt();
+  SPELLS.forEach(s => { s.el.classList.toggle('ready', comboReady(s, t) && canAfford(s) && !(cds[s.id] > 0)); s.el.classList.toggle('poor', !canAfford(s));
+    const cd = s.cd ? Math.max(0, cds[s.id]) / s.cd : 0; s.el.querySelector('.cd').style.setProperty('--cd', cd); s.el.querySelector('.cdn').textContent = cd > 0 ? Math.ceil(cds[s.id]) : ''; });
+  $('mf').style.width = mana + '%'; $('mnum').textContent = `${Math.floor(mana)} / 100`; $('orb').classList.toggle('low', mana < 20);
+  $('cpips').innerHTML = [0, 1].map(k => `<i class="pip ${k < cleanseCh ? 'on' : ''}"></i>`).join('');
+  $('bpips').innerHTML = [0, 1, 2].map(k => `<i class="pip ${k < bandCh ? 'on' : ''}"></i>`).join('');
+}
+
+/* ---------- loop ---------- */
+let last = performance.now(), dmgT = 0, autoT = 6, tickT = 0, visible = true;
+new IntersectionObserver(e => visible = e[0].isIntersecting).observe(stage);
+function frame(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (visible && !document.hidden){
+    if (cast){ cast.t += dt; $('cf').style.width = Math.min(1, cast.t / cast.s.ct) * 100 + '%';
+      if (cast.t >= cast.s.ct){ const c = cast; cast = null; $('castbar').classList.remove('on'); if (!c.f.dead) resolve(c.s, c.f); else pose('idle'); } }
+    gcd = Math.max(0, gcd - dt); for (const k in cds) cds[k] = Math.max(0, cds[k] - dt);
+    mana = Math.min(100, mana + 2.4 * dt);
+    roundT -= dt; if (roundT <= 0) roundT = 21;
+    $('tnum').textContent = roundT.toFixed(1); $('tarc').style.strokeDashoffset = 232.5 * (1 - roundT / 21); $('timer').classList.toggle('low', roundT < 5);
+    tickT += dt; const tick = tickT >= 1; if (tick) tickT -= 1;
+    F.forEach(f => {
+      if (f.dead){ f.dead -= dt; if (f.dead <= 0) revive(f); return; }
+      if (f.hot > 0){ f.hot -= dt; f.hotT += dt; if (f.hotT >= 1){ f.hotT -= 1; heal(f, 5); } }
+      if (f.tele > 0){ f.tele -= dt; if (f.tele <= 0){ f.tele = 0; damage(f, f.teleDmg, true); } }
+      if (tick && f.poison && !paused){ damage(f, 2 * f.poison); floatNum(f, '−' + 2 * f.poison, 'v'); }
+      if (f.dread && f.hp / f.max <= f.dread){ f.dread = 0; die(f); }
+    });
+    if (!paused){ dmgT -= dt; if (dmgT <= 0){ dmgT = 1.1 + Math.random(); const a = F.filter(f => !f.dead); if (a.length) damage(a[Math.random()*a.length|0], 3 + Math.random()*5); }
+      autoT -= dt; if (autoT <= 0){ autoT = 9 + Math.random()*5; threat(Math.random() < .7 ? 'burst' : 'poison'); } }
+    if (sayT > 0){ sayT -= dt; if (sayT <= 0) $('say').style.opacity = .0; }
+    if (!cast && mana < 20 && $('pyimg').src.indexOf('idle') > -1) pose('low');
+    drawFx(dt); refresh();
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- controls ---------- */
+document.querySelectorAll('[data-cast]').forEach(b => b.addEventListener('click', () => doCast(b.dataset.cast)));
+$('tBurst').onclick = () => threat('burst'); $('tPoison').onclick = () => threat('poison'); $('tDread').onclick = () => threat('dread');
+$('tPause').onclick = e => { paused = !paused; e.currentTarget.setAttribute('aria-pressed', paused); };
+document.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+  act = +b.dataset.act; document.querySelectorAll('[data-act]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawBackdrop(); initWeather();
+  $('rnd').textContent = act === 2 ? 'Round 10' : act === 1 ? 'Round 7' : 'Round 3';
+  $('ctitle').textContent = act === 2 ? 'The Crimson Baron' : act === 1 ? 'Bog-cursed pilgrims' : 'Desperate caravan';
+  say(act === 2 ? "The Baron. Of course it's the Baron." : act === 1 ? "Another job. Same blood." : "Hold still. This stings less than dying.");
+}));
+$('tBefore').onclick = e => { const on = $('before').hidden; $('before').hidden = !on; $('beforetag').hidden = !on; e.currentTarget.setAttribute('aria-pressed', on); e.currentTarget.textContent = on ? 'Show the mock-up' : "Show today's screen"; };
+addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea')) return;
+  const r = stage.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
+  const k = e.key.toLowerCase(), map = {q:'heal', w:'renew', e:'shield', r:'surge', f:'cleanse'};
+  if (map[k]){ doCast(map[k]); e.preventDefault(); }
+});
+document.querySelectorAll('.prompt .cp').forEach(b => b.addEventListener('click', () => {
+  const t = b.parentElement.querySelector('.ptext').textContent;
+  const done = () => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500); };
+  try { navigator.clipboard.writeText(t).then(done, () => { getSelection().selectAllChildren(b.parentElement.querySelector('.ptext')); }); }
+  catch { getSelection().selectAllChildren(b.parentElement.querySelector('.ptext')); }
+}));
+
+drawBackdrop(); initWeather(); refresh(); say("I charge by the hour. Try not to bleed by the minute.");
+const loadEl = stage.querySelector('.loading'); if (loadEl) loadEl.remove();
+requestAnimationFrame(frame);
+})();
+</script>
