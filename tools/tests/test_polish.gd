@@ -5,6 +5,8 @@ const C = preload("res://tools/tests/check.gd")
 # under 18 px, and the HUD stays on its edges on an ultrawide screen.
 var game; var f := 0; var step := 0; var wait := 0.0
 var GM; var TS; var SS; var DS
+var SF   # ui/ScreenFeel.gd, loaded by path once the autoloads exist (tools/tests/README.md)
+var reduce_before := false
 func _initialize():
 	game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child.call_deferred(game)
@@ -26,6 +28,13 @@ func small_text(node: Node, out: Array) -> Array:
 		small_text(c, out)
 	return out
 
+func EventBus_emit_hit():
+	root.get_node("EventBus").burst_landed.emit(TS.targets[2], 0.0, 20.0)
+
+func advance() -> bool:
+	step = 100
+	return false
+
 func _process(d):
 	f += 1
 	if f > 3000: C.timed_out(self); return true
@@ -34,6 +43,7 @@ func _process(d):
 	match step:
 		0:
 			if f < 3: return false
+			SF = load("res://ui/ScreenFeel.gd")
 			GM = root.get_node("GameManager"); TS = root.get_node("TargetSystem"); SS = root.get_node("SpellSystem"); DS = root.get_node("DifficultySystem")
 			DS.job_finished_time = 0.0; DS.screen_input_guard = 0.0
 			C.eq(ProjectSettings.get_setting("display/window/stretch/mode"), "canvas_items", "window scales the interface (no fixed 1920x1080 picture)")
@@ -64,11 +74,42 @@ func _process(d):
 			C.ok(game.header.visible, "in the round the header is back")
 			GM.mana = 999.0
 			SS.request_cast(SS.get_library_spell("renew"), TS.targets[0])
+			SS.request_cast(SS.get_library_spell("shield"), TS.targets[1])
 			wait = 0.3
 		4:
 			var small: Array = small_text(game.game_ui, [])
 			P("round small text: %s" % [small])
 			C.eq(small.size(), 0, "combat screen: no text under 18 px (spell names, passive names, rules, armour)")
+			# Step 2, feel: fighters stand on a shadow; a shield puffs blue sparks.
+			C.ok(TS.targets.all(func(t): return t.get_node_or_null("GroundShadow") != null), "every fighter has a ground shadow")
+			C.ok(TS.targets[1].fx_layer.get_children().any(func(c): return c is CPUParticles2D), "a shield puffs sparks on the fighter")
+			reduce_before = SF.reduce_effects
+			SF.set_reduce(false)
+			EventBus_emit_hit(); return advance()
+		100:
+			P("burst hit: screen offset=%s" % game.game_ui.position)
+			C.ok(game.game_ui.position != Vector2.ZERO, "a landed burst shakes the screen")
+			root.get_node("EventBus").combo_fired.emit(TS.targets[0], "Test combo")
+			C.ok(game.game_ui.scale.x > 1.0, "a combo punches the screen in")
+			step = 101; wait = 0.7; return false
+		101:
+			C.eq(game.game_ui.position, Vector2.ZERO, "the shake settles back to rest")
+			C.eq(game.game_ui.scale, Vector2.ONE, "the punch settles back to rest")
+			SF.set_reduce(true)
+			EventBus_emit_hit()
+			root.get_node("EventBus").combo_fired.emit(TS.targets[0], "Test combo")
+			step = 102; return false
+		102:
+			C.ok(game.game_ui.position == Vector2.ZERO and game.game_ui.scale == Vector2.ONE, "reduce effects: no shake, no punch")
+			var menu = game.get_children().filter(func(c): return c.get_script() and c.get_script().resource_path.ends_with("PauseMenu.gd"))[0]
+			var box = menu.find_child("ReduceEffects", true, false)
+			C.ok(box is CheckBox, "pause menu has 'Reduce screen shake and flashes'")
+			box.button_pressed = true
+			C.ok(SF.reduce_effects, "ticking it turns them off")
+			box.button_pressed = false
+			C.ok(not SF.reduce_effects, "unticking it turns the effects back on")
+			SF.set_reduce(reduce_before)
+			step = 4
 			# An ultrawide window: the spell bar stays centred, the rules stay top right.
 			root.size = Vector2i(2560, 1080)
 			wait = 0.3
@@ -94,6 +135,18 @@ func _process(d):
 			C.ok(vis.y > 1150.0, "the visible area got taller on 16:10 (got %.0f)" % vis.y)
 			C.near(vis.y - bar.end.y, 1080.0 - 990.0, "spell bar keeps its distance from the bottom edge", 4.0)
 			C.near(vis.y - pythio.end.y, 1080.0 - 1075.0, "Pythio stands on the bottom edge", 4.0)
+			root.size = Vector2i(1920, 1080)
+			TS.targets[2].health_comp.take_damage(99999)
+			wait = 1.2
+		7:
+			var veil: ColorRect = game.game_ui.get_node("DeathVeil")
+			P("death: veil visible=%s alpha=%.2f, under game over=%s" % [veil.visible, veil.color.a, veil.get_index() < game.game_over_panel.get_index()])
+			C.ok(veil.visible and veil.color.a > 0.3, "a death darkens the battlefield")
+			C.ok(veil.get_index() < game.game_over_panel.get_index(), "the run summary stays bright above the veil")
+			game._on_play_again_pressed(); wait = 0.5
+		8:
+			var veil: ColorRect = game.game_ui.get_node("DeathVeil")
+			C.ok(not veil.visible and veil.color.a == 0.0, "Play Again clears the veil")
 			C.done(self); return true
 	step += 1
 	return false

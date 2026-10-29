@@ -108,6 +108,11 @@ _Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through
   - **#101** (#93): leaderboard run tickets, safe saves and hidden entries (current board kept).
   - Bot check after the fixes: first deaths average round 6.4 (9 runs; Ward lowest at 4.7, worth
     a look in playtest).
+- **Steam polish started 2026-10-29** (art direction proposal: `docs/art-direction.md`). Steps 1
+  and 2 built in one PR: any screen shape, no portrait, no overlapping titles, 18 px text floor,
+  exact palette; screen shake, combo lean, sparks, ground shadows, hit flash, death veil and a
+  reduce-effects option. Open decisions for Marz are at the end of the proposal (places, act names,
+  capsule art).
 - **Your turn (SiteGround):** its front cache kept serving the old page at `/games/pythio/`
   after deploys. Flush it (Site Tools → Speed → Caching) and exclude `/games/pythio/` from
   caching so each deploy shows up at once (`docs/deploy.md`).

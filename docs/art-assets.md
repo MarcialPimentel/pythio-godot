@@ -132,7 +132,7 @@ exist, those two stay standing when they die.
 
 | File | When you see it | Status | Target |
 |---|---|---|---|
-| `ui/frames/portrait.png` | Pythio's face, bottom-right corner, during a run. Bareheaded, which the new back-view art matches. | Stand-in | 512 |
+| `ui/frames/portrait.png` | Not shown since 2026-10-29 (the bottom-right portrait was removed; Pythio is already on screen). | Spare | — |
 | `ui/frames/dialogue_box.png` | Pythio's speech bubble for his quips, next to him. | Stand-in | 512 wide |
 | `ui/frames/wanted_poster.png` | The "WANTED" poster: top-left during a round (the party you're on), and on the Next party screen. | Stand-in | 512 tall |
 | `ui/frames/tooltip_frame.png` | Not shown (tooltips use the default style). | Spare | 512 wide |

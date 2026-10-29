@@ -58,6 +58,8 @@ var _last_run := {"rounds": 0, "healing": 0}
 var card_panel: Control
 ## Rules panel, passive tray, Cleanse and bandage counters (ui/HudCounters.gd).
 var hud: HudCounters
+## Screen shake, combo punch and the death veil (ui/ScreenFeel.gd).
+var feel: ScreenFeel
 ## The top-10 list on the title screen, with ◀ ▶ between boards (ui/LeaderboardView.gd).
 var leaderboard_view: LeaderboardView
 var _banner: VBoxContainer
@@ -98,6 +100,7 @@ static func add_symbol_fallback() -> void:
 
 func _ready() -> void:
 	add_symbol_fallback()
+	ScreenFeel.load_setting()
 	GameManager.game_over.connect(_on_game_over)
 	# After a cleared round, "Job finished" holds first, then the next screen (owner, 2026-10-24).
 	GameManager.show_party_choice.connect(func(): _after_job_finished(_show_party_choice))
@@ -159,6 +162,10 @@ func _ready() -> void:
 	mana_label.size = Vector2(336, 27)
 
 	_pin_layout()
+	feel = ScreenFeel.new()
+	feel.name = "ScreenFeel"
+	feel.stage = game_ui
+	add_child(feel)
 	game_ui.resized.connect(func(): _fit_party(party_container.get_child_count()))
 
 	quip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -958,6 +965,7 @@ func _leave_run() -> void:
 	_card_mode = ""
 	_from_bounty = false
 	game_over_panel.visible = false
+	feel.clear()
 	cast_bar.visible = false
 	fallen_name = ""
 	round_label.modulate = Color.WHITE
@@ -968,6 +976,7 @@ func _leave_run() -> void:
 
 func _on_play_again_pressed() -> void:
 	game_over_panel.visible = false
+	feel.clear()
 	fallen_name = ""
 	round_label.modulate = Color.WHITE
 	header.visible = true

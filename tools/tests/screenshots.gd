@@ -14,7 +14,9 @@ func _process(_d):
 	f += 1
 	var GM = root.get_node_or_null("GameManager"); var TS = root.get_node_or_null("TargetSystem")
 	var DS = root.get_node_or_null("DifficultySystem"); var SS = root.get_node_or_null("SpellSystem")
-	if f == 20: snap("start"); game._on_start_pressed()
+	if f == 20:
+		DS.screen_input_guard = 0.0   # frame-timed: the clicks below must not hit the input guard
+		snap("start"); game._on_start_pressed()
 	if f == 45: snap("school")
 	if f == 47: game.card_panel._choose(1)   # Bloom
 	if f == 80: snap("choice")

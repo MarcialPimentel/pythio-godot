@@ -14,8 +14,9 @@ without changing the noir style, the colour language or any rules.
   looks the same.
 - **Two UI styles:** inked frames (bars, poster, portrait) next to flat Godot boxes (cards,
   panels, leaderboard, empty spell slots).
-- **Small text:** labels like "LIGHT ARMOR", the battlefield rules and key hints are about
-  10–12 px at 1080p.
+- **Small text:** spell names (14 px), passive names (12 px), the battlefield rules (15–17 px)
+  and the armour line (17 px) at 1080p; on a Steam Deck that becomes 8–11 px. (The first draft
+  of this doc said 10–12 px at 1080p; that was measured on a smaller browser window.)
 - **Overlapping titles:** the spell-pick and Next party screens show an old title behind the
   new one ("A new job / Choose your spell", "Round 1 / Get ready / Next party").
 - **Letterboxing:** the window is fixed 1920 × 1080 (`viewport` stretch), so a Steam Deck
@@ -217,6 +218,11 @@ Not edited yet. On approval, updated in the same PR as the first visual work, wi
 5. **Icons:** 7 tag icons, then one per spell.
 6. **Marsh, Chapel, characters at 1024 px.**
 7. **Store kit:** key art, capsules, screenshots, trailer, icons.
+
+## Done so far
+- **2026-10-29, steps 1 and 2 built** (Marz: "start 1 and 2"; Claude's recommendations taken for
+  decisions 3, 4 and 5: portrait removed, fonts kept with an 18 px floor, window fills any screen
+  shape). Branch `claude/steam-polish`.
 
 ## Decisions for Marz
 1. Setting: the Contract Road in acts (A, recommended) or one road at night (B)?

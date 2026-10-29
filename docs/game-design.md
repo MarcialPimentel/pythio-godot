@@ -104,8 +104,21 @@ system has to make a new spell easy to add: numbers and effects, not new code.
   breath), with the colour language carried over: healing warm, shields glassy, combos golden,
   danger low, debuffs hissing. Every sound, its file name and when it plays:
   `docs/sound-design.md`. A sound is a file named for its moment, so adding one needs no code.
+- **Exact colours [Decided 2026-10-29]:** one value per meaning, in `ui/Palette.gd`: emerald
+  `#3DDC84`, electric blue `#5AB0FF`, gold `#F2C14E`, blood red `#F25257`, icy cyan `#7FE6F2`,
+  violet `#B88AFF`; neutrals ink `#0E0C0B`, panel `#1A1614`, bone `#EDE6D6` (text and ink lines),
+  sepia `#ADA290` (labels). Every text colour passes 4.5:1 contrast.
 - **Fonts:** Pirata One (titles), Oswald (UI), Special Elite (Pythio's speech), DejaVu
-  (symbols). Files: `assets/fonts/`. The Phase H pass may change these.
+  (symbols). Files: `assets/fonts/`. The Phase H pass may change these. **[Decided 2026-10-29]**
+  Nothing on screen is smaller than 18 px at 1080p (readable on a Steam Deck).
+- **Screen shape [Decided 2026-10-29]:** the window fills any screen shape (Steam Deck 16:10,
+  ultrawide); the HUD stays on its edges and the party in the middle.
+- **Feel [Decided 2026-10-29]:** the screen shakes when a burst lands (harder for bigger hits)
+  and when a fighter dies, leans in on a combo; sparks in the meaning colour on heals, shields,
+  combos, hits and cleanses; fighters stand on a ground shadow and flash on a hard hit; a dark
+  red veil falls when someone dies. "Reduce screen shake and flashes" in the Escape menu turns
+  the shake and lean off. The art direction for Steam (places, UI kit, store kit) is proposed
+  in `docs/art-direction.md`.
 - **Art:** stand-ins cut from a concept sheet. The style guide, file names and prompt pack
   are in `docs/art.md`.
 
@@ -577,8 +590,9 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
   one refreshes it. The "INCOMING" warning shows above, and debuff warnings above that
   (violet or red). Dread draws a violet line on the health bar.
 - **Bottom:** Pythio and his speech bubble (left); the 4 spell buttons with key, cost, cast
-  time and cooldown; the passive tray; the mana bar, cast bar, Cleanse counter (F) and
-  bandage counter. (The
+  time and cooldown; the passive tray (names under the slots); the mana bar and cast bar;
+  the Cleanse (F) and bandage counters right of the tray. The portrait that used to sit in the
+  bottom-right corner was removed on 2026-10-29 (Pythio is already on screen). (The
   build summary line above the bar was removed on 2026-10-24.)
 - **Floating numbers** for heals, shields and combos (gold).
 
@@ -701,6 +715,7 @@ Listed so nobody "fixes" the wrong side.
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-10-29 | Claude (for Marz) | Steam polish steps 1 and 2 (`docs/art-direction.md`; Marz said start them, Claude's picks on the portrait, fonts and screen shape): the window fills any screen shape; the portrait is gone; card screens no longer show a second title behind theirs; 18 px text floor; exact palette values; screen shake, combo lean, sparks, ground shadows, hit flash, death veil, and a reduce-effects option. No rule changes. Sections 2 and 11 updated. |
 | 2026-10-28 | Claude (for Marz) | Leaderboard hardening (#93): one-time run tickets, a minimum run time per round claimed, safe saves with a backup, hidden entries; the current board is kept (Marz). Section 10 updated. |
 | 2026-10-28 | Claude (for Marz) | `scenes/game.gd` split (#95), no visible change: card text and icons → `ui/PickCards.gd`, HUD counters → `ui/HudCounters.gd`, the top 10 → `ui/LeaderboardView.gd`, Pythio's lines → `data/PythioLines.gd`. Section 11 updated. |
 | 2026-10-28 | Claude (for Marz) | Code cleanup (#94), no gameplay change: GameManager runs the round clock, mana regen and "a death ends the run" (was the screen script); every system resets on one `run_started` signal; leftover score/victory/contract code removed. |
