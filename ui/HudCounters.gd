@@ -10,6 +10,7 @@ const TRAY_SLOT := Vector2(84, 84)
 
 var rules_box: VBoxContainer
 var passive_tray: HBoxContainer
+var _tray_box: VBoxContainer
 var bandage_label: RichTextLabel
 var cleanse_label: RichTextLabel
 
@@ -29,6 +30,14 @@ func _ready() -> void:
 	BandageSystem.bandage_failed.connect(func(reason): if reason == "no_charges": _flash_red(bandage_label))
 	CleanseSystem.charges_changed.connect(func(_c, _m): _update_cleanse())
 	CleanseSystem.cleanse_failed.connect(func(reason): if reason == "no_charges": _flash_red(cleanse_label))
+
+
+## Called by game.gd once everything exists: rules stay top right, the rest stays by the spell bar.
+func pin_layout() -> void:
+	var L := ScreenLayout
+	L.pin(rules_box, L.RIGHT, L.TOP)
+	for n in [_tray_box, bandage_label, cleanse_label]:
+		L.pin(n, L.CENTER, L.BOTTOM)
 
 
 func _process(_delta: float) -> void:
@@ -86,8 +95,8 @@ func _refresh_rules_panel() -> void:
 	for c in rules_box.get_children():
 		rules_box.remove_child(c)
 		c.queue_free()
-	var title := make_label("RulesTitle", "BATTLEFIELD RULES", 15, Color(0.95, 0.35, 0.3, 0.85), Vector2.ZERO, HORIZONTAL_ALIGNMENT_RIGHT)
-	title.custom_minimum_size = Vector2(370, 20)
+	var title := make_label("RulesTitle", "BATTLEFIELD RULES", Palette.MIN_FONT, Palette.DANGER, Vector2.ZERO, HORIZONTAL_ALIGNMENT_RIGHT)
+	title.custom_minimum_size = Vector2(370, 26)
 	title.mouse_filter = Control.MOUSE_FILTER_PASS
 	title.tooltip_text = "Rules everyone plays by. Some passives cancel a rule (shown in gold)."
 	rules_box.add_child(title)
@@ -97,8 +106,8 @@ func _refresh_rules_panel() -> void:
 		line.fit_content = true
 		line.scroll_active = false
 		line.custom_minimum_size = Vector2(370, 0)
-		line.add_theme_font_size_override("normal_font_size", 17)
-		line.add_theme_font_size_override("bold_font_size", 17)
+		line.add_theme_font_size_override("normal_font_size", 20)
+		line.add_theme_font_size_override("bold_font_size", 20)
 		var by := EffectSystem.cancelled_by(rule.rule_id)
 		if by:
 			line.text = "[right][color=#6f6a63][s]%s[/s][/color]  [color=#ffd24d]→ %s[/color][/right]" % [rule.rule_name, by.display_name]
@@ -109,10 +118,10 @@ func _refresh_rules_panel() -> void:
 		rules_box.add_child(line)
 
 
-# ── Bandages: counter by the mana bar (Space) ──────────
+# ── Bandages: counter right of the passive tray (Space) ──────────
 
 func _make_bandage_counter() -> void:
-	bandage_label = _rich_label(Vector2(1420, 1008), 300)
+	bandage_label = _rich_label(Vector2(1600, 922), 300)   # beside the passive tray
 	bandage_label.tooltip_text = "Bandages: hover a fighter and press Space to channel %d healing over %ss.\nYou can't cast while bandaging. +1 bandage every %d rounds (max %d)." % [
 		int(BandageSystem.heal_total), str(BandageSystem.channel_time), BandageSystem.gain_every_rounds, BandageSystem.max_charges]
 	_update_bandages()
@@ -127,7 +136,7 @@ func _update_bandages() -> void:
 # ── Cleanse (Phase F): counter above the bandages (F) ──
 
 func _make_cleanse_counter() -> void:
-	cleanse_label = _rich_label(Vector2(1420, 970), 320)
+	cleanse_label = _rich_label(Vector2(1600, 882), 320)
 	_update_cleanse()
 
 
@@ -157,11 +166,12 @@ func _pulse_cleanse() -> void:
 
 func _make_passive_tray() -> void:
 	var box := VBoxContainer.new()
-	box.position = Vector2(1290, 846)
+	_tray_box = box
+	box.position = Vector2(1290, 840)
 	box.add_theme_constant_override("separation", 4)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var title := make_label("TrayTitle", "PASSIVES", 15, Color(1.0, 0.82, 0.3, 0.8), Vector2.ZERO, HORIZONTAL_ALIGNMENT_LEFT)
-	title.custom_minimum_size = Vector2(0, 20)
+	var title := make_label("TrayTitle", "PASSIVES", Palette.MIN_FONT, Palette.COMBO, Vector2.ZERO, HORIZONTAL_ALIGNMENT_LEFT)
+	title.custom_minimum_size = Vector2(0, 24)
 	box.add_child(title)
 	passive_tray = HBoxContainer.new()
 	passive_tray.add_theme_constant_override("separation", 10)
@@ -195,12 +205,13 @@ func _refresh_passive_tray() -> void:
 			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			icon.offset_left = 8; icon.offset_top = 6; icon.offset_right = -8; icon.offset_bottom = -18
+			icon.offset_left = 6; icon.offset_top = 6; icon.offset_right = -6; icon.offset_bottom = -6
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			slot.add_child(icon)
-			var name_lbl := make_label("Name", spell.display_name, 12, Color(1.0, 0.86, 0.55), Vector2(0, 64), HORIZONTAL_ALIGNMENT_CENTER)
-			name_lbl.size = Vector2(TRAY_SLOT.x, 18)
-			name_lbl.clip_text = true
+			# Name under the slot (was 12 px inside it); the full name is in the tooltip.
+			var name_lbl := make_label("Name", spell.display_name, Palette.MIN_FONT, Palette.COMBO, Vector2(-4, TRAY_SLOT.y + 2), HORIZONTAL_ALIGNMENT_CENTER)
+			name_lbl.size = Vector2(TRAY_SLOT.x + 8, 26)
+			name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 			slot.add_child(name_lbl)
 		else:
 			slot.tooltip_text = "Empty passive slot — passives you pick go here."

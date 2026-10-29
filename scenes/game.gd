@@ -5,6 +5,7 @@ extends Control
 # ── Scene references ──
 @onready var start_screen: Control       = $StartScreen
 @onready var game_ui: Control            = $GameUI
+@onready var header: Control             = $GameUI/Header
 @onready var round_label: Label          = $GameUI/Header/RoundLabel
 @onready var timer_label: Label          = $GameUI/Header/TimerLabel
 
@@ -157,6 +158,9 @@ func _ready() -> void:
 	mana_label.position = Vector2(16, 12)
 	mana_label.size = Vector2(336, 27)
 
+	_pin_layout()
+	game_ui.resized.connect(func(): _fit_party(party_container.get_child_count()))
+
 	quip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	quip_label.size = Vector2(quip_bubble.size.x - 112, quip_bubble.size.y - 60)   # stay inside the inked border
 
@@ -165,6 +169,20 @@ func _ready() -> void:
 	cast_bar.visible = false
 	party_choice_panel.visible = false
 	start_screen.visible = true
+
+
+## The window can be any shape (Steam Deck 16:10, ultrawide): keep each piece of the HUD on
+## its own edge or in the middle (ui/ScreenLayout.gd). Positions stay the 1920x1080 ones.
+func _pin_layout() -> void:
+	var L := ScreenLayout
+	for n in [$StartScreen/StartPythio, $StartScreen/LeaderboardPanel, $GameUI/GameOverPanel, _banner]:
+		L.pin(n, L.CENTER, L.CENTER)
+	L.pin(header, L.CENTER, L.TOP)
+	L.pin(pythio_sprite, L.LEFT, L.BOTTOM)
+	L.pin(quip_bubble, L.LEFT, L.BOTTOM)
+	L.pin($GameUI/PlayerContainer, L.CENTER, L.BOTTOM)
+	L.pin(spell_container, L.CENTER, L.BOTTOM)
+	hud.pin_layout()
 
 
 func _process(delta: float) -> void:
@@ -227,8 +245,10 @@ func _make_job_finished() -> void:
 	box.name = "Box"
 	box.custom_minimum_size = Vector2(1200, 0)
 	box.position = Vector2(360, 380)
+	box.size = Vector2(1200, 0)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_job_finished.add_child(box)
+	ScreenLayout.pin(box, ScreenLayout.CENTER, ScreenLayout.CENTER)
 	var title := Label.new()
 	title.name = "Title"
 	title.text = "Job finished"
@@ -297,6 +317,7 @@ func _show_spec_choice() -> void:
 	party_choice_panel.visible = false
 	party_area.visible = false
 	contract_info.visible = false
+	header.visible = false   # the card screen has its own title (they used to overlap)
 	round_label.text = "A new job"
 	timer_label.text = "Choose your spell"
 	_card_mode = "spec"
@@ -314,6 +335,7 @@ func _show_spell_pick(offers: Array, round_cleared: int) -> void:
 	party_choice_panel.visible = false
 	party_area.visible = false
 	contract_info.visible = false
+	header.visible = false
 	round_label.text = ("Round %d cleared" % round_cleared) if round_cleared > 0 else "Bonus pick"
 	_card_mode = "spell"
 	if _last_pick_round != round_cleared:
@@ -416,6 +438,7 @@ func _make_banner() -> void:
 	_banner = VBoxContainer.new()
 	_banner.position = Vector2(360, 672)   # between the fighters and the spell bar
 	_banner.custom_minimum_size = Vector2(1200, 0)
+	_banner.size = Vector2(1200, 120)
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_banner.visible = false
 	var title := Label.new()
@@ -478,8 +501,9 @@ func _show_party_choice() -> void:
 	contract_info.visible = false
 	var contracts = contract_selector.get_contracts_for_round(GameManager.current_round)
 	party_choice_panel.setup_contracts(contracts)
+	header.visible = true
 	round_label.text = "Round %d" % GameManager.current_round
-	timer_label.text = "Get ready"
+	timer_label.text = ""   # the panel says "Next party" right below (they used to overlap)
 
 
 func _on_contract_chosen(chosen: ContractData) -> void:
@@ -490,6 +514,7 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	contract_name_label.text = chosen.contract_name.replace("  ", " ")
 	contract_risk_label.text = "PARTY OF %d" % chosen.unit_templates.size()
 	contract_info.visible = true
+	header.visible = true
 	round_label.text = ("Round %d · The Crimson Baron" if chosen.is_boss else "Round %d") % GameManager.current_round
 	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
 
@@ -515,12 +540,14 @@ func _fit_party(count: int) -> void:
 	var frame_w := 300.0
 	var sep := float(party_container.get_theme_constant("separation"))
 	var needed := count * frame_w + maxi(0, count - 1) * sep
+	var screen := game_ui.size if game_ui.size.x > 0.0 else ScreenLayout.DESIGN
 	var avail := 1800.0
 	var s := minf(1.0, avail / maxf(needed, 1.0))
 	party_area.size.x = maxf(avail, needed)
 	party_area.scale = Vector2(s, s)
-	party_area.position.x = (1920.0 - party_area.size.x * s) / 2.0
-	party_area.position.y = 230.0 + (1.0 - s) * 300.0
+	# Centred on the real screen, which can be wider or taller than 1920x1080.
+	party_area.position.x = (screen.x - party_area.size.x * s) / 2.0
+	party_area.position.y = 230.0 + (1.0 - s) * 300.0 + (screen.y - ScreenLayout.DESIGN.y) / 2.0
 
 
 func _clear_party_container() -> void:
@@ -717,18 +744,18 @@ func _make_spell_slot(spell: SpellData, key: String) -> Button:
 
 	btn.add_child(HudCounters.make_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
 	if spell.is_passive():
-		btn.add_child(HudCounters.make_label("Cost", "passive", 16, Color(1.0, 0.8, 0.35), Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
+		btn.add_child(HudCounters.make_label("Cost", "passive", Palette.MIN_FONT, Palette.COMBO, Vector2(0, 84), HORIZONTAL_ALIGNMENT_CENTER))
 	else:
-		btn.add_child(HudCounters.make_label("Cost", str(int(spell.mana_cost)), 20, SpellTags.MANA_COLOR, Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
+		btn.add_child(HudCounters.make_label("Cost", str(int(spell.mana_cost)), 20, Palette.MANA, Vector2(-6, 82), HORIZONTAL_ALIGNMENT_RIGHT))
 		# Cast time on the button too (owner, 2026-10-24): "inst" or "1.5s", bottom left.
 		var cast_txt := "inst" if spell.cast_time <= 0.0 else "%ss" % SpellData._num(spell.cast_time)
-		var cast_lbl := HudCounters.make_label("Cast", cast_txt, 18, Color(0.93, 0.89, 0.8), Vector2(6, 84), HORIZONTAL_ALIGNMENT_LEFT)
+		var cast_lbl := HudCounters.make_label("Cast", cast_txt, Palette.MIN_FONT, Palette.BONE, Vector2(6, 84), HORIZONTAL_ALIGNMENT_LEFT)
 		cast_lbl.add_theme_constant_override("outline_size", 5)
 		cast_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 		btn.add_child(cast_lbl)
-	var name_lbl := HudCounters.make_label("Name", spell.display_name, 14, Color(0.92, 0.88, 0.8), Vector2(0, 116), HORIZONTAL_ALIGNMENT_CENTER)
-	name_lbl.size = Vector2(104, 22)
-	name_lbl.clip_text = true
+	var name_lbl := HudCounters.make_label("Name", spell.display_name, Palette.MIN_FONT, Palette.SEPIA, Vector2(-6, 114), HORIZONTAL_ALIGNMENT_CENTER)
+	name_lbl.size = Vector2(116, 26)
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS   # full name in the tooltip
 	btn.add_child(name_lbl)
 	var cd_label := HudCounters.make_label("CdText", "", 34, Color.WHITE, Vector2(0, 36), HORIZONTAL_ALIGNMENT_CENTER)
 	btn.add_child(cd_label)
@@ -741,7 +768,7 @@ func _make_empty_slot(key: String) -> Control:
 	p.modulate = Color(1, 1, 1, 0.45)
 	p.tooltip_text = "Empty — you'll pick a new spell for this slot every few rounds."
 	p.add_child(HudCounters.make_label("Key", key, 26, Color.WHITE, Vector2(6, 0), HORIZONTAL_ALIGNMENT_LEFT))
-	p.add_child(HudCounters.make_label("Draft", "empty", 18, Color(0.6, 0.58, 0.55), Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
+	p.add_child(HudCounters.make_label("Draft", "empty", Palette.MIN_FONT, Palette.SEPIA, Vector2(0, 44), HORIZONTAL_ALIGNMENT_CENTER))
 	return p
 
 
@@ -833,6 +860,7 @@ func _on_take_job_pressed() -> void:
 	party_area.visible = false
 	round_label.text = ""
 	timer_label.text = ""
+	header.visible = false
 	_card_mode = "first_time"
 	_card_options = ["yes", "no"]
 	card_panel.show_cards("First time on the job?", "", [
@@ -848,6 +876,7 @@ func _on_take_job_pressed() -> void:
 
 
 func _start_practice() -> void:
+	header.visible = true
 	_practice = PracticeRound.new(self)
 	add_child(_practice)
 	_practice.finished.connect(func():
@@ -932,6 +961,7 @@ func _leave_run() -> void:
 	cast_bar.visible = false
 	fallen_name = ""
 	round_label.modulate = Color.WHITE
+	header.visible = true
 	_set_pose("idle")
 	await _clear_party_container()
 
@@ -940,6 +970,7 @@ func _on_play_again_pressed() -> void:
 	game_over_panel.visible = false
 	fallen_name = ""
 	round_label.modulate = Color.WHITE
+	header.visible = true
 	_set_pose("idle")
 	await _clear_party_container()
 	GameManager.new_game()

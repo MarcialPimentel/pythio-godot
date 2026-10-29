@@ -15,10 +15,10 @@ extends Control
 @export var boss_sprite_height: float = 340.0
 
 const ART_DIR := "res://assets/art/"
-const FLOAT_HEAL := Color(0.45, 0.95, 0.35)
-const FLOAT_SHIELD := Color(0.45, 0.7, 1.0)
-const FLOAT_DANGER := Color(0.95, 0.22, 0.16)
-const FLOAT_COMBO := Color(1.0, 0.82, 0.3)   # gold = combos
+const FLOAT_HEAL := Palette.HEAL
+const FLOAT_SHIELD := Palette.SHIELD
+const FLOAT_DANGER := Palette.DANGER
+const FLOAT_COMBO := Palette.COMBO   # gold = combos
 
 @onready var health_comp: HealthComponent = $HealthComponent
 @onready var sprite: TextureRect = $Sprite

@@ -207,7 +207,7 @@ func _build_card(i: int, d: Dictionary) -> Button:
 		head_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		head_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		head.add_child(head_row)
-		head_row.add_child(_label(d.get("header", ""), 17, d.get("header_color", accent)))
+		head_row.add_child(_label(d.get("header", ""), Palette.MIN_FONT, d.get("header_color", accent)))
 		var fill := Control.new()
 		fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -282,12 +282,12 @@ func _build_card(i: int, d: Dictionary) -> Button:
 	if d.get("hint_bb", "") != "":
 		box.add_child(_rich(d.hint_bb, 19))
 	if d.get("flavor", "") != "":
-		var fl := _label("“%s”" % d.flavor, 16, Color(0.62, 0.58, 0.52))
+		var fl := _label("“%s”" % d.flavor, Palette.MIN_FONT, Color(0.62, 0.58, 0.52))
 		if _font_flavor:
 			fl.add_theme_font_override("font", _font_flavor)
 		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		box.add_child(fl)
-	var key := _label("Press %d" % (i + 1), 15, Color(0.5, 0.48, 0.44))
+	var key := _label("Press %d" % (i + 1), Palette.MIN_FONT, Palette.SEPIA)
 	key.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	box.add_child(key)
 	return btn
@@ -336,7 +336,7 @@ func _slot(parent: Node, height: float) -> Control:
 	return c
 
 
-func _chip(text: String, color: Color, strong: bool, font_size: int = 15) -> PanelContainer:
+func _chip(text: String, color: Color, strong: bool, font_size: int = Palette.MIN_FONT) -> PanelContainer:
 	var p := PanelContainer.new()
 	var s := StyleBoxFlat.new()
 	s.bg_color = Color(color, 0.85 if strong else 0.18)
@@ -346,7 +346,7 @@ func _chip(text: String, color: Color, strong: bool, font_size: int = 15) -> Pan
 	s.content_margin_left = 8; s.content_margin_right = 8; s.content_margin_top = 2; s.content_margin_bottom = 2
 	p.add_theme_stylebox_override("panel", s)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if font_size > 15:
+	if font_size > Palette.MIN_FONT:
 		s.content_margin_left = 12; s.content_margin_right = 12; s.content_margin_top = 3; s.content_margin_bottom = 3
 	var l := _label(text, font_size, Color(0.08, 0.06, 0.05) if strong else color)
 	l.add_theme_constant_override("outline_size", 0)
