@@ -99,11 +99,20 @@ func _ready() -> void:
 	mute.toggled.connect(SoundSystem.set_muted)
 	sound.add_child(mute)
 
+	# Steam polish: comfort and accessibility. Turns off screen shake and the combo punch.
+	var calm := CheckBox.new()
+	calm.name = "ReduceEffects"
+	calm.text = "Reduce screen shake and flashes"
+	calm.button_pressed = ScreenFeel.reduce_effects
+	calm.add_theme_font_size_override("font_size", 20)
+	calm.toggled.connect(ScreenFeel.set_reduce)
+	col.add_child(calm)
+
 	var note := Label.new()
 	note.text = "Restarting or quitting ends this run. It isn't posted to the leaderboard."
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.add_theme_font_size_override("font_size", 16)
+	note.add_theme_font_size_override("font_size", Palette.MIN_FONT)
 	note.add_theme_color_override("font_color", Color(0.55, 0.52, 0.48))
 	col.add_child(note)
 

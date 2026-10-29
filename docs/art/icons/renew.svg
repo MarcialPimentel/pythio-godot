@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Renew"><defs><pattern id="hx-renew" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="4" stroke="#EDE6D6" stroke-width=".5"/></pattern>
+<filter id="gl-renew" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="3" y="3" width="58" height="58" rx="3" fill="#15110F"/>
+<rect x="3" y="3" width="58" height="58" rx="3" fill="url(#hx-renew)" opacity=".35"/>
+<path d="M4.5 4.8 L59.2 3.9 L60.1 59.6 L4.1 60.2 Z" fill="none" stroke="#EDE6D6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M8 8.6 L56.3 8 L55.8 56.1 L8.4 55.6 Z" fill="none" stroke="#EDE6D6" stroke-width=".9" opacity=".55"/><circle cx="32" cy="33" r="17" fill="none" stroke="#3DDC84" stroke-width="2.2" stroke-dasharray="7 4" opacity=".85"/>
+<path d="M32 46 C31 38 31 32 33 26" fill="none" stroke="#3DDC84" stroke-width="2.6" stroke-linecap="round" filter="url(#gl-renew)"/>
+<path d="M33 30 C38 22 46 21 47 21 C46 29 40 33 33 31 Z" fill="#3DDC84" stroke="#0B0908" stroke-width="1.6" filter="url(#gl-renew)"/>
+<path d="M32 37 C27 31 20 31 18 31 C20 38 26 40 32 38 Z" fill="#3DDC84" stroke="#0B0908" stroke-width="1.6" filter="url(#gl-renew)"/>
+<path d="M36 28 C40 25 43 24 44 24" stroke="#E9FFF2" stroke-width="1" fill="none" opacity=".8"/></svg>

@@ -15,10 +15,10 @@ extends Control
 @export var boss_sprite_height: float = 340.0
 
 const ART_DIR := "res://assets/art/"
-const FLOAT_HEAL := Color(0.45, 0.95, 0.35)
-const FLOAT_SHIELD := Color(0.45, 0.7, 1.0)
-const FLOAT_DANGER := Color(0.95, 0.22, 0.16)
-const FLOAT_COMBO := Color(1.0, 0.82, 0.3)   # gold = combos
+const FLOAT_HEAL := Palette.HEAL
+const FLOAT_SHIELD := Palette.SHIELD
+const FLOAT_DANGER := Palette.DANGER
+const FLOAT_COMBO := Palette.COMBO   # gold = combos
 
 @onready var health_comp: HealthComponent = $HealthComponent
 @onready var sprite: TextureRect = $Sprite
@@ -49,6 +49,8 @@ var _icon_saturated: TextureRect
 ## Phase F: debuff warnings above the fighter (like "! INCOMING") and Dread's line on the bar.
 var _debuff_label: RichTextLabel
 var _dread_line: ColorRect
+## Steam polish: a soft shadow so the fighter stands on the ground instead of floating.
+var _shadow: TextureRect
 
 
 func _ready() -> void:
@@ -78,7 +80,7 @@ func _ready() -> void:
 	EventBus.rule_triggered.connect(_on_rule_triggered)
 	_setup_debuff_ui()
 	EventBus.debuff_applied.connect(_on_debuff_applied)
-	EventBus.cleansed.connect(func(t, count, _sp): if t == self and count > 0: _float_text("Cleansed", DebuffStatus.VIOLET, 0.85))
+	EventBus.cleansed.connect(_on_cleansed)
 	EventBus.dread_struck.connect(func(t): if t == self: _float_text("DREAD", DebuffStatus.VIOLET, 1.3, 40.0))
 
 	hp_bar.max_value = health_comp.max_health
@@ -96,12 +98,97 @@ func _setup_sprite() -> void:
 	sprite.position = Vector2((size.x - w) / 2.0, _feet_y - h)
 	sprite.size = Vector2(w, h)
 	sprite.pivot_offset = Vector2(w / 2.0, h)
+	_make_shadow(w)
 	# Shield bubble wraps the sprite
 	shield_bubble.size = Vector2(maxf(w, h * 0.75) * 1.15, h * 1.08)
 	shield_bubble.position = Vector2((size.x - shield_bubble.size.x) / 2.0, _feet_y - shield_bubble.size.y + 10)
 	if is_boss:
 		status_icons.position.y = _feet_y - h - 80   # icons above the warning text
 		incoming_label.position.y = _feet_y - h - 40
+
+
+func _make_shadow(sprite_w: float) -> void:
+	if not _shadow:
+		var g := Gradient.new()
+		g.set_color(0, Color(0, 0, 0, 0.85))
+		g.set_color(1, Color(0, 0, 0, 0.0))
+		var tex := GradientTexture2D.new()
+		tex.gradient = g
+		tex.fill = GradientTexture2D.FILL_RADIAL
+		tex.fill_from = Vector2(0.5, 0.5)
+		tex.fill_to = Vector2(0.5, 0.0)
+		tex.width = 128
+		tex.height = 128
+		_shadow = TextureRect.new()
+		_shadow.name = "GroundShadow"
+		_shadow.texture = tex
+		_shadow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_shadow.stretch_mode = TextureRect.STRETCH_SCALE
+		_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_shadow)
+		move_child(_shadow, 0)   # under the rings and the sprite
+	var sw := clampf(sprite_w * 1.35, 180.0, 320.0)
+	_shadow.size = Vector2(sw, 52)
+	_shadow.position = Vector2((size.x - sw) / 2.0, _feet_y - 30)
+
+
+## A one-shot puff of sparks in a meaning colour (heal green, combo gold, hit red ...).
+func _sparks(color: Color, amount: int, at: Vector2, rise: float = 1.0) -> void:
+	var p := CPUParticles2D.new()
+	p.amount = maxi(4, amount / 2 if ScreenFeel.reduce_effects else amount)
+	p.one_shot = true
+	p.explosiveness = 0.9
+	p.lifetime = 0.8
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 34.0
+	p.direction = Vector2(0, -1)
+	p.spread = 75.0
+	p.initial_velocity_min = 90.0 * rise
+	p.initial_velocity_max = 260.0 * rise
+	p.gravity = Vector2(0, 260)
+	p.texture = _spark_texture()
+	p.scale_amount_min = 0.35
+	p.scale_amount_max = 0.8
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(color.lightened(0.35), 1.0))
+	ramp.set_color(1, Color(color, 0.0))
+	p.color_ramp = ramp
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	p.material = add
+	p.position = at
+	fx_layer.add_child(p)
+	p.emitting = true
+	get_tree().create_timer(p.lifetime + 0.3, false).timeout.connect(p.queue_free)
+
+
+## Soft round dot for sparks (without it they draw as hard squares). Made once, shared.
+static var _spark_tex: Texture2D
+static func _spark_texture() -> Texture2D:
+	if not _spark_tex:
+		var g := Gradient.new()
+		g.set_color(0, Color(1, 1, 1, 1))
+		g.set_color(1, Color(1, 1, 1, 0))
+		var t := GradientTexture2D.new()
+		t.gradient = g
+		t.fill = GradientTexture2D.FILL_RADIAL
+		t.fill_from = Vector2(0.5, 0.5)
+		t.fill_to = Vector2(0.5, 0.0)
+		t.width = 24
+		t.height = 24
+		_spark_tex = t
+	return _spark_tex
+
+
+## A hard hit: the sprite flashes hot for a moment.
+func _hit_flash(strength: float = 1.0) -> void:
+	var tw := create_tween()
+	sprite.self_modulate = Color(1.0 + 1.4 * strength, 1.0 + 0.5 * strength, 1.0 + 0.4 * strength)
+	tw.tween_property(sprite, "self_modulate", Color.WHITE, 0.18)
+
+
+func _mid() -> Vector2:
+	return Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.5)
 
 
 func _setup_debuff_ui() -> void:
@@ -131,6 +218,12 @@ func _bar_x(health: float) -> float:
 	var fill_w: float = tex.get_width() if tex else 300.0
 	var frac := clampf(health / maxf(1.0, health_comp.max_health), 0.0, 1.0)
 	return hp_bar.position.x + (hp_bar.texture_progress_offset.x + fill_w * frac) * hp_bar.scale.x
+
+
+func _on_cleansed(t, count: int, _spell) -> void:
+	if t == self and count > 0:
+		_float_text("Cleansed", DebuffStatus.VIOLET, 0.85)
+		_sparks(Palette.CLEANSE, 18, _mid(), 1.2)
 
 
 func _on_debuff_applied(t: Node, status) -> void:
@@ -225,6 +318,7 @@ func _on_died() -> void:
 	info_label.text = "FALLEN"
 	info_label.add_theme_color_override("font_color", Color(0.9, 0.25, 0.2))
 	_spawn_fx("vfx/danger/blood_burst_3.png", Vector2(size.x / 2.0, _feet_y - 60), 1.2, Color.WHITE)
+	_sparks(Color(0.55, 0.06, 0.08), 34, Vector2(size.x / 2.0, _feet_y - 80), 0.8)
 
 
 func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: String) -> void:
@@ -234,8 +328,10 @@ func _on_effect_applied(effect_type: String, target, value: float, _vfx_color: S
 		"heal":
 			_float_text("+%d" % int(value), FLOAT_HEAL)
 			_spawn_fx("vfx/heal/heal_burst_4.png", Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.55), 0.6, Color.WHITE)
+			_sparks(Palette.HEAL, 16, _mid())
 		"shield":
 			_float_text("+%d shield" % int(value), FLOAT_SHIELD)
+			_sparks(Palette.SHIELD, 10, _mid(), 0.7)
 			_spawn_fx("vfx/shield/shield_impact_2.png", Vector2(size.x / 2.0, _feet_y - sprite.size.y * 0.5), 0.5, Color.WHITE)
 		"hot":
 			_float_text("+%d over time" % int(value), FLOAT_HEAL)
@@ -267,6 +363,7 @@ func _on_combo_fired(target, label: String) -> void:
 	var tw := create_tween()
 	sprite.self_modulate = Color(1.8, 1.5, 0.7)
 	tw.tween_property(sprite, "self_modulate", Color.WHITE, 0.5)
+	_sparks(Palette.COMBO, 28, _mid(), 1.4)
 
 
 func _on_burst_warned(target, damage: float, _delay: float, label: String) -> void:
@@ -282,9 +379,12 @@ func _on_burst_landed(target, absorbed: float, dealt: float) -> void:
 	if absorbed > 0.0:
 		_float_text("Absorbed %d" % roundi(absorbed), FLOAT_SHIELD)
 		_spawn_fx("vfx/shield/shield_impact_2.png", mid, 0.5, Color.WHITE)
+		_sparks(Palette.SHIELD, 12, mid, 0.8)
 	if dealt > 0.0:
 		_float_text("-%d" % roundi(dealt), FLOAT_DANGER)
 		_spawn_fx("vfx/danger/blood_burst_1.png", mid, 0.6, Color.WHITE)
+		_sparks(Color(0.75, 0.1, 0.12), 20, mid, 0.9)
+		_hit_flash(clampf(dealt / maxf(1.0, health_comp.max_health) * 3.0, 0.4, 1.0))
 
 
 func _float_text(text: String, color: Color, scale_factor: float = 1.0, lift: float = 0.0) -> void:
