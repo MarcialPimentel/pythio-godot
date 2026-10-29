@@ -111,7 +111,11 @@ _Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through
 - **Your turn (SiteGround):** its front cache kept serving the old page at `/games/pythio/`
   after deploys. Flush it (Site Tools → Speed → Caching) and exclude `/games/pythio/` from
   caching so each deploy shows up at once (`docs/deploy.md`).
-- **Next up:** Marz playtests E, F and the Code health fixes, and starts on sounds and icons.
+- **Phase H part 1 (2026-10-29, #61):** the word list is ready for Marz:
+  `docs/words/pythio-words.xlsx` (432 lines, everything at once) and `docs/words/font-samples.png`.
+  Marz edits the yellow column and picks fonts; part 2 applies it.
+- **Next up:** Marz playtests E, F and the Code health fixes, edits the word list, and starts on
+  sounds and icons.
   Open design talk: the road-to-Steam roadmap (run arc, meta-progression, content scale).
 - **Art (2026-10-24, #74 #76 #77 #78, part of #34):** high-res Pythio (idle, 3 casting poses,
   low mana, hurt), the four fighters and the Crimson Baron are live, with fallen poses for the
@@ -194,7 +198,8 @@ One bullet ≈ one pull request.
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 - 🟡 #33 **Basic sound:** system built (play by file name, volume/mute); Marz makes the 32 sounds
   listed in `docs/sound-design.md`.
-- ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
+- ✅ #34 **Swap in high-res art** as it's generated (`docs/art.md`); issue closed 2026-10-24,
+  new art keeps going in as Marz makes it.
 - ✅ #63 **Mana bar off gold:** icy cyan (owner, 2026-10-27) for the bar, the orb and costs.
 
 ### Code health (from the 2026-10-28 architecture review) — ✅ done 2026-10-28
@@ -205,9 +210,12 @@ Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 - ✅ #95 **Split scenes/game.gd** into smaller pieces.
 
 ### Phase H: Words, names and flair (owner-led)
-- ⬜ #61 **Fonts, spell names, descriptions and flavour:** the owner goes through all
+- 🟡 #61 **Fonts, spell names, descriptions and flavour:** the owner goes through all
   on-screen text and adds flair; Claude exports every line into one editable list, then
   applies the edits in one PR.
+  - ✅ Part 1 (2026-10-29): the word list `docs/words/pythio-words.xlsx` (every line, with
+    where it shows) and `docs/words/font-samples.png` (each font next to three alternatives).
+  - ⬜ Part 2: Marz fills in "Your version" and picks fonts; Claude applies it all in one PR.
 
 ## Backlog (parked on purpose)
 #38 duo spells · #39 rerolls for spell picks · #40 skill tree / meta-progression ·

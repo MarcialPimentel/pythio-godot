@@ -635,6 +635,10 @@ spell batch 2 (Mitigation tag, 4 new spells, 5 new passives). **[Decided 2026-10
 **Phase H: Words, names and flair [Decided, owner-led]**
 - Marz goes through every on-screen line: fonts, spell names, descriptions, flavour.
   Claude exports every line into one editable list, then applies the edits in one PR.
+- Part 1 (2026-10-29, Marz's choices): **one spreadsheet with everything at once**
+  (`docs/words/pythio-words.xlsx`, rebuilt by `tools/words/export_words.py`), so the voice
+  stays the same across the game, and **font samples** (`docs/words/font-samples.png`): each
+  font slot next to three free alternatives. Part 2 applies Marz's edits and font picks.
 
 ## 13. Parked ideas
 
@@ -701,6 +705,7 @@ Listed so nobody "fixes" the wrong side.
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-10-29 | Claude (for Marz) | Phase H part 1 (#61): every player-facing line exported to one spreadsheet (Marz: everything at once, as a spreadsheet) and font samples with three alternatives per slot. No change in the game yet. Section 12 updated. |
 | 2026-10-28 | Claude (for Marz) | Leaderboard hardening (#93): one-time run tickets, a minimum run time per round claimed, safe saves with a backup, hidden entries; the current board is kept (Marz). Section 10 updated. |
 | 2026-10-28 | Claude (for Marz) | `scenes/game.gd` split (#95), no visible change: card text and icons → `ui/PickCards.gd`, HUD counters → `ui/HudCounters.gd`, the top 10 → `ui/LeaderboardView.gd`, Pythio's lines → `data/PythioLines.gd`. Section 11 updated. |
 | 2026-10-28 | Claude (for Marz) | Code cleanup (#94), no gameplay change: GameManager runs the round clock, mana regen and "a death ends the run" (was the screen script); every system resets on one `run_started` signal; leftover score/victory/contract code removed. |
