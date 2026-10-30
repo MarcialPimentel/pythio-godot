@@ -243,6 +243,24 @@ the frames listed below appear.
 | `vfx/danger/danger_telegraph_2.png` … `_5` · `blood_burst_2`, `_4` · `danger_spikes_1.png` … `_5` | Not shown. | Spare | 256 per frame |
 | `vfx/mana/mana_orb_flow_1.png` … `_6` · `vfx/mana/mana_sparkles_1.png` … `_5` | Not shown (no mana effects yet; they're gold; mana is icy cyan since #63, so they'd need recolouring). | Spare | 256 per frame |
 
+## Backdrops (the Contract Road)
+
+The place behind the fight and the title screen, by act (`docs/game-design.md` section 2). Today
+each is **drawn in code** by `ui/Backdrop.gd` (ink silhouettes, crosshatching, fog and weather).
+To replace one with painted art, drop a PNG with this name in `assets/art/backdrops/`; the game
+uses it instead and keeps the weather on top. No code change.
+
+| File | Place | When you see it | Status | Target |
+|---|---|---|---|---|
+| `backdrops/mudroad.png` | Act I · The Mudroad: rutted road, dead trees, gallows signpost, far town | Title screen; rounds 1–4, 16–19 … | Code-drawn stand-in | 3840 × 2160 |
+| `backdrops/marsh.png` | Act II · The Drowned Marsh: reeds, drowned trees, black water (rain on top) | Rounds 6–9, 21–24 … | Code-drawn stand-in | 3840 × 2160 |
+| `backdrops/chapel.png` | Act III · The Plague Chapel: broken chapel, gravestones (ash on top) | Rounds 11–14, 26–29 … | Code-drawn stand-in | 3840 × 2160 |
+| `backdrops/keep.png` | The Crimson Keep: arches, torn crimson banners, braziers (embers on top) | Every Baron round (5, 10, 15 …) | Code-drawn stand-in | 3840 × 2160 |
+
+Rules for painted ones: grey and dim, no meaning colours (only the Keep may use muted red); keep
+the middle band (where the fighters stand, about y 280–560 of 1080) quiet; the horizon about 44%
+down; no text. Prompt: `docs/art-direction.md` section 7 (far layer).
+
 ## Props
 
 | File | When you see it | Status | Target |

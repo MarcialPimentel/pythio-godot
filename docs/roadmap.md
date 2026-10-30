@@ -108,6 +108,10 @@ _Last updated: 2026-10-30 (doc sync; live: Build 119, Steam polish 1 and 2). Own
   - **#101** (#93): leaderboard run tickets, safe saves and hidden entries (current board kept).
   - Bot check after the fixes: first deaths average round 6.4 (9 runs; Ward lowest at 4.7, worth
     a look in playtest).
+- **The Contract Road built 2026-10-30** (Marz answered the proposal's decisions: places in acts,
+  keep the act names, code-drawn stand-ins): Mudroad, Drowned Marsh, Plague Chapel and the Crimson
+  Keep behind the fight, with weather, the act under the round and a name card. Next: the inked
+  case-file pick cards (Marz's pick).
 - **✅ Steam polish steps 1 and 2 merged 2026-10-29 (#106, Build 119)** (art direction proposal:
   `docs/art-direction.md`), in one PR: any screen shape, no portrait, no overlapping titles, 18 px text floor,
   exact palette; screen shake, combo lean, sparks, ground shadows, hit flash, death veil and a
