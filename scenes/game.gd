@@ -60,6 +60,14 @@ var card_panel: Control
 var hud: HudCounters
 ## Screen shake, combo punch and the death veil (ui/ScreenFeel.gd).
 var feel: ScreenFeel
+## The Contract Road: the place behind the fight, by act (ui/Backdrop.gd).
+var backdrop: Backdrop
+## "ACT I · THE MUDROAD" under the round number.
+var act_label: Label
+## The place's name, shown big for a moment when the road reaches a new one.
+var _act_card: VBoxContainer
+var _act_card_tween: Tween
+var _last_act := ""
 ## The top-10 list on the title screen, with ◀ ▶ between boards (ui/LeaderboardView.gd).
 var leaderboard_view: LeaderboardView
 var _banner: VBoxContainer
@@ -149,6 +157,7 @@ func _ready() -> void:
 		_on_start_pressed())
 	pause_menu.quit_requested.connect(func():
 		await _leave_run()
+		backdrop.set_act(Backdrop.MUDROAD)
 		game_ui.visible = false
 		start_screen.visible = true
 		score_label.text = GameManager.best_text()
@@ -161,6 +170,7 @@ func _ready() -> void:
 	mana_label.position = Vector2(16, 12)
 	mana_label.size = Vector2(336, 27)
 
+	_make_place()
 	_pin_layout()
 	feel = ScreenFeel.new()
 	feel.name = "ScreenFeel"
@@ -178,6 +188,66 @@ func _ready() -> void:
 	start_screen.visible = true
 
 
+# ── The Contract Road: where the job happens ──────────
+
+func _make_place() -> void:
+	backdrop = Backdrop.new()
+	backdrop.name = "Backdrop"
+	add_child(backdrop)
+	move_child(backdrop, 1)   # just above the plain background, behind every screen
+	act_label = Label.new()
+	act_label.name = "ActLabel"
+	act_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	act_label.position = Vector2(0, 134)
+	act_label.size = Vector2(600, 28)
+	act_label.add_theme_font_size_override("font_size", 19)
+	act_label.add_theme_color_override("font_color", Palette.SEPIA)
+	act_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_child(act_label)
+	_act_card = VBoxContainer.new()
+	_act_card.name = "ActCard"
+	_act_card.position = Vector2(360, 180)
+	_act_card.size = Vector2(1200, 80)
+	_act_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_act_card.visible = false
+	var big := Label.new()
+	big.name = "Big"
+	big.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	big.add_theme_font_override("font", load("res://assets/fonts/pirata-one-latin-400-normal.woff2"))
+	big.add_theme_font_size_override("font_size", 64)
+	big.add_theme_color_override("font_color", Palette.BONE)
+	big.add_theme_constant_override("outline_size", 10)
+	big.add_theme_color_override("font_outline_color", Color.BLACK)
+	_act_card.add_child(big)
+	game_ui.add_child(_act_card)
+	EventBus.round_started.connect(_on_round_started_place)
+	EventBus.run_started.connect(func(): _last_act = ""; _show_place(1))
+
+
+## The place for this round, behind the Next party screen and the fight.
+func _show_place(round_num: int) -> void:
+	backdrop.show_round(round_num)
+	act_label.text = Backdrop.act_title(backdrop.act)
+
+
+func _on_round_started_place(round_num: int) -> void:
+	_show_place(round_num)
+	if GameManager.practice or backdrop.act == _last_act:
+		return
+	_last_act = backdrop.act
+	# A new place on the road: its name, big, for a moment.
+	_act_card.get_node("Big").text = Backdrop.NAMES.get(backdrop.act, "")
+	_act_card.visible = true
+	_act_card.modulate.a = 0.0
+	if _act_card_tween:
+		_act_card_tween.kill()
+	_act_card_tween = create_tween()
+	_act_card_tween.tween_property(_act_card, "modulate:a", 1.0, 0.4)
+	_act_card_tween.tween_interval(1.8)
+	_act_card_tween.tween_property(_act_card, "modulate:a", 0.0, 0.6)
+	_act_card_tween.tween_callback(func(): _act_card.visible = false)
+
+
 ## The window can be any shape (Steam Deck 16:10, ultrawide): keep each piece of the HUD on
 ## its own edge or in the middle (ui/ScreenLayout.gd). Positions stay the 1920x1080 ones.
 func _pin_layout() -> void:
@@ -185,6 +255,7 @@ func _pin_layout() -> void:
 	for n in [$StartScreen/StartPythio, $StartScreen/LeaderboardPanel, $GameUI/GameOverPanel, _banner]:
 		L.pin(n, L.CENTER, L.CENTER)
 	L.pin(header, L.CENTER, L.TOP)
+	L.pin(_act_card, L.CENTER, L.TOP)
 	L.pin(pythio_sprite, L.LEFT, L.BOTTOM)
 	L.pin(quip_bubble, L.LEFT, L.BOTTOM)
 	L.pin($GameUI/PlayerContainer, L.CENTER, L.BOTTOM)
@@ -509,6 +580,7 @@ func _show_party_choice() -> void:
 	var contracts = contract_selector.get_contracts_for_round(GameManager.current_round)
 	party_choice_panel.setup_contracts(contracts)
 	header.visible = true
+	_show_place(GameManager.current_round)
 	round_label.text = "Round %d" % GameManager.current_round
 	timer_label.text = ""   # the panel says "Next party" right below (they used to overlap)
 
@@ -522,7 +594,8 @@ func _on_contract_chosen(chosen: ContractData) -> void:
 	contract_risk_label.text = "PARTY OF %d" % chosen.unit_templates.size()
 	contract_info.visible = true
 	header.visible = true
-	round_label.text = ("Round %d · The Crimson Baron" if chosen.is_boss else "Round %d") % GameManager.current_round
+	# The act line under it says "THE CRIMSON KEEP" (the longer title ran into the contract name).
+	round_label.text = "Round %d" % GameManager.current_round
 	round_label.modulate = Color(1, 0.35, 0.3) if chosen.is_boss else Color.WHITE
 
 	_low_mana_warned = false

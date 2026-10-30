@@ -228,10 +228,11 @@ Steps 1 and 2 (#106) already updated `game-design.md` §2 and §11 (18 px floor,
   shape). Merged 2026-10-29 in [#106](https://github.com/MarcialPimentel/pythio-godot/pull/106), live in Build 119.
 
 ## Decisions for Marz
-1. Setting: the Contract Road in acts (A, recommended) or one road at night (B)?
-2. Act names: Mudroad, Drowned Marsh, Plague Chapel, Crimson Keep. Keep, or name them in Phase H?
+1. ✅ Setting: the Contract Road in acts (A, recommended) or one road at night (B)? (Marz 2026-10-30: A. Places drawn in code as stand-ins.)
+2. ✅ Act names: Mudroad, Drowned Marsh, Plague Chapel, Crimson Keep. Keep, or name them in Phase H? (Marz: keep them.)
 3. ✅ Can the bottom-right portrait go? (Taken: removed, #106.)
 4. ✅ Fonts: keep the three with an 18 px floor (recommended), or reopen fonts now? (Taken: kept, #106.)
 5. ✅ Switch the window to fill any screen shape (fixes Deck and ultrawide black bars)? (Taken, #106.)
-6. Capsule and key art: ChatGPT, or an illustrator (recommended)?
+6. Capsule and key art: ChatGPT, or an illustrator (recommended)? (Marz 2026-10-30: decide later.)
+8. ✅ Pick cards (asked 2026-10-30): inked case file, drawn in code, layout reworked.
 7. ✅ Start steps 1 and 2 now? They need no art. (Marz: yes; built in #106.)
