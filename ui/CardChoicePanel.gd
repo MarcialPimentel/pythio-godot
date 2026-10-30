@@ -12,14 +12,20 @@ signal chosen(index: int)
 ## The optional button under the cards (e.g. "Back to the offers").
 signal back_pressed
 
-const CARD_SIZE := Vector2(380, 560)
-## Card row heights (px): header line, title (two lines), cast time and cost, tags.
-const ROW_HEAD := 26.0
-const ROW_TITLE := 112.0
+## The "inked case file" card (Marz, 2026-10-30; docs/art-direction.md): a dark card with a
+## rough hand-inked double frame in bone, a framed art window with the spell's icon on a soft glow
+## in its meaning colour, the number key in an ink tab, and the rest in fixed rows so every card
+## lines up. All drawn in code (_draw_card); colour only where it means something.
+const CARD_SIZE := Vector2(380, 624)
+## Card row heights (px): header line, art window, title (up to two lines), cast time and cost, tags.
+const ROW_HEAD := 28.0
+const ROW_ART := 150.0
+const ROW_TITLE := 76.0
 const ROW_CAST := 46.0
-const ROW_TAGS := 30.0
-const BG := Color(0.07, 0.06, 0.06, 0.97)
-const FRAME := Color(0.85, 0.8, 0.72, 0.9)
+const ROW_TAGS := 36.0
+const PAD := 26.0
+const BG := Palette.PANEL
+const FRAME := Palette.BONE
 ## The cast-time badge: bone white, outside the colour language (green/blue/gold/red).
 const CAST_COLOR := Color(0.93, 0.89, 0.8)
 
@@ -28,8 +34,10 @@ var _subtitle: Label
 var _row: HBoxContainer
 var _back: Button
 var _cards: Array[Button] = []
-var _styles: Array[StyleBoxFlat] = []
 var _accents: Array[Color] = []
+## Each card's inked layer and whether it's hovered (redrawn on hover).
+var _inks: Array[Control] = []
+var _hover: Array[bool] = []
 var _locked := false
 var _tween: Tween
 var _font_title: Font
@@ -97,8 +105,9 @@ func show_cards(title: String, subtitle: String, cards: Array, back_text: String
 	for c in _row.get_children():
 		c.queue_free()
 	_cards.clear()
-	_styles.clear()
 	_accents.clear()
+	_inks.clear()
+	_hover.clear()
 	for i in cards.size():
 		_row.add_child(_build_card(i, cards[i]))
 	_back.text = back_text + "  (Backspace)" if back_text != "" else ""
@@ -175,76 +184,89 @@ func _build_card(i: int, d: Dictionary) -> Button:
 	var btn := Button.new()
 	btn.custom_minimum_size = CARD_SIZE
 	btn.focus_mode = Control.FOCUS_NONE
-	var style := StyleBoxFlat.new()
-	style.bg_color = BG
-	style.border_color = accent.darkened(0.25)
-	style.set_border_width_all(2)
-	style.border_width_top = 8
-	style.set_corner_radius_all(4)
-	style.shadow_color = Color(0.5, 0.05, 0.05, 0.35)
-	style.shadow_size = 14
+	var empty := StyleBoxEmpty.new()
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
-		btn.add_theme_stylebox_override(state, style)
+		btn.add_theme_stylebox_override(state, empty)
 	btn.pressed.connect(_on_card_pressed.bind(i))
 	btn.mouse_entered.connect(_set_hover.bind(i, true))
 	btn.mouse_exited.connect(_set_hover.bind(i, false))
 	_cards.append(btn)
-	_styles.append(style)
 	_accents.append(accent)
+	_hover.append(false)
+
+	# The inked card itself: paper, frame, art window, key tab (drawn, not an image).
+	var ink := Control.new()
+	ink.name = "Ink"
+	ink.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ink.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ink.draw.connect(_draw_card.bind(ink, i, d))
+	btn.add_child(ink)
+	_inks.append(ink)
 
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	box.offset_left = 24; box.offset_right = -24; box.offset_top = 22; box.offset_bottom = -18
-	box.add_theme_constant_override("separation", 10)
+	box.offset_left = PAD; box.offset_right = -PAD; box.offset_top = 18; box.offset_bottom = -20
+	box.add_theme_constant_override("separation", 8)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(box)
 
 	# Fixed-height rows (owner, 2026-10-24): every card keeps the same layout whatever its
-	# title length or what it has, so the cost row, tags and text line up across cards.
+	# title length or what it has, so the art, cost row, tags and text line up across cards.
+	# Header: what kind of card (PRACTICE, PASS, UPGRADES HEAL …), right of the key tab.
 	var head := _slot(box, ROW_HEAD)
-	if d.get("header", "") != "" or d.get("badge", "") != "":
-		var head_row := HBoxContainer.new()
-		head_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		head_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		head.add_child(head_row)
-		head_row.add_child(_label(d.get("header", ""), Palette.MIN_FONT, d.get("header_color", accent)))
-		var fill := Control.new()
-		fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		head_row.add_child(fill)
-		if d.get("badge", "") != "":
-			head_row.add_child(_chip(d.badge, d.get("badge_color", SpellTags.COMBO_COLOR), true))
+	var head_row := HBoxContainer.new()
+	head_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	head_row.offset_left = 44   # clear of the key tab
+	head.add_child(head_row)
+	head_row.add_child(_label(d.get("header", ""), Palette.MIN_FONT, d.get("header_color", Palette.SEPIA)))
+	var fill := Control.new()
+	fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head_row.add_child(fill)
+	if d.get("badge", "") != "":
+		head_row.add_child(_chip(d.badge, d.get("badge_color", SpellTags.COMBO_COLOR), true))
 
-	# Title: room for two lines, so a long name ("Divine Protection") doesn't push the rest down.
-	var title_slot := _slot(box, ROW_TITLE)
-	var title_row := HBoxContainer.new()
-	title_row.add_theme_constant_override("separation", 14)
-	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	title_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	title_slot.add_child(title_row)
+	# Art window: the spell's icon, big, on a glow of its colour (drawn behind by _draw_card).
+	var art := _slot(box, ROW_ART)
+	art.name = "Art"
 	if d.get("icon") is Texture2D:
 		var icon := TextureRect.new()
+		icon.name = "Icon"
 		icon.texture = d.icon
-		icon.custom_minimum_size = Vector2(72, 72)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon.offset_top = 14; icon.offset_bottom = -14
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		title_row.add_child(icon)
-	var t := _label(d.get("title", ""), 44, Color(0.96, 0.93, 0.86))
+		art.add_child(icon)
+	else:
+		# No icon (Skip, practice …): the card's first letter as a big faint ink monogram.
+		var mono := _label(String(d.get("title", "?")).left(1), 120, Color(FRAME, 0.22))
+		if _font_title:
+			mono.add_theme_font_override("font", _font_title)
+		mono.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		mono.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		mono.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		art.add_child(mono)
+
+	# Title, centred under the art: room for two lines ("Divine Protection").
+	var title_slot := _slot(box, ROW_TITLE)
+	var t := _label(d.get("title", ""), 42, Palette.BONE)
 	if _font_title:
 		t.add_theme_font_override("font", _font_title)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	t.max_lines_visible = 2
 	t.add_theme_constant_override("line_spacing", -12)
-	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t.size_flags_vertical = Control.SIZE_FILL
-	title_row.add_child(t)
+	t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	title_slot.add_child(t)
 
 	# Cast time first and big (owner, 2026-10-24): INSTANT / 1.5s CAST / PASSIVE, then the cost.
 	var cast_slot := _slot(box, ROW_CAST)
 	var cast_row := HBoxContainer.new()
+	cast_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	cast_row.add_theme_constant_override("separation", 12)
 	cast_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cast_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -255,14 +277,20 @@ func _build_card(i: int, d: Dictionary) -> Button:
 		chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		cast_row.add_child(chip)
 	if d.get("stats", "") != "":
-		var cost := _label(d.stats, 19, d.get("stats_color", SpellTags.MANA_COLOR))
+		var cost := _label(d.stats, 20, d.get("stats_color", SpellTags.MANA_COLOR))
 		cost.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		if d.get("cast", "") == "":
+			# No cast badge (Skip, "A spell instead"): the line can use the full width.
+			cost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			cost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cast_row.add_child(cost)
 
 	var tag_slot := _slot(box, ROW_TAGS)
 	var tags: Array = d.get("tags", [])
 	if not tags.is_empty():
 		var flow := HFlowContainer.new()
+		flow.alignment = FlowContainer.ALIGNMENT_CENTER
 		flow.add_theme_constant_override("h_separation", 8)
 		flow.add_theme_constant_override("v_separation", 6)
 		flow.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -282,24 +310,103 @@ func _build_card(i: int, d: Dictionary) -> Button:
 	if d.get("hint_bb", "") != "":
 		box.add_child(_rich(d.hint_bb, 19))
 	if d.get("flavor", "") != "":
-		var fl := _label("“%s”" % d.flavor, Palette.MIN_FONT, Color(0.62, 0.58, 0.52))
+		var fl := _label("“%s”" % d.flavor, Palette.MIN_FONT, Palette.SEPIA)
 		if _font_flavor:
 			fl.add_theme_font_override("font", _font_flavor)
 		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		box.add_child(fl)
-	var key := _label("Press %d" % (i + 1), Palette.MIN_FONT, Palette.SEPIA)
-	key.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	box.add_child(key)
+
+	# The number key, in an ink tab on the frame's top-left corner.
+	var key := _label(str(i + 1), 24, Palette.INK)
+	key.name = "Key"
+	key.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	key.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	key.position = Vector2(12, 10)
+	key.size = Vector2(38, 38)
+	key.add_theme_constant_override("outline_size", 0)
+	btn.add_child(key)
 	return btn
 
 
+# ── Drawing the inked card ─────────────────────────────
+
+## A wobbly hand-inked line around a rectangle (seeded, so it doesn't change between frames).
+func _ink_rect(c: Control, r: Rect2, rng: RandomNumberGenerator, col: Color, width: float, wobble: float) -> void:
+	var corners := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
+	var pts := PackedVector2Array()
+	for k in 4:
+		var a: Vector2 = corners[k]
+		var b: Vector2 = corners[(k + 1) % 4]
+		var steps := maxi(2, int(a.distance_to(b) / 40.0))
+		for j in steps:
+			var p := a.lerp(b, float(j) / steps)
+			pts.append(p + Vector2(rng.randf_range(-wobble, wobble), rng.randf_range(-wobble, wobble)))
+	pts.append(pts[0])
+	c.draw_polyline(pts, col, width, true)
+
+
+func _hatch(c: Control, r: Rect2, gap: float, col: Color) -> void:
+	var lines := PackedVector2Array()
+	var x := r.position.x - r.size.y
+	while x < r.end.x:
+		var a := Vector2(x, r.position.y)
+		var b := Vector2(x + r.size.y, r.end.y)
+		# clip the diagonal to the rectangle
+		var t0 := clampf((r.position.x - a.x) / (b.x - a.x), 0.0, 1.0)
+		var t1 := clampf((r.end.x - a.x) / (b.x - a.x), 0.0, 1.0)
+		if t1 > t0:
+			lines.append(a.lerp(b, t0))
+			lines.append(a.lerp(b, t1))
+		x += gap
+	c.draw_multiline(lines, col, 1.0)
+
+
+func _draw_card(c: Control, i: int, d: Dictionary) -> void:
+	if i >= _inks.size() or _inks[i] != c:
+		return   # an old card from the previous screen, about to be freed
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(String(d.get("title", ""))) + i
+	var accent: Color = _accents[i]
+	var hot: bool = _hover[i]
+	var full := Rect2(Vector2.ZERO, CARD_SIZE)
+	var card := full.grow(-5)
+	# Paper and a faint crosshatch.
+	c.draw_rect(card, Color(BG, 0.97))
+	_hatch(c, card, 9.0, Color(FRAME, 0.035))
+	# On hover the card lifts with a halo in its own colour.
+	if hot:
+		_ink_rect(c, card.grow(4), rng, Color(accent, 0.55), 6.0, 1.0)
+	# Rough double frame in bone.
+	var frame_col := Color(FRAME, 1.0 if hot else 0.85)
+	_ink_rect(c, card, rng, frame_col, 3.0, 1.6)
+	_ink_rect(c, card.grow(-9), rng, Color(FRAME, 0.4), 1.2, 1.0)
+	# Ink blots in two corners.
+	for k in 3:
+		c.draw_circle(card.end - Vector2(14 + rng.randf() * 20.0, 10 + rng.randf() * 14.0), 1.5 + rng.randf() * 2.5, Color(FRAME, 0.5))
+	# Art window: dark, hatched, with a glow of the spell's colour behind the icon.
+	var art := Rect2(PAD, 18 + ROW_HEAD + 8, CARD_SIZE.x - PAD * 2, ROW_ART)
+	c.draw_rect(art, Palette.INK)
+	_hatch(c, art, 6.0, Color(FRAME, 0.05))
+	var mid := art.get_center()
+	for k in 12:
+		var f := float(k) / 12.0
+		c.draw_circle(mid, lerpf(art.size.y * 0.62, 8.0, f), Color(accent, (0.03 if not hot else 0.045)))
+	_ink_rect(c, art, rng, Color(FRAME, 0.8), 2.0, 1.0)
+	# A thin band of the card's colour under the art: its only splash of colour on the frame.
+	c.draw_line(Vector2(art.position.x + 18, art.end.y + 4), Vector2(art.end.x - 18, art.end.y + 4), Color(accent, 0.85), 3.0)
+	# Key tab: a bone ink square on the top-left corner, tilted a touch.
+	var tab := Rect2(13, 11, 36, 36)
+	c.draw_set_transform(tab.get_center(), deg_to_rad(-4), Vector2.ONE)
+	c.draw_rect(Rect2(-tab.size / 2.0, tab.size), FRAME)
+	c.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _set_hover(i: int, on: bool) -> void:
-	if i >= _styles.size():
+	if i >= _inks.size():
 		return
-	var s := _styles[i]
-	s.border_color = _accents[i] if on else _accents[i].darkened(0.25)
-	s.set_border_width_all(4 if on else 2)
-	s.border_width_top = 8
+	_hover[i] = on
+	_inks[i].queue_redraw()
 	_cards[i].pivot_offset = CARD_SIZE / 2.0
 	_cards[i].scale = Vector2.ONE * (1.03 if on else 1.0)
 
@@ -321,7 +428,7 @@ func _rich(bb: String, size: int) -> RichTextLabel:
 	r.text = bb
 	r.add_theme_font_size_override("normal_font_size", size)
 	r.add_theme_font_size_override("bold_font_size", size)
-	r.add_theme_color_override("default_color", Color(0.9, 0.87, 0.8))
+	r.add_theme_color_override("default_color", Palette.BONE)
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return r
 
@@ -343,7 +450,7 @@ func _chip(text: String, color: Color, strong: bool, font_size: int = Palette.MI
 	s.border_color = color
 	s.set_border_width_all(1)
 	s.set_corner_radius_all(3)
-	s.content_margin_left = 8; s.content_margin_right = 8; s.content_margin_top = 2; s.content_margin_bottom = 2
+	s.content_margin_left = 8; s.content_margin_right = 8; s.content_margin_top = 1; s.content_margin_bottom = 1
 	p.add_theme_stylebox_override("panel", s)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if font_size > Palette.MIN_FONT:

@@ -614,6 +614,11 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 
 **Between rounds:** Choose your spell (run start), spell picks (3 cards with cast time, cost,
 tags, one sentence and "Combos with …" hints) and the Next party screen.
+**Card look [Decided 2026-10-30]:** the "inked case file": a dark card with a rough hand-inked
+double frame in bone, the number key in an ink tab, a framed art window with the spell's icon on
+a glow of its colour, the title under it, then cast time and cost, tags, text, hint and flavour in
+fixed rows. The card's colour shows only as the glow and a thin band under the art. Drawn in code
+(`ui/CardChoicePanel.gd`), no image needed.
 
 Main files: `scenes/game.gd` (the screen), `ui/CardChoicePanel.gd` (pick cards) and
 `ui/PickCards.gd` (what each card says, spell icons), `ui/HudCounters.gd` (rules panel,
@@ -753,6 +758,7 @@ Marz's decisions, newest first, with the PR that carried them. The reasoning for
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-10-30 | Claude (for Marz) | Pick cards restyled as the "inked case file" (Marz's pick): inked double frame, number tab, big framed icon, centred title, cast and cost, tags; fixes the clipped tag chip and the empty bottom half. Every card screen uses it (spell choice, picks, the Baron's bounty, swap, first time). No rule changes. Section 11 updated. |
 | 2026-10-30 | Claude (for Marz) | The Contract Road (Marz: places in acts, keep the act names, code-drawn stand-ins for now): Mudroad, Drowned Marsh, Plague Chapel and the Crimson Keep behind the fight and the title screen, with weather, the act under the round and a name card on arrival; darker each lap. The Baron's round title is now just "Round N" (the act line names the Keep; the long title ran into the contract name). No rule changes. Sections 2 and 11 updated. |
 | 2026-10-29 | Claude (for Marz) | Steam polish steps 1 and 2 (`docs/art-direction.md`; Marz said start them, Claude's picks on the portrait, fonts and screen shape): the window fills any screen shape; the portrait is gone; card screens no longer show a second title behind theirs; 18 px text floor; exact palette values; screen shake, combo lean, sparks, ground shadows, hit flash, death veil, and a reduce-effects option. No rule changes. Sections 2 and 11 updated. |
 | 2026-10-28 | Claude (for Marz) | Leaderboard hardening (#93): one-time run tickets, a minimum run time per round claimed, safe saves with a backup, hidden entries; the current board is kept (Marz). Section 10 updated. |
