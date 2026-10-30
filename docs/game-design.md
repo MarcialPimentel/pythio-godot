@@ -121,8 +121,17 @@ system has to make a new spell easy to add: numbers and effects, not new code.
   and when a fighter dies, leans in on a combo; sparks in the meaning colour on heals, shields,
   combos, hits and cleanses; fighters stand on a ground shadow and flash on a hard hit; a dark
   red veil falls when someone dies. "Reduce screen shake and flashes" in the Escape menu turns
-  the shake and lean off. The art direction for Steam (places, UI kit, store kit) is proposed
-  in `docs/art-direction.md`.
+  the shake and lean off. The art direction for Steam (places, UI kit, store kit) is in
+  `docs/art-direction.md`.
+- **The Contract Road [Decided 2026-10-30]:** every job happens somewhere on the road, and the
+  place changes when the threats do: **Act I · The Mudroad** (rounds 1–4), **Act II · The
+  Drowned Marsh** (6–9, when debuffs start), **Act III · The Plague Chapel** (11–14), and **The
+  Crimson Keep** for every Baron round. Then the road loops, a little darker each lap. Each place
+  has its weather (fog; rain in the marsh, ash at the chapel, embers in the Keep). The act shows
+  under the round, and the place's name shows big when you reach it. Tone rule: the place is mood,
+  never information: grey and dim, never the meaning colours (only the Keep leans to a muted red).
+  Today the places are drawn in code (`ui/Backdrop.gd`); a painted image replaces one by file
+  name (`docs/art-assets.md`, Backdrops). Act names are Marz's to change in Phase H.
 - **Art:** Pythio (every pose), the four fighters and the Crimson Baron are high-res
   (2026-10-24, #74 #76 #78); most other UI, icons and effects are still stand-ins cut from the
   concept sheet. The style guide and prompt pack are in `docs/art.md`; every image and its
@@ -587,7 +596,9 @@ game side), `web/leaderboard_godot.php` (the server; new boards are added here).
 | Debug panel (+mana, skip or jump rounds, take any spell, reset build, god mode, ask "First time on the job?" again) | F1 or \` |
 
 **Combat screen**
-- **Top:** round number and timer (centre); the party size (left); battlefield rules (right).
+- **Top:** round number and timer (centre), with the act under them ("ACT II · THE DROWNED
+  MARSH"); the party size (left); battlefield rules (right).
+- **Behind everything:** the place on the Contract Road for this round (section 2).
 - **Middle:** the fighters in one row. Each has a name, a health bar, an armour label, a
   shield bubble, a heal-over-time ring and status icons. Under the health bar, **every**
   heal-over-time on the fighter gets its own line with its time left ("RENEW 5.8s",
@@ -748,6 +759,7 @@ Marz's decisions, newest first, with the PR that carried them. The reasoning for
 | Date | Who | Change |
 |---|---|---|
 | 2026-10-30 | Claude (for Marz) | Pick cards restyled as the "inked case file" (Marz's pick): inked double frame, number tab, big framed icon, centred title, cast and cost, tags; fixes the clipped tag chip and the empty bottom half. Every card screen uses it (spell choice, picks, the Baron's bounty, swap, first time). No rule changes. Section 11 updated. |
+| 2026-10-30 | Claude (for Marz) | The Contract Road (Marz: places in acts, keep the act names, code-drawn stand-ins for now): Mudroad, Drowned Marsh, Plague Chapel and the Crimson Keep behind the fight and the title screen, with weather, the act under the round and a name card on arrival; darker each lap. The Baron's round title is now just "Round N" (the act line names the Keep; the long title ran into the contract name). No rule changes. Sections 2 and 11 updated. |
 | 2026-10-29 | Claude (for Marz) | Steam polish steps 1 and 2 (`docs/art-direction.md`; Marz said start them, Claude's picks on the portrait, fonts and screen shape): the window fills any screen shape; the portrait is gone; card screens no longer show a second title behind theirs; 18 px text floor; exact palette values; screen shake, combo lean, sparks, ground shadows, hit flash, death veil, and a reduce-effects option. No rule changes. Sections 2 and 11 updated. |
 | 2026-10-28 | Claude (for Marz) | Leaderboard hardening (#93): one-time run tickets, a minimum run time per round claimed, safe saves with a backup, hidden entries; the current board is kept (Marz). Section 10 updated. |
 | 2026-10-28 | Claude (for Marz) | `scenes/game.gd` split (#95), no visible change: card text and icons → `ui/PickCards.gd`, HUD counters → `ui/HudCounters.gd`, the top 10 → `ui/LeaderboardView.gd`, Pythio's lines → `data/PythioLines.gd`. Section 11 updated. |
