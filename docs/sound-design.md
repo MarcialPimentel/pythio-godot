@@ -1,4 +1,4 @@
-# Pythio: sound design
+# Pythio — Sound design
 
 _Owner: Marz makes the sounds. Started 2026-10-27 (Phase G, #33). The game has no sound files
 yet; every row below is waiting for one._

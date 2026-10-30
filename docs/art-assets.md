@@ -1,4 +1,4 @@
-# Pythio: art asset list
+# Pythio — Art asset list
 
 _Every image in the game, its file name, and when you see it. Last checked against the code
 on 2026-10-27 (Phase G: per-spell and per-tag icons load by file name)._

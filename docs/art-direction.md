@@ -1,6 +1,9 @@
-# Pythio: art direction for Steam (proposal)
+# Pythio — Art direction for Steam (proposal)
 
-_Draft for Marz, 2026-10-29. **[Proposed]** throughout: nothing here is decided until Marz answers
+_Planned (proposal), as of Build 119 (2026-10-30): steps 1 and 2 are built and live (#106); the rest waits on
+decisions 1, 2 and 6 below. The current style guide is `docs/art.md`._
+
+_Draft for Marz, 2026-10-29. **[Proposed]** throughout except the steps marked done: nothing else here is decided until Marz answers
 the decisions at the end. The playable mock-up is `docs/art/steam-polish-mockup.html` (open it in
 a browser from this folder; it uses the real character art) and the published page:
 https://claude.ai/artifact/8HzobvKiemQCnjPbzj6bVY_
@@ -8,7 +11,7 @@ https://claude.ai/artifact/8HzobvKiemQCnjPbzj6bVY_
 **The goal:** move the game from "prototype with great characters" to a Steam-quality look,
 without changing the noir style, the colour language or any rules.
 
-## What the live build looks like today (Build 116)
+## What the live build looked like before Steam polish (Build 116)
 - The characters are strong. Everything around them isn't yet.
 - **No place:** a dark red gradient, fighters floating with no ground or shadow, every round
   looks the same.
@@ -197,7 +200,7 @@ the logo (no review quotes, awards or "Wishlist now").
 | Icons | 32 × 32 .ico, 184 × 184 | Green ring on black |
 
 ## 9. Conflicts with the design docs
-Not edited yet. On approval, updated in the same PR as the first visual work, with a changelog line.
+Steps 1 and 2 (#106) already updated `game-design.md` §2 and §11 (18 px floor, exact palette, portrait removed, any screen shape) and `project.godot` (`canvas_items` + `expand`). The rows about places, the UI kit, backdrops and the store kit wait on approval.
 
 | Where | Says today | Would say |
 |---|---|---|
@@ -206,12 +209,12 @@ Not edited yet. On approval, updated in the same PR as the first visual work, wi
 | `game-design.md` §12 Phase G | Sound, high-res art, mana colour | Adds UI kit, feel layer, backdrops, store kit |
 | `art.md` prompt pack | Mana bar prompt says "gold" | Icy cyan (stale since #63); adds backdrop and UI kit prompts |
 | `art-assets.md` | Characters 512 tall; no backdrops | Characters 1024; Backdrops, UI kit and Steam store sections |
-| `project.godot` | Stretch `viewport`, letterboxed | `canvas_items` + `expand` |
+| `project.godot` | ✅ done (#106): `canvas_items` + `expand` | — |
 
 ## 10. Plan
-1. **Fix and resize (no new art):** 18 px floor and type scale, ink/bone colours, the overlapping
+1. ✅ **Fix and resize (no new art, done in #106):** 18 px floor and type scale, ink/bone colours, the overlapping
    titles, any screen shape, portrait removed.
-2. **Feel layer (no new art):** ground shadows, breathing, hit flash, shake, heal bursts, combo
+2. ✅ **Feel layer (no new art, done in #106):** ground shadows, breathing, hit flash, shake, heal bursts, combo
    punch, death fade, reduce-effects option.
 3. **UI kit:** Marz makes six pieces; Claude swaps the theme.
 4. **Act I backdrop and the Keep.**
@@ -222,13 +225,13 @@ Not edited yet. On approval, updated in the same PR as the first visual work, wi
 ## Done so far
 - **2026-10-29, steps 1 and 2 built** (Marz: "start 1 and 2"; Claude's recommendations taken for
   decisions 3, 4 and 5: portrait removed, fonts kept with an 18 px floor, window fills any screen
-  shape). Branch `claude/steam-polish`.
+  shape). Merged 2026-10-29 in [#106](https://github.com/MarcialPimentel/pythio-godot/pull/106), live in Build 119.
 
 ## Decisions for Marz
 1. Setting: the Contract Road in acts (A, recommended) or one road at night (B)?
 2. Act names: Mudroad, Drowned Marsh, Plague Chapel, Crimson Keep. Keep, or name them in Phase H?
-3. Can the bottom-right portrait go?
-4. Fonts: keep the three with an 18 px floor (recommended), or reopen fonts now?
-5. Switch the window to fill any screen shape (fixes Deck and ultrawide black bars)?
+3. ✅ Can the bottom-right portrait go? (Taken: removed, #106.)
+4. ✅ Fonts: keep the three with an 18 px floor (recommended), or reopen fonts now? (Taken: kept, #106.)
+5. ✅ Switch the window to fill any screen shape (fixes Deck and ultrawide black bars)? (Taken, #106.)
 6. Capsule and key art: ChatGPT, or an illustrator (recommended)?
-7. Start steps 1 and 2 now? They need no art.
+7. ✅ Start steps 1 and 2 now? They need no art. (Marz: yes; built in #106.)

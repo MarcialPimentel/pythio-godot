@@ -1,6 +1,6 @@
-# Pythio: game design
+# Pythio — Game design (GDD)
 
-_Owner: Marz. Started 2026-10-22 from the live game (Build after PR #62) and the design docs._
+_Current as of Build 119 (2026-10-29). Owner: Marz. Started 2026-10-22 from the live game (Build after PR #62) and the design docs._
 
 ## How to use this document
 
@@ -26,7 +26,11 @@ _Owner: Marz. Started 2026-10-22 from the live game (Build after PR #62) and the
   - `docs/design-direction.md`: the 2026-10-21 design review. It's frozen: it records
     *why* we decided things back then.
   - `docs/design.md`: the original web game's design doc. Use it for ideas only.
-  - `docs/art.md`: the art style guide and file names.
+  - `docs/art.md`: the art style guide and prompt pack. `docs/art-assets.md`: every image,
+    its file name and status. `docs/art-direction.md`: the Steam art direction proposal
+    (steps 1–2 built; the rest waits on Marz's decisions).
+  - `docs/sound-design.md`: every sound and its file name.
+  - `docs/README.md`: the index of every doc. `CHANGELOG.md`: what changed in each build.
   - `tools/tests/README.md`: what each automated test checks.
 
 ---
@@ -119,8 +123,10 @@ system has to make a new spell easy to add: numbers and effects, not new code.
   red veil falls when someone dies. "Reduce screen shake and flashes" in the Escape menu turns
   the shake and lean off. The art direction for Steam (places, UI kit, store kit) is proposed
   in `docs/art-direction.md`.
-- **Art:** stand-ins cut from a concept sheet. The style guide, file names and prompt pack
-  are in `docs/art.md`.
+- **Art:** Pythio (every pose), the four fighters and the Crimson Baron are high-res
+  (2026-10-24, #74 #76 #78); most other UI, icons and effects are still stand-ins cut from the
+  concept sheet. The style guide and prompt pack are in `docs/art.md`; every image and its
+  status is in `docs/art-assets.md`.
 
 ## 3. The core loop
 
@@ -133,7 +139,6 @@ as the player likes; the real run starts only when they press **Start the real j
 knight can't die and nothing counts toward stats or the leaderboard. **No** goes straight to
 the run. Script: `scenes/practice.gd`.
 
-**Run start.** Pick a school (Mending, Bloom or Ward). You start with that school's one spell.
 **Run start.** **Choose your spell:** Heal, Renew or Shield. That's your first spell.
 
 **Each round:**
@@ -611,7 +616,7 @@ input model) is parked.
 
 ## 12. Planned features (by phase)
 
-The roadmap has the details and issue numbers. Phases A, B and C are done and live.
+The roadmap has the details and issue numbers. Phases A to F and the Code health batch are done and live; Phase G is current.
 
 Phases were reordered on 2026-10-22 so more spells and the Baron's passives come first:
 they're the fun we're trying to find.
@@ -643,7 +648,7 @@ spell batch 2 (Mitigation tag, 4 new spells, 5 new passives). **[Decided 2026-10
 **Phase G: Readability and feel [Decided]**
 - Basic sound (#33): the sound system is built (sounds play by file name, volume and mute in
   the Escape menu); Marz makes the sounds from the list in `docs/sound-design.md`.
-- Swap in high-res art as it's made (`docs/art.md`).
+- ✅ Swap in high-res art as it's made (`docs/art.md`; #34 closed 2026-10-24; new art keeps going in).
 - ✅ Mana bar off gold: icy cyan (decided 2026-10-27, #63).
 
 **Phase H: Words, names and flair [Decided, owner-led]**
@@ -706,10 +711,32 @@ Listed so nobody "fixes" the wrong side.
 - **Contracts:** `design-direction.md` says contracts show reward and threat. Phase C
   replaced them with one Next party screen and parked the choice (#55). **Next party is right.**
 - **Gold:** `art.md` said gold = mana. **Gold = combos only** (decided 2026-10-22). The
-  mana bar changes colour in Phase G.
+  mana bar has been icy cyan since 2026-10-27 (#89).
 - **Leftover code:** removed 2026-10-28 (#94): the old points score, the "Contract
   fulfilled" ending, contracts' hidden gold, risk and burst-threat numbers. Still there: the
   old two-contract layout in the Next party panel (its second button is hidden).
+
+## Decision Log
+
+Marz's decisions, newest first, with the PR that carried them. The reasoning for the
+2026-10-21 decisions is in `design-direction.md`; this table is the one place to look them up.
+
+| Date | Decision | Why |
+|---|---|---|
+| 2026-10-29 | Start Steam polish steps 1 and 2 (Marz); Claude's recommendations taken on the rest: the window fills any screen shape, the bottom-right portrait goes, fonts stay with an 18 px floor ([#106](https://github.com/MarcialPimentel/pythio-godot/pull/106)) | Readable on a Steam Deck and ultrawide screens without changing the noir style |
+| 2026-10-28 | Recasting the same shield refreshes it at full strength ([#97](https://github.com/MarcialPimentel/pythio-godot/pull/97)) | Found in the code review; Marz picked the refresh |
+| 2026-10-28 | Leaderboard hardening keeps the current board ([#101](https://github.com/MarcialPimentel/pythio-godot/pull/101)) | Friends' scores aren't lost |
+| 2026-10-27 | Mana is icy cyan: bar, orb and costs ([#89](https://github.com/MarcialPimentel/pythio-godot/pull/89)) | Gold means combos only |
+| 2026-10-27 | Marz makes every sound; the game plays sounds by file name ([#90](https://github.com/MarcialPimentel/pythio-godot/pull/90)) | Sounds can arrive one at a time with no code change |
+| 2026-10-25 | Phase F: all four debuffs (Poison, Bleed, Hex, Dread) from round 6, warnings like "! INCOMING", violet = cleanse it, Cleanse on F, Bleed can't be cleansed, Mend Wounds removes Poison ([#87](https://github.com/MarcialPimentel/pythio-godot/pull/87)) | Every spell needs a threat that asks for it (Cleanse ↔ debuffs) |
+| 2026-10-25 | Keystones folded into passives: spells come from picks, passives from the Baron; 3 passive slots stay ([#86](https://github.com/MarcialPimentel/pythio-godot/pull/86)) | Keystones and passives were the same thing |
+| 2026-10-24 | Phase D kept as built: swap / upgrade / skip, the Skip reward (for now), tag-weighted offers, all 9 new spells and passives, 3 passive slots; the Protection tag becomes **Mitigation** ([#79](https://github.com/MarcialPimentel/pythio-godot/pull/79)) | Settled after the Phase D playtest |
+| 2026-10-24 | **Choose your spell** replaces Choose your school (schools hidden), one-sentence cards, cast time up front ([#80](https://github.com/MarcialPimentel/pythio-godot/pull/80)) | Watching a first-time player |
+| 2026-10-24 | "Job finished" screen and a short input guard between rounds ([#81](https://github.com/MarcialPimentel/pythio-godot/pull/81)); a first-time practice round ([#83](https://github.com/MarcialPimentel/pythio-godot/pull/83), [#84](https://github.com/MarcialPimentel/pythio-godot/pull/84)) | A new player clicked through screens by accident |
+| 2026-10-24 | Pythio is on the title screen, down on his luck because he once failed a party ([#82](https://github.com/MarcialPimentel/pythio-godot/pull/82)) | Gives the healer a story |
+| 2026-10-22 | Picks every other round, 4 spell keys (Q–R), keystones after each Baron, combos as the bread and butter, Cleanse separate from the bandage; phases reordered D → H ([#72](https://github.com/MarcialPimentel/pythio-godot/pull/72)) | More decisions sooner; the build should "pop off" |
+| 2026-10-22 | `game-design.md` is the single source of truth; one Next party screen (contract choice parked, #55); gold = combos only ([#64](https://github.com/MarcialPimentel/pythio-godot/pull/64)) | Two near-identical contracts were a non-choice; one colour, one meaning |
+| 2026-10-21 | Endless rounds, schools, a spell pick every 5 rounds, any death ends the run ([#42](https://github.com/MarcialPimentel/pythio-godot/pull/42)) | The 2026-10-21 design review (`design-direction.md`) |
 
 ## Changelog
 
@@ -734,3 +761,4 @@ Listed so nobody "fixes" the wrong side.
 | 2026-10-24 | Claude (for Marz) | From watching a new player: the run starts with **Choose your spell**, and "school" is never shown (it still steers offers underneath, proposed); card text is one sentence; cast time is a big badge on cards and shows on spell buttons; the build summary above the bar is gone. Sections 3, 4, 5 and 11 updated. |
 | 2026-10-24 | Claude (for Marz) | Marz settled the Phase D questions: keep swap / upgrade / skip, the Skip reward (for now), tag-weighted offers, all 9 new spells and passives, and 3 passive slots (for now). The Protection tag is now called **Mitigation**. Sections 4, 5, 12 and 14 updated. |
 | 2026-10-22 | Claude (for Marz) | Phase D built: passives as data (generic tag trigger), picks every other round, 4 spell keys, swap / upgrade / skip when full, offers weighted toward your tags, debug "take any spell", spell batch 2 (Protection tag; Promise of Light, Hasten, Tranquility, Aegis of Light; Ripening, Lingering Light, Rising Tide, Sanctuary, Watchful Eye). Sections 3–6, 11, 12 and 14 updated. |
+| 2026-10-30 | Claude (doc sync) | Facts brought up to date (art status, phases done, mana colour, a leftover "Pick a school" line), the other-docs list updated, and a Decision Log added. No design changes. |

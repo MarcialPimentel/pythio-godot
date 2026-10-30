@@ -1,6 +1,6 @@
-# Pythio: roadmap
+# Pythio — Roadmap
 
-_Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through this list one pull request at a time._
+_Last updated: 2026-10-30 (doc sync; live: Build 119, Steam polish 1 and 2). Owner: Marz. Claude works through this list one pull request at a time._
 
 > **This file is the work plan.** What the game *is* (rules, numbers, decisions) lives in
 > `docs/game-design.md`, which wins over every other design doc.
@@ -19,8 +19,8 @@ _Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through
   Q/W/E, cast times, mana, cooldowns) · fighters (death ends run, armor HP/damage,
   character types) · noir graphics with stand-in art · web build + FTP deploy · online
   leaderboard · build number in the corner (#18, #44) · roadmap tracked on GitHub (#35).
-- **Deploys:** GitHub uploads to marz.gg/games/pythio/ (`FTP_SERVER_DIR` = `pythio/`,
-  fixed 2026-10-21). The old `games/pythio-godot/` folder is unused and can be deleted.
+- **Deploys:** GitHub uploads to marz.gg/games/pythio/ (fixed 2026-10-21; how it works:
+  `docs/deploy.md`). An old unused game folder on the server can be deleted (see `CLAUDE.local.md`).
 - **✅ Phase B done 2026-10-21 (Build 33, PR #48, owner playtested):** pick a school
   (Mending / Bloom / Ward) → spell picks after round 1 and every 5 rounds (cap 5, rank-ups,
   build complete) → 25 spells incl. combo spells and passives → tag-based combos with gold
@@ -81,13 +81,13 @@ _Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through
   Plague always stacked; only the longest was shown) · the timer flashes in the last 5 seconds.
 - **Phase E rethought (owner, 2026-10-25):** keystones and passives were the same thing, so
   keystones are folded into passives. **Spells come from picks, passives from the Baron.**
-- **✅ Phase E built 2026-10-25 (one PR, #37):** spell picks after 1, 3, 7, 9 … offer only
+- **✅ Phase E done 2026-10-25 (one PR, #37):** spell picks after 1, 3, 7, 9 … offer only
   spells · each Baron (5, 10, 15 …) pays a passive on "The Baron's bounty" (1 of 3, leaning
   hard to your tags, no Skip; swaps or a spell pick once your 3 passives are full) · six new
   data passives: Double Down, Wildgrowth, Shatterpoint, Harvest, Chain Reaction, Bastion
   (43 entries). Bot check: first deaths still ~rounds 6–8.
 - **✅ Phase E merged 2026-10-25 (#86, Build 86).**
-- **✅ Phase F built 2026-10-25 (one PR, #23 #53):** from round 6, Poison, Bleed, Hex and Dread
+- **✅ Phase F done 2026-10-25 (one PR, #23 #53):** from round 6, Poison, Bleed, Hex and Dread
   (Marz's: a line on the health bar that kills), warnings above fighters like "! INCOMING",
   violet = Cleanse it · **Cleanse on F** (2 charges, refill in the round), Purify rank-up,
   Mend Wounds removes Poison, Purging Light and Clean Slate · bandages stop Bleed · F1 can put
@@ -108,13 +108,13 @@ _Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through
   - **#101** (#93): leaderboard run tickets, safe saves and hidden entries (current board kept).
   - Bot check after the fixes: first deaths average round 6.4 (9 runs; Ward lowest at 4.7, worth
     a look in playtest).
-- **Steam polish started 2026-10-29** (art direction proposal: `docs/art-direction.md`). Steps 1
-  and 2 built in one PR: any screen shape, no portrait, no overlapping titles, 18 px text floor,
+- **✅ Steam polish steps 1 and 2 merged 2026-10-29 (#106, Build 119)** (art direction proposal:
+  `docs/art-direction.md`), in one PR: any screen shape, no portrait, no overlapping titles, 18 px text floor,
   exact palette; screen shake, combo lean, sparks, ground shadows, hit flash, death veil and a
   reduce-effects option. Open decisions for Marz are at the end of the proposal (places, act names,
   capsule art).
-- **Your turn (SiteGround):** its front cache kept serving the old page at `/games/pythio/`
-  after deploys. Flush it (Site Tools → Speed → Caching) and exclude `/games/pythio/` from
+- **✅ Host cache (#100, 2026-10-28):** every build loads its files under a new address, so no
+  flush is needed after a deploy. Only if the page itself ever looks stale, flush the host's page
   caching so each deploy shows up at once (`docs/deploy.md`).
 - **Next up:** Marz playtests E, F and the Code health fixes, and starts on sounds and icons.
   Open design talk: the road-to-Steam roadmap (run arc, meta-progression, content scale).
@@ -130,6 +130,22 @@ _Last updated: 2026-10-28 (Code health batch). Owner: Marz. Claude works through
 `roadmap`): https://github.com/MarcialPimentel/pythio-godot/milestones. A PR says
 "Closes #N", so merging it ticks the issue off and fills the phase's progress bar.
 This file is the plan; GitHub shows the progress.
+
+**Milestones at a glance (checked against GitHub 2026-10-30):**
+
+| Milestone | Status |
+|---|---|
+| [Pythio Alpha](https://github.com/MarcialPimentel/pythio-godot/milestone/1) | done |
+| [Phase A: Endless rounds](https://github.com/MarcialPimentel/pythio-godot/milestone/2) | done 2026-10-21 |
+| [Phase B: Picking spells and new spells](https://github.com/MarcialPimentel/pythio-godot/milestone/3) | done 2026-10-21 |
+| [Phase C: New spells, mechanics and changes](https://github.com/MarcialPimentel/pythio-godot/milestone/4) | done 2026-10-21 |
+| [Phase D: Faster builds and more spells](https://github.com/MarcialPimentel/pythio-godot/milestone/10) | done 2026-10-22 |
+| [Phase E: Spells from picks, passives from the Baron](https://github.com/MarcialPimentel/pythio-godot/milestone/5) | done 2026-10-25 |
+| [Phase F: Debuffs and cleanse](https://github.com/MarcialPimentel/pythio-godot/milestone/8) | done 2026-10-25 |
+| [Code health (2026-10-28 review)](https://github.com/MarcialPimentel/pythio-godot/milestone/11) | done 2026-10-28 |
+| [Phase G: Readability and feel](https://github.com/MarcialPimentel/pythio-godot/milestone/6) | **current**: sound (#33) waits on Marz's sound files; Steam polish 1–2 shipped (#106) |
+| [Phase H: Words, names and flair](https://github.com/MarcialPimentel/pythio-godot/milestone/9) | next: the word list (#61) |
+| [Backlog (after the core is fun)](https://github.com/MarcialPimentel/pythio-godot/milestone/7) | later |
 
 ## The game and how builds work
 Described in **`docs/game-design.md`** (pitch, pillars, loop, schools and picks, tags and
@@ -184,12 +200,12 @@ One bullet ≈ one pull request.
 - ✅ #70 **Spell batch 2:** more spells and passives from tags, incl. payoffs for Delayed and
   Multi-target; owner reviews them in the Phase D playtest (he asked for the whole phase built).
 
-### Phase E: Spells from picks, passives from the Baron — ✅ built 2026-10-25
+### Phase E: Spells from picks, passives from the Baron — ✅ done 2026-10-25 (PR #86)
 - ✅ #37 **Passives from the Baron** (rounds 5, 10, 15 …; 3 slots), 1 of 3; ordinary picks are
   spells only. Six new data passives. (Was "Keystones after each Baron … in their own 3
   slots"; folded into passives by the owner, 2026-10-25.)
 
-### Phase F: Debuffs and cleanse — ✅ built 2026-10-25
+### Phase F: Debuffs and cleanse — ✅ done 2026-10-25 (PR #87)
 - ✅ #23 **Debuffs from round 6:** Poison (stacks), Bleed (heal above 80% or bandage), Hex
   (heals halved), Dread (a line on the health bar that kills); warnings like "! INCOMING".
 - ✅ #53 **Cleanse on F**, a basic ability every run has (charges); Purify rank-up; Mend
@@ -199,7 +215,8 @@ One bullet ≈ one pull request.
 Done early: floating numbers, noir theme, online leaderboard (#12, #14).
 - 🟡 #33 **Basic sound:** system built (play by file name, volume/mute); Marz makes the 32 sounds
   listed in `docs/sound-design.md`.
-- ⬜ #34 **Swap in high-res art** as it's generated (`docs/art.md`).
+- ✅ #34 **Swap in high-res art** as it's generated (`docs/art.md`); issue closed 2026-10-24,
+  new art keeps going in as Marz makes it.
 - ✅ #63 **Mana bar off gold:** icy cyan (owner, 2026-10-27) for the bar, the orb and costs.
 
 ### Code health (from the 2026-10-28 architecture review) — ✅ done 2026-10-28

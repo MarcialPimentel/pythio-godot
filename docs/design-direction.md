@@ -1,4 +1,6 @@
-# Pythio: design direction (2026-10-21)
+# Pythio — Design direction, 2026-10-21 (historical)
+
+> Historical: the frozen 2026-10-21 design review and its reasoning. Current version: [game-design.md](game-design.md).
 
 > **Frozen record.** This is the 2026-10-21 design review: the owner's decisions *and the
 > reasoning behind them*. It isn't updated any more. **What the game is today lives in
