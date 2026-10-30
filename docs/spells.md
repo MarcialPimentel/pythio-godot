@@ -1,4 +1,6 @@
-# Pythio: spell catalog
+# Pythio — Spell catalog
+
+_Current as of Build 119 (2026-10-30): 47 entries, matching the 47 files in `resources/spells/`._
 
 > **The spell catalog:** every spell in the game with its real numbers, then the owner's
 > original spell ideas. How spells, tags, picks, passives and rules work is in

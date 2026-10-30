@@ -17,7 +17,11 @@ any death ends the run.
   the frozen record of the 2026-10-21 design review (the *why*). `docs/design.md` is the
   original web game's doc: ideas only.
   `docs/art-assets.md` lists every image, its file name and when it appears; `docs/art.md`
-  has the style guide and prompt pack. `docs/sound-design.md` lists every sound the same way.
+  has the style guide and prompt pack; `docs/art-direction.md` is the Steam art direction
+  proposal (steps 1–2 built). `docs/sound-design.md` lists every sound the same way.
+  `docs/README.md` indexes every doc; `CHANGELOG.md` lists what changed in each build.
+- Private hosting details (server folders, file names, accounts) live only in the git-ignored
+  `CLAUDE.local.md`, never in tracked docs.
 - Act as a game design veteran: push back when something weakens a pillar and suggest a
   better option. The owner makes the final call.
 

@@ -1,4 +1,6 @@
-# Pythio art: stand-ins, file names, and the high-res prompt pack
+# Pythio — Art style guide and prompt pack
+
+_Current as of Build 119 (2026-10-30). The style guide in use today; the Steam art direction proposal is `docs/art-direction.md`._
 
 ## Where the art comes from today
 **High-res so far (2026-10-24):** all of Pythio's poses in use (idle, three casting, low mana,
@@ -70,8 +72,8 @@ Generate **one asset per image**, and attach the concept sheet as a style/image 
   [a glowing green cross / a blue shield / a green sprouting leaf inside a ring / a bright
   green cross with rays]"
 - **Bars (wide, 8:1):** "a horizontal comic-style health bar frame with a heart in a circle on
-  the left, empty black interior, rough inked white outline", and the same with "gold" and no
-  heart for mana
+  the left, empty black interior, rough inked white outline", and the same with "icy cyan" and no
+  heart for mana (mana has been icy cyan since 2026-10-27, #89; gold means combos only)
 - **VFX (1:1, ideally on black background instead of white):** "[green starburst of healing
   light / ring of green leaves / electric blue circular shield bubble / shattering blue
   shield shards / pulsing red concentric danger ring / red blood burst / gold sparkle]"

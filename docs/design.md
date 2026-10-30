@@ -1,4 +1,6 @@
-# Pythio: original game design document
+# Pythio — Original game design document (historical)
+
+> Historical: the original web game's design, kept for ideas and reference numbers. Current version: [game-design.md](game-design.md).
 
 > Copied from the wiki of the original web version (github.com/MarcialPimentel/Pythio/wiki).
 > It describes the **web game** (endless rounds, 27 spells, talents every 5 rounds).
