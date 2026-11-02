@@ -7,6 +7,11 @@ const C = preload("res://tools/tests/check.gd")
 # Works with or without sound files: "asks" = what the game wants, "plays" = files that exist.
 var game; var f := 0; var GM; var SS; var TS; var ES; var SND; var D; var step := 0; var wait := 0.0
 var asked := []; var heard := []; var T := []
+const ALL_SOUNDS := ["round_start", "baron_arrive", "job_finished", "countdown_tick", "pick_screen",
+	"bounty", "game_over", "cast_land", "cast_heal", "cast_hot", "cast_shield", "cast_mitigate",
+	"cast_other", "cast_start", "cant_cast", "low_mana", "combo", "passive_proc", "burst_warning",
+	"burst_hit", "shield_absorb", "shield_break", "baron_phase", "fighter_death", "debuff",
+	"debuff_poison", "debuff_bleed", "debuff_hex", "debuff_dread", "dread_kill", "cleanse", "bandage"]
 func _initialize():
 	game = load("res://scenes/Game.tscn").instantiate()
 	root.add_child.call_deferred(game)
@@ -27,6 +32,11 @@ func _process(d):
 			SND.requested.connect(func(n): asked.append(n))
 			SND.played.connect(func(n): heard.append(n))
 			P("files found: %s" % [["combo", "cast_heal", "cast_land", "debuff_poison", "game_over"].map(func(n): return "%s=%s" % [n, SND.has_sound(n)])])
+			# First sound pass: every sound in docs/sound-design.md has its own file (not a fallback).
+			var missing := []
+			for n in ALL_SOUNDS:
+				if not ResourceLoader.exists("%s%s.ogg" % [SND.DIR, n]): missing.append(n)
+			C.eq(missing, [], "every sound in the design doc has its own .ogg")
 			game._on_start_pressed(); wait = 0.3
 		1:
 			game.card_panel._choose(0); wait = 0.5

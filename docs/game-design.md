@@ -108,6 +108,10 @@ system has to make a new spell easy to add: numbers and effects, not new code.
   breath), with the colour language carried over: healing warm, shields glassy, combos golden,
   danger low, debuffs hissing. Every sound, its file name and when it plays:
   `docs/sound-design.md`. A sound is a file named for its moment, so adding one needs no code.
+  **First pass [Decided 2026-11-02]:** at Marz's request Claude filled every one of the 32 sounds
+  from CC0 recordings (Kenney) and code-made tones, one sound per spell category (heal,
+  heal-over-time, shield, mitigation, other). They are stand-ins Marz can replace one file at a
+  time; each play varies its pitch by up to ±4% so repeats don't sound mechanical.
 - **Exact colours [Decided 2026-10-29]:** one value per meaning, in `ui/Palette.gd`: emerald
   `#3DDC84`, electric blue `#5AB0FF`, gold `#F2C14E`, blood red `#F25257`, icy cyan `#7FE6F2`,
   violet `#B88AFF`; neutrals ink `#0E0C0B`, panel `#1A1614`, bone `#EDE6D6` (text and ink lines),
@@ -739,6 +743,7 @@ Marz's decisions, newest first, with the PR that carried them. The reasoning for
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-11-02 | A first pass of all 32 sounds from the CC0 library plus code-made tones, one sound per spell category rather than per spell (Marz: "rough pass, keep it simple") | The game was silent; stand-ins let Marz judge the feel and replace sounds one at a time. Alternatives: wait for hand-made sounds (still silent), or a sound per spell (too much for a first pass) |
 | 2026-10-29 | Start Steam polish steps 1 and 2 (Marz); Claude's recommendations taken on the rest: the window fills any screen shape, the bottom-right portrait goes, fonts stay with an 18 px floor ([#106](https://github.com/MarcialPimentel/pythio-godot/pull/106)) | Readable on a Steam Deck and ultrawide screens without changing the noir style |
 | 2026-10-28 | Recasting the same shield refreshes it at full strength ([#97](https://github.com/MarcialPimentel/pythio-godot/pull/97)) | Found in the code review; Marz picked the refresh |
 | 2026-10-28 | Leaderboard hardening keeps the current board ([#101](https://github.com/MarcialPimentel/pythio-godot/pull/101)) | Friends' scores aren't lost |
@@ -758,6 +763,7 @@ Marz's decisions, newest first, with the PR that carried them. The reasoning for
 
 | Date | Who | Change |
 |---|---|---|
+| 2026-11-02 | Claude (for Marz) | First sound pass: all 32 sounds in `docs/sound-design.md` now exist (Kenney CC0 recordings plus code-made tones, built by `tools/audio/build_sfx.sh`), with ±4% pitch variation per play. Section 2 updated. |
 | 2026-10-30 | Claude (for Marz) | Pick cards restyled as the "inked case file" (Marz's pick): inked double frame, number tab, big framed icon, centred title, cast and cost, tags; fixes the clipped tag chip and the empty bottom half. Every card screen uses it (spell choice, picks, the Baron's bounty, swap, first time). No rule changes. Section 11 updated. |
 | 2026-10-30 | Claude (for Marz) | The Contract Road (Marz: places in acts, keep the act names, code-drawn stand-ins for now): Mudroad, Drowned Marsh, Plague Chapel and the Crimson Keep behind the fight and the title screen, with weather, the act under the round and a name card on arrival; darker each lap. The Baron's round title is now just "Round N" (the act line names the Keep; the long title ran into the contract name). No rule changes. Sections 2 and 11 updated. |
 | 2026-10-29 | Claude (for Marz) | Steam polish steps 1 and 2 (`docs/art-direction.md`; Marz said start them, Claude's picks on the portrait, fonts and screen shape): the window fills any screen shape; the portrait is gone; card screens no longer show a second title behind theirs; 18 px text floor; exact palette values; screen shake, combo lean, sparks, ground shadows, hit flash, death veil, and a reduce-effects option. No rule changes. Sections 2 and 11 updated. |
