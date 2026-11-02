@@ -29,6 +29,8 @@ const FALLBACKS := {
 const MIN_GAP := 0.06
 ## Simultaneous sounds.
 const VOICES := 10
+## Each play is pitched up or down by up to this much (0.04 = ±4%).
+const PITCH_VARIATION := 0.04
 
 ## 0..1, saved per device. Changed from the Escape menu.
 var volume := 0.8
@@ -41,6 +43,7 @@ var _last := {}
 ## The last sound played (for tests).
 var last_played := ""
 var _countdown_sec := -1
+var _headless := DisplayServer.get_name() == "headless"
 
 
 func _ready() -> void:
@@ -51,6 +54,14 @@ func _ready() -> void:
 		_players.append(p)
 	_load_settings()
 	_connect()
+
+
+func _exit_tree() -> void:
+	# Let go of the loaded sounds on quit, or Godot reports them as "still in use at exit".
+	for p in _players:
+		p.stop()
+		p.stream = null
+	_cache.clear()
 
 
 # ── Playing ────────────────────────────────────────────
@@ -73,12 +84,14 @@ func _play(name: String, volume_db: float) -> bool:
 	_last[name] = now
 	last_played = name
 	played.emit(name)
-	if muted or volume <= 0.0:
-		return true
+	if muted or volume <= 0.0 or _headless:
+		return true   # headless (tests, sim bot): nothing to hear, and a sound still playing at quit is reported as a leak
 	var p := _players[_next]
 	_next = (_next + 1) % _players.size()
 	p.stream = stream
 	p.volume_db = volume_db
+	# A small random pitch change, so a sound heard 50 times a round never sounds machine-made.
+	p.pitch_scale = randf_range(1.0 - PITCH_VARIATION, 1.0 + PITCH_VARIATION)
 	p.play()
 	return true
 
