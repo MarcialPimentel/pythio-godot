@@ -109,3 +109,24 @@ game launching and playable. Before opening a PR:
   exports or .tres data, not hard-coded in logic.
 - Don't commit Godot `*.tmp` files or the `.godot/` folder.
 - Don't change art direction, add new mechanics, or rename spells without the owner's OK.
+
+## Ship and build notes
+
+_Read by the `ship`, `next-build` and `prod-run` skills, which keep no per-game notes of their own. Keep this section current when the deploy or build process changes._
+
+### Shipping (merge, deploy, live check)
+
+- **Default branch:** `master` (not main). **Merge style:** merge commit (`gh pr merge --merge`), the repo's history is all "Merge pull request #N".
+- **Deploy:** `.github/workflows/web.yml` ("Web build & deploy") runs on push to `master`: stamps the build, smoke-tests, exports for the web and uploads to marz.gg over FTP.
+- **Live check:** the build stamp is inside the game file:
+  `curl -s "https://marz.gg/games/pythio/index.pck?v=$(date +%s)" | grep -aoE 'Build [0-9]+ · [0-9a-f]{7}' | head -1`
+  The `?v=` part skips the host's cache (without it you can get an old build; since #100 the page itself loads `index.pck?v=<commit>`).
+  It must contain `<sha7>` of the merge commit (and the run number of the deploy run). The browser may cache the old game; tell Marz to hard-refresh (Ctrl+F5) if he sees the old build number in the corner.
+- **Playtest link:** https://marz.gg/games/pythio/ (build number in the bottom-right corner).
+
+### Planning and building the next build
+
+- **Where the next build comes from:** `docs/roadmap.md` is the work plan (one bullet ≈ one PR ≈ one issue), grouped into Phase milestones (Phase A, B, …; Backlog is not a phase). The next build is the earliest open Phase (by letter) with open issues Claude can do. Phases stay open with 0 issues until Marz playtests them; roadmap items marked 🟡 or waiting on Marz's art/sound files are his side. Phase H (words, names and flair) is owner-led: Claude exports the words for Marz to edit, then applies his edits. Marz's feedback is recorded as "Owner feedback" bullets in `docs/roadmap.md` (there's no `playtest-feedback` label). PRs have sometimes said "(#N)" instead of "Closes #N", so issues can stay open after shipping. `docs/game-design.md` is the source of truth: items marked **[Proposed]** are Claude's ideas awaiting Marz's call, so they are decisions to ask about. Check every change against its pillars (triage pressure, meaningful choices, escalating chaos, readable feedback).
+- **Branch / PR:** one feature per PR on `claude/<slug>`. When Marz asks for a whole phase, one branch `claude/phase-<letter>-<slug>` and one PR, one commit per roadmap issue, closing all of them. PR title like "Phase F: debuffs from round 6, Cleanse on F (#23, #53)". Merged with a merge commit; the default branch is `master`.
+- **Before the PR:** the headless tests in `tools/tests/` (`godot --headless --script tools/tests/<test>.gd`, see `tools/tests/README.md`), adding a test for new behaviour, and for balance changes the `sim_bot.gd` run. Don't commit `.godot/` or `*.tmp`.
+- **Docs in the same PR:** update the matching section of `docs/game-design.md` and its tunables table, add a changelog line, and tick the roadmap bullet.
